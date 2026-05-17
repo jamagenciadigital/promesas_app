@@ -1,0 +1,21 @@
+Retrieving project…
+Deploying jamagenciadigitals-projects/fichaje-app
+Inspect: https://vercel.com/jamagenciadigitals-projects/fichaje-app/Ftx2htwhQji4vDdBRxq1kgR56uU1 [1s]
+Production: https://fichaje-2no6p1ipf-jamagenciadigitals-projects.vercel.app [1s]
+https://fichaje-2no6p1ipf-jamagenciadigitals-projects.vercel.appBuilding...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 127 deployment files...
+Building: Restored build cache from previous deployment (ADNiWHz85K2hxBUSYam2TDJdyeEd)
+Building: Running "vercel build"
+Building: Vercel CLI 51.6.1
+Building: Installing dependencies...
+Building: up to date in 652ms
+Building: 28 packages are looking for funding
+Building: run `npm fund` for details
+Building: Running "npm run build"
+Building: > fichaje-saas@0.0.0 build
+Building: > tsc -b && vite build
+Error: Command "npm run build" exited with 2

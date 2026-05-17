@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Forzar visibilidad del icono de calendario nativo en Chrome/Safari */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5); /* Gris por defecto */
+    cursor: pointer;
+    opacity: 0.8;
+  }
+
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Blanco en modo oscuro */
+  }
+}

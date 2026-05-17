@@ -1,0 +1,26 @@
+Retrieving project…
+Deploying jamagenciadigitals-projects/fichaje-app
+Inspect: https://vercel.com/jamagenciadigitals-projects/fichaje-app/GbgT7ubBQU8mP7d3f4a87QHoHaHV [1s]
+Production: https://fichaje-oukf712yv-jamagenciadigitals-projects.vercel.app [1s]
+https://fichaje-oukf712yv-jamagenciadigitals-projects.vercel.appBuilding...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 122 deployment files...
+Building: Restored build cache from previous deployment (FJ3vTyMLeNTNYhaSSRS8NtHZv3WJ)
+Building: Running "vercel build"
+Building: Vercel CLI 51.6.1
+Building: Installing dependencies...
+Building: up to date in 607ms
+Building: 28 packages are looking for funding
+Building: run `npm fund` for details
+Building: Running "npm run build"
+Building: > fichaje-saas@0.0.0 build
+Building: > tsc -b && vite build
+Building: src/pages/Escenario/EscenarioReservations.tsx(430,57): error TS2339: Property 'ingreso_observacion' does not exist on type 'Reservation'.
+Building: src/pages/Escenario/EscenarioReservations.tsx(431,158): error TS2339: Property 'ingreso_observacion' does not exist on type 'Reservation'.
+Building: src/pages/Escenario/EscenarioReservations.tsx(448,57): error TS2339: Property 'salida_observacion' does not exist on type 'Reservation'.
+Building: src/pages/Escenario/EscenarioReservations.tsx(449,158): error TS2339: Property 'salida_observacion' does not exist on type 'Reservation'.
+Building: Error: Command "npm run build" exited with 2
+Error: Command "npm run build" exited with 2
