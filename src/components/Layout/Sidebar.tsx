@@ -197,11 +197,11 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
   };
 
   const sidebarClasses = cn(
-    "flex flex-col bg-[#16171b] border-r border-[#26282e] text-gray-300 transition-all duration-300 relative",
+    "flex flex-col bg-[#bd0f10] text-white transition-all duration-300 relative",
     isMobile 
       ? cn(
-          "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden",
-          isMobileOpen ? "translate-x-0 shadowed-xl shadow-black/50" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )
       : cn(isCollapsed ? "w-20" : "w-64")
   );
@@ -212,7 +212,7 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
       {!isMobile && (
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-6 bg-white border border-gray-200 text-gray-600 rounded-full p-1 shadow-sm hover:text-black z-50 transition-transform"
+          className="absolute -right-3 top-6 bg-white border border-gray-200 text-[#bd0f10] rounded-full p-1 shadow-md hover:text-[#182332] z-50 transition-all"
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -222,49 +222,51 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
       {isMobile && (
         <button 
           onClick={onClose}
-          className="absolute right-4 top-6 text-gray-400 hover:text-white"
+          className="absolute right-4 top-6 text-white/60 hover:text-white transition-colors"
         >
           <X className="h-6 w-6" />
         </button>
       )}
 
       {/* Header / Logo */}
-      <div className={cn("flex items-center border-b border-[#26282e]", isCollapsed ? "h-20 justify-center px-4" : "h-24 justify-center")}>
+      <div className={cn("flex items-center border-b border-white/10", isCollapsed ? "h-20 justify-center px-4" : "h-24 justify-center")}>
         <div className="flex items-center justify-center w-full h-full relative">
           {isCollapsed ? (
-            <img src="/assets/FAVICON.svg" alt="Promesas Icon" className="w-10 h-10 object-contain" />
+            <img src="/assets/FAVICON.svg" alt="Promesas Icon" className="w-10 h-10 object-contain brightness-0 invert" />
           ) : (
-            <img src="/assets/LogoVertical.png" alt="Promesas Logo" className="h-16 object-contain" />
+            <img src="/assets/logo_white.png" alt="Promesas Logo" className="h-16 object-contain" />
           )}
         </div>
       </div>
 
       {/* Navigation */}
       <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-        <nav className="flex-1 px-4 py-8 space-y-2">
+        <nav className="flex-1 px-3 py-6 space-y-1">
           {navItems.map((item: any) => (
             item.submenu ? (
               <div key={item.name} className="flex flex-col">
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={cn(
-                    "group flex items-center justify-between py-3 font-medium rounded-xl transition-all px-3",
-                    "text-gray-400 hover:bg-[#202228] hover:text-white"
+                    "group flex items-center justify-between py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
+                    item.submenu?.some((sub: any) => location.pathname.startsWith(sub.path))
+                      ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <div className="flex items-center">
-                    <item.icon className={cn("flex-shrink-0 h-5 w-5", isCollapsed ? "mx-auto" : "mr-4")} />
-                    {!isCollapsed && <span className="truncate text-sm">{item.name}</span>}
+                    <item.icon className={cn("flex-shrink-0 h-[18px] w-[18px]", isCollapsed ? "mx-auto" : "mr-3")} />
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
                   </div>
                   {!isCollapsed && (
                     expandedMenus[item.name] 
-                      ? <ChevronLeft size={16} className="-rotate-90 transition-transform" /> 
-                      : <ChevronLeft size={16} className="rotate-180 transition-transform" />
+                      ? <ChevronLeft size={14} className="-rotate-90 transition-transform text-white/50" /> 
+                      : <ChevronLeft size={14} className="rotate-180 transition-transform text-white/50" />
                   )}
                 </button>
                 {(!isCollapsed && expandedMenus[item.name]) && (
-                  <div className="flex flex-col ml-9 space-y-1 mt-1 border-l border-gray-700/50 pl-2">
+                  <div className="flex flex-col ml-9 space-y-0.5 mt-1 border-l-2 border-white/20 pl-3">
                     {item.submenu.map((sub: any) => (
                       <NavLink
                         key={sub.name}
@@ -273,10 +275,10 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                         end={sub.path === item.path}
                         className={({ isActive }) =>
                           cn(
-                            "py-2 font-medium rounded-lg transition-all px-3 text-xs",
+                            "py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
                             isActive
-                              ? "text-[#daff01] bg-[#202228]"
-                              : "text-gray-500 hover:text-gray-300 hover:bg-[#202228]/50"
+                              ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
+                              : "text-white/80 hover:bg-white/10 hover:text-white"
                           )
                         }
                       >
@@ -294,17 +296,17 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                 end={item.path === `/${profile?.rol?.replace('admin_', '')}`}
                 className={({ isActive }) =>
                   cn(
-                    "group flex items-center py-3 font-medium rounded-xl transition-all px-3",
+                    "group flex items-center py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
                     isActive
-                      ? "bg-[#202228] text-[#daff01]"
-                      : "text-gray-400 hover:bg-[#202228] hover:text-white"
+                      ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
                   )
                 }
                 title={isCollapsed ? item.name : undefined}
               >
-                <item.icon className={cn("flex-shrink-0 h-5 w-5", isCollapsed ? "mx-auto" : "mr-4")} />
+                <item.icon className={cn("flex-shrink-0 h-[18px] w-[18px]", isCollapsed ? "mx-auto" : "mr-3")} />
                 {!isCollapsed && (
-                  <span className="truncate text-sm">{item.name}</span>
+                  <span className="truncate">{item.name}</span>
                 )}
               </NavLink>
             )
@@ -313,14 +315,17 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
       </div>
 
       {/* User Footer */}
-      <div className={cn("p-4 border-t border-[#26282e]", isCollapsed ? "flex flex-col items-center gap-4" : "")}>
+      <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-4" : "")}>
         {!isCollapsed && (
           <div className="flex items-center mb-4 px-2">
+            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#bd0f10] font-bold text-sm mr-3 flex-shrink-0">
+              {profile?.nombre?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
+              <p className="text-sm font-semibold text-white truncate">
                 {profile?.nombre || profile?.email || 'Usuario'}
               </p>
-              <p className="text-xs text-gray-500 truncate capitalize">
+              <p className="text-[11px] text-white/50 truncate capitalize">
                 {profile?.rol.replace('_', ' ')}
               </p>
             </div>
@@ -331,11 +336,11 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
           onClick={signOut}
           title={isCollapsed ? t('header.logout') : undefined}
           className={cn(
-            "flex items-center py-2.5 text-sm font-medium rounded-lg text-gray-400 hover:bg-[#202228] hover:text-white transition-colors",
+            "flex items-center py-2.5 text-sm font-medium rounded-xl text-white/60 hover:bg-white/10 hover:text-white transition-all",
             isCollapsed ? "justify-center w-full px-0" : "w-full px-3"
           )}
         >
-          <LogOut className={cn("flex-shrink-0 h-5 w-5", isCollapsed ? "" : "mr-3")} />
+          <LogOut className={cn("flex-shrink-0 h-[18px] w-[18px]", isCollapsed ? "" : "mr-3")} />
           {!isCollapsed && t('header.logout')}
         </button>
       </div>

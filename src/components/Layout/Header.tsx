@@ -91,78 +91,69 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 bg-white dark:bg-[#16171b] border-b border-gray-200 dark:border-[#26282e] flex items-center justify-between px-6 sticky top-0 z-[100] transition-colors duration-300">
+    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-[100] transition-colors duration-300">
       <div className="flex items-center flex-1">
         <button 
           onClick={onMenuClick}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 md:hidden"
+          className="text-gray-400 hover:text-[#182332] md:hidden transition-colors"
         >
           <Menu className="h-6 w-6" />
         </button>
         <div className="ml-4 md:ml-0 flex-1 flex items-center gap-3">
-          {clubInfo?.logo_url && (
+          {profile?.rol !== 'superadmin' && clubInfo?.logo_url && (
             <img 
               src={getDirectImageUrl(clubInfo.logo_url)} 
               alt={clubInfo.nombre} 
-              className="w-8 h-8 md:w-10 md:h-10 rounded-xl object-contain bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 p-1 shadow-sm"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-xl object-contain bg-gray-50 border border-gray-100 p-1"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
-          {clubInfo && (
-            <h1 className="text-sm md:text-base font-black text-gray-900 dark:text-white uppercase tracking-widest italic line-clamp-1">
+          {profile?.rol !== 'superadmin' && clubInfo && (
+            <h1 className="text-sm md:text-base font-bold text-[#182332] uppercase tracking-wide line-clamp-1">
               {clubInfo.nombre}
             </h1>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Language Selector */}
         <div className="relative" ref={langRef}>
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)}
-            className="flex items-center gap-2 p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-all rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 px-3 h-10"
+            className="flex items-center gap-2 p-2 text-gray-400 hover:text-[#182332] transition-all rounded-xl hover:bg-gray-50 px-3 h-10"
             title={t('header.lang')}
           >
             <Globe className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{currentLang.code}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide hidden sm:block">{currentLang.code}</span>
           </button>
 
           {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl py-2 z-[9999] overflow-hidden">
-              <p className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800 mb-1">
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-[9999] overflow-hidden">
+              <p className="px-4 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">
                 Language / Idioma
               </p>
               <button
                 onClick={() => { setLanguage('es'); setIsLangOpen(false); }}
-                className={`w-full text-left px-4 py-3 text-sm ${language === 'es' ? 'bg-[#CCFF00] text-black font-bold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                className={`w-full text-left px-4 py-3 text-sm transition-colors ${language === 'es' ? 'bg-[#182332] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 ES - Español
               </button>
               <button
                 onClick={() => { setLanguage('en'); setIsLangOpen(false); }}
-                className={`w-full text-left px-4 py-3 text-sm ${language === 'en' ? 'bg-[#CCFF00] text-black font-bold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                className={`w-full text-left px-4 py-3 text-sm transition-colors ${language === 'en' ? 'bg-[#182332] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 EN - English
               </button>
               <button
                 onClick={() => { setLanguage('fr'); setIsLangOpen(false); }}
-                className={`w-full text-left px-4 py-3 text-sm ${language === 'fr' ? 'bg-[#CCFF00] text-black font-bold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                className={`w-full text-left px-4 py-3 text-sm transition-colors ${language === 'fr' ? 'bg-[#182332] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 FR - Français
               </button>
             </div>
           )}
         </div>
-
-        {/* Dark Mode Toggle */}
-        <button 
-          onClick={toggleDarkMode}
-          className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-all rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 w-10 h-10 border border-transparent hover:border-gray-200 dark:hover:border-white/10 flex items-center justify-center"
-          title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-        >
-          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
 
         {/* Notificaciones */}
         <NotificationPopover />
@@ -171,9 +162,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors focus:outline-none pr-3"
+            className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-50 transition-colors focus:outline-none pr-3"
           >
-            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center overflow-hidden shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-[#182332] flex items-center justify-center overflow-hidden shadow-sm">
               {profile?.foto_url ? (
                   <img 
                     src={getDirectImageUrl(profile.foto_url)} 
@@ -184,27 +175,27 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     }}
                   />
               ) : (
-                  <span className="font-bold text-sm text-gray-700 dark:text-gray-300">{getInitial()}</span>
+                  <span className="font-bold text-sm text-white">{getInitial()}</span>
               )}
             </div>
             <div className="hidden md:flex flex-col items-start">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-tight">
+              <span className="text-sm font-semibold text-gray-800 leading-tight">
                 {getDisplayName()}
               </span>
             </div>
-            <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-gray-400 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {/* Menú Desplegable */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#0f1115] border border-gray-200 dark:border-[#26282e] rounded-xl shadow-lg py-2 animate-in fade-in slide-in-from-top-2 z-[9999]">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{profile?.email || user?.email}</p>
+            <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 z-[9999]">
+              <div className="px-4 py-3 border-b border-gray-50">
+                <p className="text-sm font-semibold text-gray-900 truncate">{getDisplayName()}</p>
+                <p className="text-xs text-gray-400 truncate mt-0.5">{profile?.email || user?.email}</p>
                 
-                <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-blue-200/50 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#182332]/10 bg-[#182332]/5 text-[#182332]">
                   <Shield className="w-3.5 h-3.5" />
                   <span className="text-xs font-semibold">{formatRole(profile?.rol)}</span>
                 </div>
@@ -214,7 +205,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 <Link 
                   to="/profile"
                   onClick={() => setIsProfileOpen(false)}
-                  className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                  className="block w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors rounded-lg mx-1"
                 >
                   {t('header.profile')}
                 </Link>
@@ -222,17 +213,17 @@ export default function Header({ onMenuClick }: HeaderProps) {
                   <Link 
                     to={profile.rol === 'superadmin' ? '/superadmin/settings' : '/club/settings'}
                     onClick={() => setIsProfileOpen(false)}
-                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors rounded-lg mx-1"
                   >
                     {t('nav.settings')}
                   </Link>
                 )}
               </div>
 
-              <div className="border-t border-gray-100 dark:border-white/5 pt-2">
+              <div className="border-t border-gray-50 pt-2">
                 <button 
                   onClick={signOut}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium cursor-pointer rounded-lg mx-1"
                 >
                   <LogOut className="w-4 h-4" />
                   {t('header.logout')}

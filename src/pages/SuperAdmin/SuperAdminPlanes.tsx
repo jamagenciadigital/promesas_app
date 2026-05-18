@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit2, CheckCircle2, XCircle, CreditCard, Users, ShieldAlert, Award } from 'lucide-react';
+import { Plus, Edit2, CheckCircle2, XCircle, CreditCard, Users, ShieldAlert, Award, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { Toast } from '../../components/ui/Toast';
+import { cn } from '../../lib/utils';
 import type { PlanSuscripcion } from '../../types';
 
 const FORMATIVE_MODULES = [
@@ -45,14 +47,42 @@ export default function SuperAdminPlanes() {
   });
 
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDanger?: boolean;
+  } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
+
+  const askConfirmation = (config: {
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDanger?: boolean;
+  }) => {
+    setConfirmConfig({
+      isOpen: true,
+      ...config
+    });
+  };
 
   useEffect(() => {
     fetchPlanes();
   }, []);
 
-  async function fetchPlanes() {
+  async function fetchPlanes(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { data, error } = await supabase
         .from('planes_suscripcion')
         .select('*')
@@ -60,10 +90,11 @@ export default function SuperAdminPlanes() {
         
       if (error) throw error;
       setPlanes(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching planes", err);
+      showToast("Error al obtener planes: " + err.message, 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -110,9 +141,81 @@ export default function SuperAdminPlanes() {
     });
   };
 
+  const handleToggleEstado = (plan: PlanSuscripcion) => {
+    const nuevoEstado = !plan.estado;
+    const confirmMessage = nuevoEstado 
+      ? `¿Estás seguro de que deseas ACTIVAR el plan "${plan.nombre}"?` 
+      : `¿Estás seguro de que deseas DESACTIVAR el plan "${plan.nombre}"? Los clubes asociados no se verán afectados inmediatamente, pero el plan dejará de estar visible para nuevas suscripciones.`;
+    
+    askConfirmation({
+      title: nuevoEstado ? 'Activar Plan' : 'Desactivar Plan',
+      message: confirmMessage,
+      confirmText: nuevoEstado ? 'Activar' : 'Desactivar',
+      isDanger: !nuevoEstado,
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase
+            .from('planes_suscripcion')
+            .update({ estado: nuevoEstado })
+            .eq('id', plan.id);
+
+          if (error) throw error;
+          showToast(`Plan ${nuevoEstado ? 'activado' : 'desactivado'} exitosamente`, 'success');
+          await fetchPlanes(true);
+        } catch (err: any) {
+          console.error("Error al cambiar estado del plan:", err);
+          showToast("Error al cambiar estado: " + err.message, 'error');
+        }
+      }
+    });
+  };
+
+  const handleDeletePlan = (plan: PlanSuscripcion) => {
+    const confirmMessage = `¿Estás seguro de que deseas ELIMINAR permanentemente el plan "${plan.nombre}"?\n\nEsta acción no se puede deshacer y desvinculará a los clubes que estén usando este plan (su plan quedará vacío).`;
+    
+    askConfirmation({
+      title: 'Eliminar Plan',
+      message: confirmMessage,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      isDanger: true,
+      onConfirm: async () => {
+        try {
+          // 1. Desvincular los clubes que tengan asignado este plan
+          const { error: updateClubsError } = await supabase
+            .from('clubes')
+            .update({ plan_id: null })
+            .eq('plan_id', plan.id);
+            
+          if (updateClubsError) {
+            console.warn("Advertencia al desvincular clubes del plan:", updateClubsError);
+            throw updateClubsError;
+          }
+
+          // 2. Eliminar el plan
+          const { error } = await supabase
+            .from('planes_suscripcion')
+            .delete()
+            .eq('id', plan.id);
+
+          if (error) throw error;
+          
+          showToast("Plan eliminado exitosamente", 'success');
+          await fetchPlanes(true);
+        } catch (err: any) {
+          console.error("Error al eliminar plan:", err);
+          showToast("Error al eliminar: " + err.message, 'error');
+        }
+      }
+    });
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre) return alert('El nombre es requerido');
+    if (!formData.nombre) {
+      showToast('El nombre es requerido', 'error');
+      return;
+    }
     
     try {
       setSaving(true);
@@ -153,12 +256,12 @@ export default function SuperAdminPlanes() {
         console.log('Respuesta de inserción:', data);
       }
       
-      alert('Plan guardado exitosamente');
+      showToast('Plan guardado exitosamente', 'success');
       setIsModalOpen(false);
-      await fetchPlanes();
+      await fetchPlanes(true);
     } catch(err: any) {
       console.error('Error al guardar plan:', err);
-      alert("Error al guardar: " + err.message);
+      showToast("Error al guardar: " + err.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -215,9 +318,29 @@ export default function SuperAdminPlanes() {
                      </div>
                   </div>
 
-                  <Button onClick={() => handleOpenModal(plan)} className="w-full mt-auto rounded-2xl h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-black uppercase tracking-widest text-[10px]">
-                     Gestión de Plan
-                  </Button>
+                  <div className="flex gap-2 mt-auto w-full">
+                     <Button onClick={() => handleOpenModal(plan)} className="flex-1 rounded-2xl h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-black uppercase tracking-widest text-[10px]">
+                        Gestión de Plan
+                     </Button>
+                     <Button 
+                        onClick={() => handleToggleEstado(plan)} 
+                        className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-300 ${
+                           plan.estado 
+                              ? 'border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 bg-amber-500/5 hover:bg-amber-500/10' 
+                              : 'border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10'
+                        }`}
+                        title={plan.estado ? "Desactivar Plan" : "Activar Plan"}
+                     >
+                        {plan.estado ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                     </Button>
+                     <Button 
+                        onClick={() => handleDeletePlan(plan)} 
+                        className="w-14 h-14 rounded-2xl border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 bg-red-500/5 hover:bg-red-500/10 flex items-center justify-center transition-all duration-300"
+                        title="Eliminar Plan"
+                     >
+                        <Trash2 size={18} />
+                     </Button>
+                  </div>
                </div>
             ))}
          </div>
@@ -323,14 +446,76 @@ export default function SuperAdminPlanes() {
                </div>
             </div>
             
-            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-white/10">
-               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-               <Button type="submit" isLoading={saving} className="bg-[#ccff00] text-black hover:bg-[#aacc00] px-8 py-3 rounded-xl font-bold">
-                  {editingPlan ? 'Guardar Cambios' : 'Crear Plan Suscripción'}
-               </Button>
+            <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-white/10 w-full">
+               <div>
+                  {editingPlan && (
+                     <Button 
+                        type="button" 
+                        onClick={() => {
+                           setIsModalOpen(false);
+                           handleDeletePlan(editingPlan);
+                        }} 
+                        className="bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20 px-6 py-3 rounded-xl font-bold border border-red-500/20 transition-colors text-sm flex items-center gap-2"
+                     >
+                        <Trash2 size={16} /> Eliminar Plan
+                     </Button>
+                  )}
+               </div>
+               <div className="flex gap-4">
+                  <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+                  <Button type="submit" isLoading={saving} className="bg-[#ccff00] text-black hover:bg-[#aacc00] px-8 py-3 rounded-xl font-bold">
+                     {editingPlan ? 'Guardar Cambios' : 'Crear Plan Suscripción'}
+                  </Button>
+               </div>
             </div>
          </form>
       </Modal>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {confirmConfig?.isOpen && (
+        <Modal 
+          isOpen={confirmConfig.isOpen} 
+          onClose={() => setConfirmConfig(prev => prev ? { ...prev, isOpen: false } : null)} 
+          title={confirmConfig.title}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-6">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">
+              {confirmConfig.message}
+            </p>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+              <Button 
+                variant="ghost"
+                onClick={() => setConfirmConfig(prev => prev ? { ...prev, isOpen: false } : null)}
+                className="rounded-xl px-5"
+              >
+                {confirmConfig.cancelText || 'Cancelar'}
+              </Button>
+              <Button 
+                onClick={() => {
+                  confirmConfig.onConfirm();
+                  setConfirmConfig(prev => prev ? { ...prev, isOpen: false } : null);
+                }}
+                className={cn(
+                  "rounded-xl px-5 font-bold transition-all duration-200 border-none",
+                  confirmConfig.isDanger 
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-black text-[#CCFF00] hover:bg-black/90 dark:bg-white dark:text-black"
+                )}
+              >
+                {confirmConfig.confirmText || 'Confirmar'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

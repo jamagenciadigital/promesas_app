@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#0f1115] text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-300">
+    <div className="flex h-screen bg-[#f8f9fb] text-gray-900 overflow-hidden transition-colors duration-300">
       {/* Sidebar for Desktop */}
       <div className="hidden md:flex">
         <Sidebar />

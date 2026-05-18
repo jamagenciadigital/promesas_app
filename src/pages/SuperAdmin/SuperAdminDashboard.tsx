@@ -190,104 +190,110 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in duration-500 relative">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">Panel General</h1>
-          <p className="text-sm text-gray-500 font-medium mt-2 uppercase tracking-widest text-[10px]">Métricas Maestras de la Plataforma</p>
+          <h1 className="text-2xl font-bold text-[#182332] tracking-tight">Panel General</h1>
+          <p className="text-sm text-gray-400 mt-1">Métricas maestras de la plataforma</p>
         </div>
-        <div className="flex items-center gap-2 bg-[#CCFF00] px-4 py-2 rounded-full shadow-lg shadow-[#CCFF00]/20">
-          <Activity size={16} className="text-black animate-pulse" />
-          <span className="text-[10px] font-black uppercase text-black italic">Sistema en Vivo</span>
+        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-full">
+          <Activity size={14} className="text-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-semibold text-emerald-600">Sistema en Vivo</span>
         </div>
       </div>
 
       {loading ? (
-        <div className="animate-pulse space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="animate-pulse space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 dark:bg-white/5 rounded-[32px]"></div>
+              <div key={i} className="h-32 bg-gray-100 rounded-2xl"></div>
             ))}
           </div>
-          <div className="h-96 bg-gray-100 dark:bg-white/5 rounded-[48px]"></div>
+          <div className="h-96 bg-gray-100 rounded-2xl"></div>
         </div>
       ) : (
         <>
-          {/* Row 1: Totales Financieros y Globales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-black p-6 rounded-[32px] border border-white/10 shadow-2xl relative overflow-hidden group">
+          {/* Row 1: Financial Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Recaudado — Hero Card */}
+            <div className="bg-[#182332] p-6 rounded-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                <DollarSign size={64} className="text-[#CCFF00]" />
+                <DollarSign size={56} className="text-white" />
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Recaudado (Pagos)</p>
-              <h3 className="text-3xl font-black text-[#CCFF00] italic">{formatCurrency(stats.pagosTotal)}</h3>
-              <div className="mt-4 flex items-center gap-1 text-[8px] font-bold text-emerald-400 uppercase">
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Recaudado</p>
+              <h3 className="text-2xl font-bold text-white">{formatCurrency(stats.pagosTotal)}</h3>
+              <div className="mt-3 flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
                 <TrendingUp size={10} /> +12% vs mes anterior
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                <Wallet size={64} className="text-amber-500" />
+            {/* Cartera */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                <Wallet size={56} className="text-amber-500" />
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Cartera Total (Por Cobrar)</p>
-              <h3 className="text-3xl font-black text-amber-500 italic">{formatCurrency(stats.carteraTotal)}</h3>
-              <p className="text-[8px] font-bold text-gray-400 uppercase mt-4">Cuentas pendientes globales</p>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Cartera Por Cobrar</p>
+              <h3 className="text-2xl font-bold text-amber-500">{formatCurrency(stats.carteraTotal)}</h3>
+              <p className="text-[10px] font-medium text-gray-400 mt-3">Cuentas pendientes globales</p>
             </div>
 
-            <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                <Trophy size={64} className="text-[#CCFF00]" />
+            {/* Comisiones */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                <Trophy size={56} className="text-[#E30613]" />
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Comisiones Pendientes (Sistema)</p>
-              <h3 className="text-3xl font-black text-[#CCFF00] dark:text-[#CCFF00] italic">{formatCurrency(stats.totalComisiones)}</h3>
-              <p className="text-[8px] font-bold text-gray-400 uppercase mt-4">Lo que los clubes deben al SuperAdmin</p>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Comisiones Pendientes</p>
+              <h3 className="text-2xl font-bold text-[#E30613]">{formatCurrency(stats.totalComisiones)}</h3>
+              <p className="text-[10px] font-medium text-gray-400 mt-3">Lo que los clubes deben al sistema</p>
             </div>
 
-            <div className="bg-[#CCFF00] p-6 rounded-[32px] shadow-xl shadow-[#CCFF00]/10 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform">
-                <Users size={64} className="text-black" />
+            {/* Total Usuarios — Accent Card */}
+            <div className="bg-[#E30613] p-6 rounded-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform">
+                <Users size={56} className="text-white" />
               </div>
-              <p className="text-[10px] font-black text-black/60 uppercase tracking-widest mb-2">Total Usuarios</p>
-              <h3 className="text-3xl font-black text-black italic">{stats.perfiles}</h3>
-              <p className="text-[8px] font-bold text-black/40 uppercase mt-4">Registrados en la plataforma</p>
+              <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-2">Total Usuarios</p>
+              <h3 className="text-2xl font-bold text-white">{stats.perfiles}</h3>
+              <p className="text-[10px] font-medium text-white/50 mt-3">Registrados en la plataforma</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Columna Izquierda (2/3): Finanzas por Club */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#1e293b]/40 rounded-[48px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
-              <div className="p-8 border-b border-gray-50 dark:border-white/5 flex items-center justify-between">
+          {/* Row 2: Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Finanzas por Club */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                    <TrendingUp className="text-emerald-500 w-5 h-5" />
+                  <div className="p-2.5 bg-emerald-50 rounded-xl">
+                    <TrendingUp className="text-emerald-500 w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black uppercase italic tracking-tight">Finanzas por Club</h2>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Desglose de recaudado vs deuda</p>
+                    <h2 className="text-base font-bold text-[#182332]">Finanzas por Club</h2>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Desglose de recaudado vs deuda</p>
                   </div>
                 </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-gray-50/50 dark:bg-white/5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      <th className="px-8 py-4">Club</th>
-                      <th className="px-8 py-4">Pagado</th>
-                      <th className="px-8 py-4">Cartera</th>
-                      <th className="px-8 py-4">Efectividad</th>
+                    <tr className="bg-gray-50/80 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                      <th className="px-6 py-3">Club</th>
+                      <th className="px-6 py-3">Pagado</th>
+                      <th className="px-6 py-3">Cartera</th>
+                      <th className="px-6 py-3">Efectividad</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                  <tbody className="divide-y divide-gray-50">
                     {clubFinancials.map((club, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                        <td className="px-8 py-4 font-black uppercase italic text-xs">{club.nombre}</td>
-                        <td className="px-8 py-4 text-emerald-500 font-bold text-xs">{formatCurrency(club.pagado)}</td>
-                        <td className="px-8 py-4 text-amber-500 font-bold text-xs">{formatCurrency(club.pendiente)}</td>
-                        <td className="px-8 py-4">
-                           <div className="w-full h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 font-semibold text-[#182332] text-sm">{club.nombre}</td>
+                        <td className="px-6 py-4 text-emerald-500 font-semibold text-sm">{formatCurrency(club.pagado)}</td>
+                        <td className="px-6 py-4 text-amber-500 font-semibold text-sm">{formatCurrency(club.pendiente)}</td>
+                        <td className="px-6 py-4">
+                           <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-[#CCFF00]" 
+                                className="h-full bg-[#E30613] rounded-full transition-all" 
                                 style={{ width: `${(club.pagado + club.pendiente) > 0 ? (club.pagado / (club.pagado + club.pendiente)) * 100 : 0}%` }}
                               />
                            </div>
@@ -299,129 +305,118 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            {/* Columna Derecha (1/3): Demografía Detallada */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 flex items-center gap-4 group hover:border-[#CCFF00]/30 transition-all cursor-default">
-                <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                   <UserCheck size={28} />
+            {/* Right Column: Demographics */}
+            <div className="space-y-4">
+              {/* Stat Cards */}
+              {[
+                { label: 'Entrenadores', value: stats.entrenadores, icon: UserCheck, color: 'text-blue-500', bg: 'bg-blue-50' },
+                { label: 'Padres', value: stats.padres, icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                { label: 'Jefatura', value: stats.jefatura, icon: ShieldCheck, color: 'text-amber-500', bg: 'bg-amber-50' },
+              ].map((item, idx) => (
+                <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                  <div className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center ${item.color}`}>
+                    <item.icon size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{item.label}</p>
+                    <h4 className="text-xl font-bold text-[#182332]">{item.value}</h4>
+                  </div>
                 </div>
-                <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Entrenadores</p>
-                   <h4 className="text-2xl font-black italic">{stats.entrenadores}</h4>
-                </div>
-              </div>
+              ))}
 
-              <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 flex items-center gap-4 group hover:border-[#CCFF00]/30 transition-all cursor-default">
-                <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                   <Users size={28} />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Padres</p>
-                   <h4 className="text-2xl font-black italic">{stats.padres}</h4>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 flex items-center gap-4 group hover:border-[#CCFF00]/30 transition-all cursor-default">
-                <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                   <ShieldCheck size={28} />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jefatura Escenarios</p>
-                   <h4 className="text-2xl font-black italic">{stats.jefatura}</h4>
-                </div>
-              </div>
-
+              {/* Jugadores — Clickable */}
               <button 
                 onClick={() => navigate('/superadmin/jugadores')}
-                className="w-full text-left bg-[#CCFF00]/10 p-6 rounded-[32px] border border-[#CCFF00]/20 flex items-center gap-4 group hover:bg-[#CCFF00]/20 transition-all"
+                className="w-full text-left bg-red-50 p-5 rounded-2xl border border-red-100 flex items-center gap-4 hover:bg-red-100/50 hover:shadow-md transition-all"
               >
-                <div className="w-14 h-14 bg-[#CCFF00] rounded-2xl flex items-center justify-center text-black group-hover:scale-110 transition-transform">
-                   <Trophy size={28} />
+                <div className="w-12 h-12 bg-[#E30613] rounded-xl flex items-center justify-center text-white">
+                  <Trophy size={22} />
                 </div>
                 <div className="flex-1">
-                   <div className="flex items-center justify-between">
-                     <p className="text-[10px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest">Jugadores</p>
-                     <ExternalLink size={12} className="text-black/40 group-hover:text-black transition-colors" />
-                   </div>
-                   <h4 className="text-2xl font-black italic text-black dark:text-[#CCFF00]">{stats.jugadores}</h4>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider">Jugadores</p>
+                    <ExternalLink size={12} className="text-gray-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-[#182332]">{stats.jugadores}</h4>
                 </div>
               </button>
 
-              <div className="bg-white dark:bg-[#1e293b]/50 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 flex items-center gap-4 group hover:border-[#CCFF00]/30 transition-all cursor-default">
-                <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
-                   <Building2 size={28} />
+              {/* Equipos */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500">
+                  <Building2 size={22} />
                 </div>
                 <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Equipos</p>
-                   <h4 className="text-2xl font-black italic">{stats.equipos}</h4>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Equipos</p>
+                  <h4 className="text-xl font-bold text-[#182332]">{stats.equipos}</h4>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Fila Final: Últimos Registros (Full Width) */}
-          <div className="bg-white dark:bg-[#1e293b]/40 rounded-[48px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
-            <div className="p-8 border-b border-gray-50 dark:border-white/5 flex items-center justify-between">
+          {/* Row 3: Activity Log */}
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gray-900 rounded-2xl">
-                  <Clock className="text-[#CCFF00] w-5 h-5" />
+                <div className="p-2.5 bg-[#182332] rounded-xl">
+                  <Clock className="text-white w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black uppercase italic tracking-tight">Bitácora de Registros del Sistema</h2>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Historial completo de nuevos usuarios en la plataforma</p>
+                  <h2 className="text-base font-bold text-[#182332]">Bitácora de Registros</h2>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Historial de nuevos usuarios en la plataforma</p>
                 </div>
               </div>
-              <button className="text-[10px] font-black uppercase text-gray-400 hover:text-[#CCFF00] transition-colors tracking-widest">Ver Todo</button>
+              <button className="text-[11px] font-semibold text-gray-400 hover:text-[#E30613] transition-colors tracking-wide">Ver Todo</button>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-gray-50/50 dark:bg-white/5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    <th className="px-8 py-4">Usuario</th>
-                    <th className="px-8 py-4">Rol en el Sistema</th>
-                    <th className="px-8 py-4">Club / Organización</th>
-                    <th className="px-8 py-4">Fecha de Alta</th>
-                    <th className="px-8 py-4">Estado</th>
+                  <tr className="bg-gray-50/80 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3">Usuario</th>
+                    <th className="px-6 py-3">Rol</th>
+                    <th className="px-6 py-3">Club</th>
+                    <th className="px-6 py-3">Fecha de Alta</th>
+                    <th className="px-6 py-3">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                <tbody className="divide-y divide-gray-50">
                   {recentLogs.map((log) => (
-                    <tr key={log.id} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                      <td className="px-8 py-6">
+                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-xl bg-gray-900 dark:bg-[#CCFF00] flex items-center justify-center text-white dark:text-black font-black italic text-lg shadow-lg">
-                              {log.nombre?.charAt(0) || <UserPlus size={16} />}
+                           <div className="w-9 h-9 rounded-xl bg-[#182332] flex items-center justify-center text-white font-bold text-sm">
+                              {log.nombre?.charAt(0) || <UserPlus size={14} />}
                            </div>
                            <div>
-                              <p className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{log.nombre || 'Sin nombre'}</p>
-                              <p className="text-[10px] font-bold text-gray-400 lowercase">{log.email}</p>
+                              <p className="text-sm font-semibold text-[#182332]">{log.nombre || 'Sin nombre'}</p>
+                              <p className="text-[11px] text-gray-400">{log.email}</p>
                            </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase italic tracking-widest">
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold uppercase tracking-wide">
                           {log.rol}
                         </span>
                       </td>
-                      <td className="px-8 py-6">
-                        <p className="text-xs font-black uppercase italic text-gray-700 dark:text-gray-300">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-gray-600">
                           {log.club?.nombre || 'Admin Sistema'}
                         </p>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                          <p className="text-sm text-gray-700">
                             {format(new Date(log.created_at), "d 'de' MMMM", { locale: es })}
                           </p>
-                          <p className="text-[10px] font-bold text-gray-400">
+                          <p className="text-[11px] text-gray-400">
                             {format(new Date(log.created_at), "HH:mm 'hs'", { locale: es })}
                           </p>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase italic tracking-widest w-fit">
-                            <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
+                      <td className="px-6 py-4">
+                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold w-fit">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                             Verificado
                          </div>
                       </td>

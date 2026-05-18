@@ -1,0 +1,1220 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["multiSchema", "partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["auth", "public"]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model audit_log_entries {
+  instance_id String?   @db.Uuid
+  id          String    @id @db.Uuid
+  payload     Json?     @db.Json
+  created_at  DateTime? @db.Timestamptz(6)
+  ip_address  String    @default("") @db.VarChar(64)
+
+  @@index([instance_id], map: "audit_logs_instance_id_idx")
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model custom_oauth_providers {
+  id                    String    @id @default(uuid()) @db.Uuid
+  provider_type         String
+  identifier            String    @unique
+  name                  String
+  client_id             String
+  client_secret         String
+  acceptable_client_ids String[]  @default([])
+  scopes                String[]  @default([])
+  pkce_enabled          Boolean   @default(true)
+  attribute_mapping     Json      @default("{}")
+  authorization_params  Json      @default("{}")
+  enabled               Boolean   @default(true)
+  email_optional        Boolean   @default(false)
+  issuer                String?
+  discovery_url         String?
+  skip_nonce_check      Boolean   @default(false)
+  cached_discovery      Json?
+  discovery_cached_at   DateTime? @db.Timestamptz(6)
+  authorization_url     String?
+  token_url             String?
+  userinfo_url          String?
+  jwks_uri              String?
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([created_at])
+  @@index([enabled])
+  @@index([identifier])
+  @@index([provider_type])
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model flow_state {
+  id                     String                 @id @db.Uuid
+  user_id                String?                @db.Uuid
+  auth_code              String?
+  code_challenge_method  code_challenge_method?
+  code_challenge         String?
+  provider_type          String
+  provider_access_token  String?
+  provider_refresh_token String?
+  created_at             DateTime?              @db.Timestamptz(6)
+  updated_at             DateTime?              @db.Timestamptz(6)
+  authentication_method  String
+  auth_code_issued_at    DateTime?              @db.Timestamptz(6)
+  invite_token           String?
+  referrer               String?
+  oauth_client_state_id  String?                @db.Uuid
+  linking_target_id      String?                @db.Uuid
+  email_optional         Boolean                @default(false)
+  saml_relay_states      saml_relay_states[]
+
+  @@index([created_at(sort: Desc)])
+  @@index([auth_code], map: "idx_auth_code")
+  @@index([user_id, authentication_method], map: "idx_user_id_auth_method")
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model identities {
+  provider_id     String
+  user_id         String    @db.Uuid
+  identity_data   Json
+  provider        String
+  last_sign_in_at DateTime? @db.Timestamptz(6)
+  created_at      DateTime? @db.Timestamptz(6)
+  updated_at      DateTime? @db.Timestamptz(6)
+  email           String?   
+  id              String    @id @default(uuid()) @db.Uuid
+  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider_id, provider], map: "identities_provider_id_provider_unique")
+  @@index([email])
+  @@index([user_id])
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model instances {
+  id              String    @id @db.Uuid
+  uuid            String?   @db.Uuid
+  raw_base_config String?
+  created_at      DateTime? @db.Timestamptz(6)
+  updated_at      DateTime? @db.Timestamptz(6)
+
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model mfa_amr_claims {
+  session_id            String   @db.Uuid
+  created_at            DateTime @db.Timestamptz(6)
+  updated_at            DateTime @db.Timestamptz(6)
+  authentication_method String
+  id                    String   @id(map: "amr_id_pk") @db.Uuid
+  sessions              sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([session_id, authentication_method], map: "mfa_amr_claims_session_id_authentication_method_pkey")
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model mfa_challenges {
+  id                     String      @id @db.Uuid
+  factor_id              String      @db.Uuid
+  created_at             DateTime    @db.Timestamptz(6)
+  verified_at            DateTime?   @db.Timestamptz(6)
+  ip_address             String      @db.Inet
+  otp_code               String?
+  web_authn_session_data Json?
+  mfa_factors            mfa_factors @relation(fields: [factor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mfa_challenges_auth_factor_id_fkey")
+
+  @@index([created_at(sort: Desc)], map: "mfa_challenge_created_at_idx")
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model mfa_factors {
+  id                           String           @id @db.Uuid
+  user_id                      String           @db.Uuid
+  friendly_name                String?
+  factor_type                  factor_type
+  status                       factor_status
+  created_at                   DateTime         @db.Timestamptz(6)
+  updated_at                   DateTime         @db.Timestamptz(6)
+  secret                       String?
+  phone                        String?
+  last_challenged_at           DateTime?        @unique @db.Timestamptz(6)
+  web_authn_credential         Json?
+  web_authn_aaguid             String?          @db.Uuid
+  last_webauthn_challenge_data Json?
+  mfa_challenges               mfa_challenges[]
+  users                        users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([friendly_name, user_id], map: "mfa_factors_user_friendly_name_unique", where: raw("(TRIM(BOTH FROM friendly_name) <> ''::text)"))
+  @@unique([user_id, phone], map: "unique_phone_factor_per_user")
+  @@index([user_id, created_at], map: "factor_id_created_at_idx")
+  @@index([user_id])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oauth_authorizations {
+  id                    String                     @id @db.Uuid
+  authorization_id      String                     @unique
+  client_id             String                     @db.Uuid
+  user_id               String?                    @db.Uuid
+  redirect_uri          String
+  scope                 String
+  state                 String?
+  resource              String?
+  code_challenge        String?
+  code_challenge_method code_challenge_method?
+  response_type         oauth_response_type        @default(code)
+  status                oauth_authorization_status @default(pending)
+  authorization_code    String?                    @unique
+  created_at            DateTime                   @default(now()) @db.Timestamptz(6)
+  expires_at            DateTime                    @db.Timestamptz(6)
+  approved_at           DateTime?                  @db.Timestamptz(6)
+  nonce                 String?
+  oauth_clients         oauth_clients              @relation(fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                 users?                     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "oauth_auth_pending_exp_idx", where: raw("(status = 'pending'::auth.oauth_authorization_status)"))
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oauth_client_states {
+  id            String   @id @db.Uuid
+  provider_type String
+  code_verifier String?
+  created_at    DateTime @db.Timestamptz(6)
+
+  @@index([created_at], map: "idx_oauth_client_states_created_at")
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oauth_clients {
+  id                         String                  @id @db.Uuid
+  client_secret_hash         String?
+  registration_type          oauth_registration_type
+  redirect_uris              String
+  grant_types                String
+  client_name                String?
+  client_uri                 String?
+  logo_uri                   String?
+  created_at                 DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                @default(now()) @db.Timestamptz(6)
+  deleted_at                 DateTime?               @db.Timestamptz(6)
+  client_type                oauth_client_type       @default(confidential)
+  token_endpoint_auth_method String
+  oauth_authorizations       oauth_authorizations[]
+  oauth_consents             oauth_consents[]
+  sessions                   sessions[]
+
+  @@index([deleted_at])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oauth_consents {
+  id            String        @id @db.Uuid
+  user_id       String        @db.Uuid
+  client_id     String        @db.Uuid
+  scopes        String
+  granted_at    DateTime      @default(now()) @db.Timestamptz(6)
+  revoked_at    DateTime?     @db.Timestamptz(6)
+  oauth_clients oauth_clients @relation(fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, client_id], map: "oauth_consents_user_client_unique")
+  @@index([client_id], map: "oauth_consents_active_client_idx", where: raw("(revoked_at IS NULL)"))
+  @@index([user_id, client_id], map: "oauth_consents_active_user_client_idx", where: raw("(revoked_at IS NULL)"))
+  @@index([user_id, granted_at(sort: Desc)], map: "oauth_consents_user_order_idx")
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model one_time_tokens {
+  id         String              @id @db.Uuid
+  user_id    String              @db.Uuid
+  token_type one_time_token_type
+  token_hash String
+  relates_to String
+  created_at DateTime            @default(now()) @db.Timestamp(6)
+  updated_at DateTime            @default(now()) @db.Timestamp(6)
+  users      users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, token_type])
+  @@index([relates_to], map: "one_time_tokens_relates_to_hash_idx", type: Hash)
+  @@index([token_hash], map: "one_time_tokens_token_hash_hash_idx", type: Hash)
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model refresh_tokens {
+  instance_id String?   @db.Uuid
+  id          BigInt    @id @default(autoincrement())
+  token       String?   @unique(map: "refresh_tokens_token_unique") @db.VarChar(255)
+  user_id     String?   @db.VarChar(255)
+  revoked     Boolean?
+  created_at  DateTime? @db.Timestamptz(6)
+  updated_at  DateTime? @db.Timestamptz(6)
+  parent      String?   @db.VarChar(255)
+  session_id  String?   @db.Uuid
+  sessions    sessions? @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([instance_id])
+  @@index([instance_id, user_id])
+  @@index([parent])
+  @@index([session_id, revoked])
+  @@index([updated_at(sort: Desc)])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model saml_providers {
+  id                String        @id @db.Uuid
+  sso_provider_id   String        @db.Uuid
+  entity_id         String        @unique
+  metadata_xml      String
+  metadata_url      String?
+  attribute_mapping Json?
+  created_at        DateTime?     @db.Timestamptz(6)
+  updated_at        DateTime?     @db.Timestamptz(6)
+  name_id_format    String?
+  sso_providers     sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([sso_provider_id])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model saml_relay_states {
+  id              String        @id @db.Uuid
+  sso_provider_id String        @db.Uuid
+  request_id      String
+  for_email       String?
+  redirect_to     String?
+  created_at      DateTime?     @db.Timestamptz(6)
+  updated_at      DateTime?     @db.Timestamptz(6)
+  flow_state_id   String?       @db.Uuid
+  flow_state      flow_state?   @relation(fields: [flow_state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sso_providers   sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)])
+  @@index([for_email])
+  @@index([sso_provider_id])
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model schema_migrations {
+  version String @id @db.VarChar(255)
+
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sessions {
+  id                     String           @id @db.Uuid
+  user_id                String           @db.Uuid
+  created_at             DateTime?        @db.Timestamptz(6)
+  updated_at             DateTime?        @db.Timestamptz(6)
+  factor_id              String?          @db.Uuid
+  aal                    aal_level?
+  not_after              DateTime?        @db.Timestamptz(6)
+  refreshed_at           DateTime?        @db.Timestamp(6)
+  user_agent             String?
+  ip                     String?          @db.Inet
+  tag                    String?
+  oauth_client_id        String?          @db.Uuid
+  refresh_token_hmac_key String?
+  refresh_token_counter  BigInt?
+  scopes                 String?
+  mfa_amr_claims         mfa_amr_claims[]
+  refresh_tokens         refresh_tokens[]
+  oauth_clients          oauth_clients?   @relation(fields: [oauth_client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                  users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([not_after(sort: Desc)])
+  @@index([oauth_client_id])
+  @@index([user_id])
+  @@index([user_id, created_at], map: "user_id_created_at_idx")
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model sso_domains {
+  id              String        @id @db.Uuid
+  sso_provider_id String        @db.Uuid
+  domain          String
+  created_at      DateTime?     @db.Timestamptz(6)
+  updated_at      DateTime?     @db.Timestamptz(6)
+  sso_providers   sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([sso_provider_id])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model sso_providers {
+  id                String              @id @db.Uuid
+  resource_id       String?
+  created_at        DateTime?           @db.Timestamptz(6)
+  updated_at        DateTime?           @db.Timestamptz(6)
+  disabled          Boolean?
+  saml_providers    saml_providers[]
+  saml_relay_states saml_relay_states[]
+  sso_domains       sso_domains[]
+
+  @@index([resource_id], map: "sso_providers_resource_id_pattern_idx")
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model users {
+  instance_id                 String?                @db.Uuid
+  id                          String                 @id @db.Uuid
+  aud                         String?                @db.VarChar(255)
+  role                        String?                @db.VarChar(255)
+  email                       String?                @unique(map: "users_email_partial_key", where: raw("(is_sso_user = false)")) @db.VarChar(255)
+  encrypted_password          String?                @db.VarChar(255)
+  email_confirmed_at          DateTime?              @db.Timestamptz(6)
+  invited_at                  DateTime?              @db.Timestamptz(6)
+  confirmation_token          String?                @unique(map: "confirmation_token_idx", where: raw("((confirmation_token)::text !~ '^[0-9 ]*$'::text)")) @db.VarChar(255)
+  confirmation_sent_at        DateTime?              @db.Timestamptz(6)
+  recovery_token              String?                @unique(map: "recovery_token_idx", where: raw("((recovery_token)::text !~ '^[0-9 ]*$'::text)")) @db.VarChar(255)
+  recovery_sent_at            DateTime?              @db.Timestamptz(6)
+  email_change_token_new      String?                @unique(map: "email_change_token_new_idx", where: raw("((email_change_token_new)::text !~ '^[0-9 ]*$'::text)")) @db.VarChar(255)
+  email_change                String?                @db.VarChar(255)
+  email_change_sent_at        DateTime?              @db.Timestamptz(6)
+  last_sign_in_at             DateTime?              @db.Timestamptz(6)
+  raw_app_meta_data           Json?
+  raw_user_meta_data          Json?
+  is_super_admin              Boolean?
+  created_at                  DateTime?              @db.Timestamptz(6)
+  updated_at                  DateTime?              @db.Timestamptz(6)
+  phone                       String?                @unique
+  phone_confirmed_at          DateTime?              @db.Timestamptz(6)
+  phone_change                String?                @default("")
+  phone_change_token          String?                @default("") @db.VarChar(255)
+  phone_change_sent_at        DateTime?              @db.Timestamptz(6)
+  confirmed_at                DateTime?               @db.Timestamptz(6)
+  email_change_token_current  String?                @unique(map: "email_change_token_current_idx", where: raw("((email_change_token_current)::text !~ '^[0-9 ]*$'::text)")) @default("") @db.VarChar(255)
+  email_change_confirm_status Int?                   @default(0) @db.SmallInt
+  banned_until                DateTime?              @db.Timestamptz(6)
+  reauthentication_token      String?                @unique(map: "reauthentication_token_idx", where: raw("((reauthentication_token)::text !~ '^[0-9 ]*$'::text)")) @default("") @db.VarChar(255)
+  reauthentication_sent_at    DateTime?              @db.Timestamptz(6)
+  is_sso_user                 Boolean                @default(false)
+  deleted_at                  DateTime?              @db.Timestamptz(6)
+  is_anonymous                Boolean                @default(false)
+  identities                  identities[]
+  mfa_factors                 mfa_factors[]
+  oauth_authorizations        oauth_authorizations[]
+  oauth_consents              oauth_consents[]
+  one_time_tokens             one_time_tokens[]
+  sessions                    sessions[]
+  webauthn_challenges         webauthn_challenges[]
+  webauthn_credentials        webauthn_credentials[]
+  notificaciones              notificaciones[]
+  perfiles                    perfiles?
+
+  @@index([instance_id])
+  @@index([is_anonymous])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model webauthn_challenges {
+  id             String   @id @default(uuid()) @db.Uuid
+  user_id        String?  @db.Uuid
+  challenge_type String
+  session_data   Json
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  expires_at     DateTime @db.Timestamptz(6)
+  users          users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at])
+  @@index([user_id])
+  @@schema("auth")
+}
+
+model webauthn_credentials {
+  id               String    @id @default(uuid()) @db.Uuid
+  user_id          String    @db.Uuid
+  credential_id    Bytes     @unique
+  public_key       Bytes
+  attestation_type String    @default("")
+  aaguid           String?   @db.Uuid
+  sign_count       BigInt    @default(0)
+  transports       Json      @default("[]")
+  backup_eligible  Boolean   @default(false)
+  backed_up        Boolean   @default(false)
+  friendly_name    String    @default("")
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  last_used_at     DateTime? @db.Timestamptz(6)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id])
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model agenda_deportiva {
+  id            String       @id @default(uuid()) @db.Uuid
+  club_id       String       @db.Uuid
+  equipo_id     String?      @db.Uuid
+  titulo        String
+  descripcion   String?
+  tipo          String
+  fecha         DateTime     @db.Date
+  hora_inicio   DateTime?    @db.Time(6)
+  hora_fin      DateTime?    @db.Time(6)
+  lugar         String?
+  observaciones String?
+  created_at    DateTime     @default(now()) @db.Timestamptz(6)
+  invitados     String[]     @default([]) @db.Uuid
+  clubes        clubes       @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  equipos       equipos?     @relation(fields: [equipo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  asistencia    asistencia[]
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model asistencia {
+  id               String           @id @default(uuid()) @db.Uuid
+  evento_id        String           @db.Uuid
+  deportista_id    String           @db.Uuid
+  estado           String           @default("presente")
+  notas            String?
+  created_at       DateTime?        @default(now()) @db.Timestamptz(6)
+  club_id          String?          @db.Uuid
+  evaluaciones     Json?            @default("[]")
+  puntaje_total    Decimal?         @default(0) @db.Decimal(5, 2)
+  clubes           clubes?          @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deportistas      deportistas      @relation(fields: [deportista_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  agenda_deportiva agenda_deportiva @relation(fields: [evento_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([deportista_id, evento_id])
+  @@unique([evento_id, deportista_id])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cartera {
+  id                 String             @id @default(uuid()) @db.Uuid
+  club_id            String             @db.Uuid
+  deportista_id      String             @db.Uuid
+  titulo             String
+  monto              Decimal            @db.Decimal(12, 2)
+  fecha_vencimiento  DateTime           @db.Date
+  estado             String?            @default("pendiente")
+  plan_id            String?            @db.Uuid
+  created_at         DateTime           @default(now()) @db.Timestamptz(6)
+  comprobante_url    String?
+  fecha_pago         DateTime?          @db.Timestamptz(6)
+  producto_evento_id String?            @db.Uuid
+  clubes             clubes             @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  deportistas        deportistas        @relation(fields: [deportista_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  planes_club        planes_club?       @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productos_eventos  productos_eventos? @relation(fields: [producto_evento_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model club_sedes {
+  id         String    @id @default(uuid()) @db.Uuid
+  club_id    String?   @db.Uuid
+  nombre     String
+  direccion  String
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  ciudad     String?
+  clubes     clubes?   @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  equipos    equipos[]
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model clubes {
+  id                           String              @id @default(uuid()) @db.Uuid
+  nombre                       String
+  created_at                   DateTime            @default(now()) @db.Timestamptz(6)
+  email_corporativo            String?
+  telefono                     String?
+  direccion                    String?
+  pais                         String?
+  ciudad                       String?
+  website                      String?
+  deporte_id                   String?             @db.Uuid
+  estado                       String?             @default("activo")
+  logo_url                     String?
+  color_principal              String?             @default("#E53E13")
+  descripcion                  String?
+  zona_horaria                 String?             @default("Colombia (UTC-5)")
+  moneda                       String?             @default("COP - Peso Colombiano")
+  whatsapp_notif_bienvenida    Boolean?            @default(false)
+  whatsapp_notif_cargos        Boolean?            @default(false)
+  whatsapp_notif_recordatorios Boolean?            @default(false)
+  qr_url                       String?
+  pago_instrucciones           String?
+  temporada_inicio             DateTime?           @db.Date
+  temporada_fin                DateTime?           @db.Date
+  plan_id                      String?             @db.Uuid
+  nit                          String?
+  agenda_deportiva             agenda_deportiva[]
+  asistencia                   asistencia[]
+  cartera                      cartera[]
+  club_sedes                   club_sedes[]
+  deportes                     deportes?           @relation(fields: [deporte_id], references: [id], onUpdate: NoAction)
+  planes_suscripcion           planes_suscripcion? @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deportistas                  deportistas[]
+  equipos                      equipos[]
+  juegos_amistosos             juegos_amistosos[]
+  perfiles                     perfiles[]
+  planes_club                  planes_club[]
+  planificaciones              planificaciones[]
+  productos_eventos            productos_eventos[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model deportes {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  nombre                 String                   @unique @db.VarChar(100)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  clubes                 clubes[]
+  deportes_config_campos deportes_config_campos[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model deportes_config_campos {
+  id          String        @id @default(uuid()) @db.Uuid
+  deporte_id  String        @db.Uuid
+  tipo_campo  String        @db.VarChar(50)
+  valor       String        @db.VarChar(100)
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  deportes    deportes      @relation(fields: [deporte_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  deportistas deportistas[]
+  equipos     equipos[]
+
+  @@unique([deporte_id, tipo_campo, valor])
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model deportistas {
+  id                                                       String                    @id @default(uuid()) @db.Uuid
+  club_id                                                  String?                   @db.Uuid
+  equipo_id                                                String?                   @db.Uuid
+  tipo_documento                                           String
+  numero_documento                                         String
+  nombre_completo                                          String
+  apellidos                                                String
+  segundo_apellido                                         String?
+  genero                                                   String?
+  fecha_nacimiento                                         DateTime?                 @db.Date
+  eps                                                      String?
+  celular_deportista                                       String?
+  email_deportista                                         String?
+  colegio                                                  String?
+  tutor_nombre                                             String?
+  tutor_apellidos                                          String?
+  tutor_celular                                            String?
+  tutor_email                                              String?
+  emergencia_nombre                                        String?
+  emergencia_celular                                       String?
+  emergencia_email                                         String?
+  departamento                                             String?
+  municipio                                                String?
+  barrio                                                   String?
+  direccion                                                String?
+  plan_id                                                  String?                   @db.Uuid
+  acepta_terminos                                          Boolean?                  @default(false)
+  estado                                                   String?                   @default("activo")
+  created_at                                               DateTime                  @default(now()) @db.Timestamptz(6)
+  foto_url                                                 String?
+  url_registro_civil                                       String?
+  url_documento_id                                         String?
+  url_contrato                                             String?
+  plan_inscripcion_id                                      String?                   @db.Uuid
+  estado_pago                                              String?                   @default("pendiente")
+  pais                                                     String?
+  tutor_numero_documento                                   String?
+  dorsal                                                   Int?
+  estatura                                                 Float?
+  peso                                                     Float?
+  rh                                                       String?
+  posicion_id                                              String?                   @db.Uuid
+  equipo_id_2                                              String?                   @db.Uuid
+  equipo_id_3                                              String?                   @db.Uuid
+  lugar_nacimiento                                         String?
+  alias                                                    String?
+  salario                                                  Decimal?                  @default(0) @db.Decimal
+  url_certificado_salud                                    String?
+  url_carta_traspaso                                       String?
+  viene_de_otro_club                                       Boolean?                  @default(false)
+  asistencia                                               asistencia[]
+  cartera                                                  cartera[]
+  clubes                                                   clubes?                   @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  equipos_deportistas_equipo_id_2Toequipos                 equipos?                  @relation("deportistas_equipo_id_2Toequipos", fields: [equipo_id_2], references: [id], onUpdate: NoAction)
+  equipos_deportistas_equipo_id_3Toequipos                 equipos?                  @relation("deportistas_equipo_id_3Toequipos", fields: [equipo_id_3], references: [id], onUpdate: NoAction)
+  equipos_deportistas_equipo_idToequipos                   equipos?                  @relation("deportistas_equipo_idToequipos", fields: [equipo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  planes_club_deportistas_plan_idToplanes_club             planes_club?              @relation("deportistas_plan_idToplanes_club", fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  planes_club_deportistas_plan_inscripcion_idToplanes_club planes_club?              @relation("deportistas_plan_inscripcion_idToplanes_club", fields: [plan_inscripcion_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deportes_config_campos                                   deportes_config_campos?   @relation(fields: [posicion_id], references: [id], onUpdate: NoAction)
+  juegos_jugadores                                         juegos_jugadores[]
+  perfiles                                                 perfiles[]
+  reserva_escenario                                        reserva_escenario[]
+  trayectorias_deportivas                                  trayectorias_deportivas[]
+
+  @@unique([club_id, tipo_documento, numero_documento])
+  @@index([equipo_id_2], map: "idx_deportistas_equipo_id_2")
+  @@index([equipo_id_3], map: "idx_deportistas_equipo_id_3")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model equipo_entrenadores {
+  equipo_id     String   @db.Uuid
+  entrenador_id String   @db.Uuid
+  perfiles      perfiles @relation(fields: [entrenador_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  equipos       equipos  @relation(fields: [equipo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([equipo_id, entrenador_id])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model equipos {
+  id                                                             String                  @id @default(uuid()) @db.Uuid
+  club_id                                                        String                  @db.Uuid
+  nombre                                                         String
+  categoria                                                      String?
+  created_at                                                     DateTime                @default(now()) @db.Timestamptz(6)
+  descripcion                                                    String?
+  nivel_habilidad                                                String?
+  categoria_id                                                   String?                 @db.Uuid
+  edad_minima                                                    Int?
+  edad_maxima                                                    Int?
+  capacidad_maxima                                               Int?
+  dias_entrenamiento                                             String[]
+  hora_inicio                                                    DateTime?               @db.Time(6)
+  hora_fin                                                       DateTime?               @db.Time(6)
+  sede_id                                                        String?                 @db.Uuid
+  codigo                                                         String?                 @unique(map: "equipo_codigo_unico")
+  coordinador_id                                                 String?                 @db.Uuid
+  estado                                                         String?                 @default("activo")
+  agenda_deportiva                                               agenda_deportiva[]
+  deportistas_deportistas_equipo_id_2Toequipos                   deportistas[]           @relation("deportistas_equipo_id_2Toequipos")
+  deportistas_deportistas_equipo_id_3Toequipos                   deportistas[]           @relation("deportistas_equipo_id_3Toequipos")
+  deportistas_deportistas_equipo_idToequipos                     deportistas[]           @relation("deportistas_equipo_idToequipos")
+  equipo_entrenadores                                            equipo_entrenadores[]
+  deportes_config_campos                                         deportes_config_campos? @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubes                                                         clubes                  @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  perfiles                                                       perfiles?               @relation(fields: [coordinador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  club_sedes                                                     club_sedes?             @relation(fields: [sede_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  juegos_amistosos_juegos_amistosos_equipo_local_idToequipos     juegos_amistosos[]      @relation("juegos_amistosos_equipo_local_idToequipos")
+  juegos_amistosos_juegos_amistosos_equipo_visitante_idToequipos juegos_amistosos[]      @relation("juegos_amistosos_equipo_visitante_idToequipos")
+  planificaciones                                                planificaciones[]
+  reserva_escenario                                              reserva_escenario[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model escenario_canchas {
+  id                String              @id @default(uuid()) @db.Uuid
+  escenario_id      String?             @db.Uuid
+  nombre            String
+  descripcion       String?
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  escenarios        escenarios?         @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reserva_escenario reserva_escenario[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model escenario_horarios {
+  id           String      @id @default(uuid()) @db.Uuid
+  escenario_id String?     @db.Uuid
+  dia_semana   Int?
+  hora_inicio  DateTime    @db.Time(6)
+  hora_fin     DateTime    @db.Time(6)
+  precio       Decimal?    @default(0.00) @db.Decimal(12, 2)
+  es_gratis    Boolean?    @default(false)
+  activo       Boolean?    @default(true)
+  escenarios   escenarios? @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model escenarios {
+  id                                             String               @id @default(uuid()) @db.Uuid
+  nombre                                         String
+  direccion                                      String?
+  administrador_id                               String?              @db.Uuid
+  telefono                                       String?
+  correo                                         String?
+  deporte                                        String
+  configuracion_reserva                          Json?                @default("{\"permite_equipos\": true, \"permite_jugadores\": true}")
+  created_at                                     DateTime             @default(now()) @db.Timestamptz(6)
+  link_pago                                      String?
+  qr_url                                         String?
+  permite_clubes                                 Boolean?             @default(true)
+  permite_deportistas                            Boolean?             @default(true)
+  gestor_id                                      String?              @db.Uuid
+  responsable_nombre                             String?
+  supervisor_nombre                              String?
+  supervisor_correo                              String?
+  supervisor_area                                String?
+  escenario_canchas                              escenario_canchas[]
+  escenario_horarios                             escenario_horarios[]
+  perfiles_escenarios_administrador_idToperfiles perfiles?            @relation("escenarios_administrador_idToperfiles", fields: [administrador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  perfiles_escenarios_gestor_idToperfiles        perfiles?            @relation("escenarios_gestor_idToperfiles", fields: [gestor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reserva_escenario                              reserva_escenario[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model inventario {
+  id                  String    @id @default(uuid()) @db.Uuid
+  nombre              String
+  descripcion         String?
+  categoria           String?
+  cantidad_total      Int       @default(0)
+  cantidad_disponible Int       @default(0)
+  estado              String?   @default("bueno")
+  imagen_url          String?
+  pertenece_a_tipo    String
+  pertenece_a_id      String    @db.Uuid
+  created_at          DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model juegos_amistosos {
+  id                                                    String             @id @default(uuid()) @db.Uuid
+  club_id                                               String?            @db.Uuid
+  equipo_local_id                                       String?            @db.Uuid
+  equipo_visitante_id                                   String?            @db.Uuid
+  nombre_local                                          String?
+  nombre_visitante                                      String?
+  fecha                                                 DateTime?          @db.Timestamptz(6)
+  lugar                                                 String?
+  estado                                                String?            @default("Scheduled")
+  score_local                                           Int?               @default(0)
+  score_visitante                                       Int?               @default(0)
+  periodo                                               Int?               @default(1)
+  tiempo_restante                                       String?            @default("10:00")
+  timer_running                                         Boolean?           @default(false)
+  deporte                                               String?            @default("baloncesto")
+  created_at                                            DateTime?          @default(now()) @db.Timestamptz(6)
+  clubes                                                clubes?            @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  equipos_juegos_amistosos_equipo_local_idToequipos     equipos?           @relation("juegos_amistosos_equipo_local_idToequipos", fields: [equipo_local_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  equipos_juegos_amistosos_equipo_visitante_idToequipos equipos?           @relation("juegos_amistosos_equipo_visitante_idToequipos", fields: [equipo_visitante_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  juegos_eventos                                        juegos_eventos[]
+  juegos_jugadores                                      juegos_jugadores[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model juegos_eventos {
+  id               String            @id @default(uuid()) @db.Uuid
+  juego_id         String?           @db.Uuid
+  equipo           String?
+  jugador_id       String?           @db.Uuid
+  tipo             String
+  puntos           Int?              @default(0)
+  periodo          Int?              @default(1)
+  tiempo_juego     String?
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  juegos_amistosos juegos_amistosos? @relation(fields: [juego_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  juegos_jugadores juegos_jugadores? @relation(fields: [jugador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model juegos_jugadores {
+  id               String            @id @default(uuid()) @db.Uuid
+  juego_id         String?           @db.Uuid
+  equipo           String?
+  deportista_id    String?           @db.Uuid
+  nombre           String
+  numero           String
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  juegos_eventos   juegos_eventos[]
+  deportistas      deportistas?      @relation(fields: [deportista_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  juegos_amistosos juegos_amistosos? @relation(fields: [juego_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notificaciones {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String?   @db.Uuid
+  titulo     String
+  mensaje    String
+  tipo       String
+  leida      Boolean?  @default(false)
+  data       Json?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model perfiles {
+  id                                               String                @id @db.Uuid
+  rol                                              user_role             @default(entrenador)
+  club_id                                          String?               @db.Uuid
+  nombre                                           String?
+  apellido                                         String?
+  created_at                                       DateTime              @default(now()) @db.Timestamptz(6)
+  telefono                                         String?
+  fecha_nacimiento                                 DateTime?             @db.Date
+  contacto_emergencia_nombre                       String?
+  contacto_emergencia_telefono                     String?
+  estado                                           String?               @default("activo")
+  email                                            String?
+  foto_url                                         String?
+  tipo_documento                                   String?
+  numero_documento                                 String?
+  deportista_id                                    String?               @db.Uuid
+  documento                                        String?
+  equipo_entrenadores                              equipo_entrenadores[]
+  equipos                                          equipos[]
+  escenarios_escenarios_administrador_idToperfiles escenarios[]          @relation("escenarios_administrador_idToperfiles")
+  escenarios_escenarios_gestor_idToperfiles        escenarios[]          @relation("escenarios_gestor_idToperfiles")
+  clubes                                           clubes?               @relation(fields: [club_id], references: [id], onUpdate: NoAction)
+  deportistas                                      deportistas?          @relation(fields: [deportista_id], references: [id], onUpdate: NoAction)
+  users                                            users                 @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  pqrs_pqrs_respondido_porToperfiles               pqrs[]                @relation("pqrs_respondido_porToperfiles")
+  pqrs_pqrs_solicitante_idToperfiles               pqrs[]                @relation("pqrs_solicitante_idToperfiles")
+  reserva_escenario                                reserva_escenario[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model planes_club {
+  id                                                       String        @id @default(uuid()) @db.Uuid
+  club_id                                                  String?       @db.Uuid
+  nombre                                                   String
+  periodo                                                  String
+  precio                                                   Decimal       @default(0) @db.Decimal
+  moneda                                                   String
+  created_at                                               DateTime?     @default(now()) @db.Timestamptz(6)
+  cartera                                                  cartera[]
+  deportistas_deportistas_plan_idToplanes_club             deportistas[] @relation("deportistas_plan_idToplanes_club")
+  deportistas_deportistas_plan_inscripcion_idToplanes_club deportistas[] @relation("deportistas_plan_inscripcion_idToplanes_club")
+  clubes                                                   clubes?       @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model planes_suscripcion {
+  id               String    @id @default(uuid()) @db.Uuid
+  nombre           String
+  descripcion      String?
+  precio           Decimal?  @default(0) @db.Decimal
+  estado           Boolean?  @default(true)
+  limite_equipos   Int?      @default(-1)
+  limite_jugadores Int?      @default(-1)
+  limite_usuarios  Int?      @default(-1)
+  modulos_activos  Json?     @default("[\"admin_club\", \"equipos\", \"entrenadores\", \"cartera\"]")
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  comision         Decimal?  @default(0) @db.Decimal
+  clubes           clubes[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model planificaciones {
+  id                 String    @id @default(uuid()) @db.Uuid
+  club_id            String?   @db.Uuid
+  equipo_id          String?   @db.Uuid
+  titulo             String
+  fecha              DateTime  @db.Date
+  hora               DateTime? @db.Time(6)
+  periodo            String?
+  semana_no          Int?
+  sesion_no          Int?
+  descripcion        String?
+  objetivos          Json?     @default("[]")
+  fase_calentamiento Json?     @default("{\"tasks\": [], \"description\": \"\"}")
+  fase_principal     Json?     @default("{\"tasks\": [], \"description\": \"\"}")
+  fase_vuelta_calma  Json?     @default("{\"tasks\": [], \"description\": \"\"}")
+  notas_generales    String?
+  completada         Boolean?  @default(false)
+  created_at         DateTime? @default(now()) @db.Timestamptz(6)
+  clubes             clubes?   @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  equipos            equipos?  @relation(fields: [equipo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pqrs {
+  id                                     String         @id @default(uuid()) @db.Uuid
+  codigo                                 String         @unique
+  solicitante_id                         String         @db.Uuid
+  solicitante_nombre                     String
+  tipo                                   tipo_pqrs
+  descripcion                            String
+  adjunto_url                            String?
+  destino_tipo                           String
+  destino_id                             String         @db.Uuid
+  estado                                 estado_pqrs?   @default(pendiente)
+  respuesta                              String?
+  fecha_respuesta                        DateTime?      @db.Timestamptz(6)
+  respondido_por                         String?        @db.Uuid
+  feedback_usuario                       feedback_pqrs?
+  feedback_motivo                        String?
+  created_at                             DateTime?      @default(now()) @db.Timestamptz(6)
+  solicitante_documento                  String?
+  solicitante_email                      String?
+  perfiles_pqrs_respondido_porToperfiles perfiles?      @relation("pqrs_respondido_porToperfiles", fields: [respondido_por], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  perfiles_pqrs_solicitante_idToperfiles perfiles       @relation("pqrs_solicitante_idToperfiles", fields: [solicitante_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model productos_eventos {
+  id          String    @id @default(uuid()) @db.Uuid
+  club_id     String?   @db.Uuid
+  nombre      String
+  descripcion String?
+  precio      Decimal   @db.Decimal
+  link_pago   String?
+  imagen_url  String?
+  equipos     Json?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  cartera     cartera[]
+  clubes      clubes?   @relation(fields: [club_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reserva_escenario {
+  id                  String             @id @default(uuid()) @db.Uuid
+  escenario_id        String?            @db.Uuid
+  cliente_id          String?            @db.Uuid
+  tipo_reserva        String?
+  deportista_id       String?            @db.Uuid
+  equipo_id           String?            @db.Uuid
+  fecha               DateTime           @db.Date
+  hora_inicio         DateTime           @db.Time(6)
+  hora_fin            DateTime           @db.Time(6)
+  estado              String?            @default("pendiente")
+  monto_total         Decimal?           @db.Decimal(12, 2)
+  link_pago           String?
+  created_at          DateTime           @default(now()) @db.Timestamptz(6)
+  atleta_nombre       String?
+  atleta_documento    String?
+  atleta_celular      String?
+  atleta_email        String?
+  atleta_rh           String?
+  atleta_edad         String?
+  atleta_foto         String?
+  ingreso_fecha       DateTime?          @db.Timestamptz(6)
+  salida_fecha        DateTime?          @db.Timestamptz(6)
+  ingreso_observacion String?
+  salida_observacion  String?
+  cancha_id           String?            @db.Uuid
+  escenario_canchas   escenario_canchas? @relation(fields: [cancha_id], references: [id], onUpdate: NoAction)
+  perfiles            perfiles?          @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deportistas         deportistas?       @relation(fields: [deportista_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  equipos             equipos?           @relation(fields: [equipo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  escenarios          escenarios?        @relation(fields: [escenario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model trayectorias_deportivas {
+  id               String       @id @default(uuid()) @db.Uuid
+  deportista_id    String?      @db.Uuid
+  equipo_nombre    String
+  temporada_inicio String?
+  temporada_fin    String?
+  es_actual        Boolean?     @default(false)
+  created_at       DateTime?    @default(now()) @db.Timestamptz(6)
+  deportistas      deportistas? @relation(fields: [deportista_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+enum aal_level {
+  aal1
+  aal2
+  aal3
+
+  @@schema("auth")
+}
+
+enum code_challenge_method {
+  s256
+  plain
+
+  @@schema("auth")
+}
+
+enum factor_status {
+  unverified
+  verified
+
+  @@schema("auth")
+}
+
+enum factor_type {
+  totp
+  webauthn
+  phone
+
+  @@schema("auth")
+}
+
+enum oauth_authorization_status {
+  pending
+  approved
+  denied
+  expired
+
+  @@schema("auth")
+}
+
+enum oauth_client_type {
+  public
+  confidential
+
+  @@schema("auth")
+}
+
+enum oauth_registration_type {
+  dynamic
+  manual
+
+  @@schema("auth")
+}
+
+enum oauth_response_type {
+  code
+
+  @@schema("auth")
+}
+
+enum one_time_token_type {
+  confirmation_token
+  reauthentication_token
+  recovery_token
+  email_change_token_new
+  email_change_token_current
+  phone_change_token
+
+  @@schema("auth")
+}
+
+enum estado_pqrs {
+  pendiente
+  en_revision
+  respondida
+  cerrada
+
+  @@schema("public")
+}
+
+enum feedback_pqrs {
+  aceptada
+  rechazada
+
+  @@schema("public")
+}
+
+enum tipo_pqrs {
+  pregunta
+  queja
+  reclamo
+  sugerencia
+
+  @@schema("public")
+}
+
+enum user_role {
+  superadmin
+  admin_club
+  admin_equipo
+  entrenador
+  cartera
+  comunicaciones
+  padre
+  direccion_deportiva
+  escenario_deportivo
+  admin_escenario
+  jefatura
+
+  @@schema("public")
+}

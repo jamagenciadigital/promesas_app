@@ -170,6 +170,9 @@ export default function RegisterClub() {
         }
       }
 
+      // 3. Sign out immediately — the user should log in manually after registration
+      await supabase.auth.signOut();
+
       // Everything succeeded! 
       // Show success modal instead of JS alert
       setShowSuccessModal(true);
@@ -192,15 +195,9 @@ export default function RegisterClub() {
       
       {/* Decorative Left Side Image (Based on User Mockup) */}
       <div 
-        className="hidden md:block md:w-[45%] lg:w-[40%] xl:w-1/3 absolute md:relative inset-y-0 left-0 z-0 bg-cover bg-center shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
-        style={{ 
-          backgroundImage: 'url("/assets/bg-login.jpg")'
-        }}
+        className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-1/3 absolute md:relative inset-y-0 left-0 z-0 bg-[#FF0000] shadow-[10px_0_30px_rgba(0,0,0,0.5)] items-center justify-center p-8"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
-        <div className="absolute bottom-8 left-8 right-8 flex items-center gap-3">
-          <img src="/assets/LOGO-HORIZONTAL.png" className="w-auto h-12" alt="Promesas Logo"/>
-        </div>
+        <img src="/assets/logo_white.png" className="w-48 h-auto object-contain animate-fade-in" alt="Promesas Logo"/>
       </div>
 
       <div className="flex-1 flex justify-center py-12 px-4 sm:px-6 lg:px-8 z-10 w-full overflow-y-auto">
@@ -220,10 +217,9 @@ export default function RegisterClub() {
             </p>
           </div>
           
-          {/* Progress Bar */}
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3].map(i => (
-              <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step === i ? 'w-8 bg-[#CCFF00]' : 'w-4 bg-gray-200'}`}></div>
+              <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step === i ? 'w-8 bg-[#182332]' : 'w-4 bg-gray-200'}`}></div>
             ))}
           </div>
 
@@ -242,7 +238,7 @@ export default function RegisterClub() {
                     required
                     value={clubData.deporte_id} 
                     onChange={e => setClubData({...clubData, deporte_id: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] focus:z-10 sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] focus:z-10 sm:text-sm"
                   >
                     <option value="" disabled>Seleccionar Deporte...</option>
                     {deportes.map(d => (
@@ -254,52 +250,52 @@ export default function RegisterClub() {
                   <input
                     type="text" required placeholder="Nombre del equipo o club"
                     value={clubData.nombre} onChange={e => setClubData({...clubData, nombre: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     type="text" placeholder="País"
                     value={clubData.pais} onChange={e => setClubData({...clubData, pais: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                   <input
                     type="text" placeholder="Ciudad"
                     value={clubData.ciudad} onChange={e => setClubData({...clubData, ciudad: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div>
                   <input
                     type="text" placeholder="Dirección"
                     value={clubData.direccion} onChange={e => setClubData({...clubData, direccion: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     type="tel" placeholder="Teléfono"
                     value={clubData.telefono} onChange={e => setClubData({...clubData, telefono: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                   <input
                     type="email" placeholder="Email corporativo"
                     value={clubData.email_corporativo} onChange={e => setClubData({...clubData, email_corporativo: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div>
                   <input
                     type="url" placeholder="Website (Opcional)"
                     value={clubData.website} onChange={e => setClubData({...clubData, website: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
 
                 <div className="pt-4 pb-2">
                   <button
                     type="submit"
-                    className="group relative w-full flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-black bg-[#CCFF00] hover:bg-[#b8e600] focus:outline-none transition-all shadow-lg shadow-[#CCFF00]/20"
+                    className="group relative w-full flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all shadow-lg shadow-[#182332]/20"
                   >
                     CONTINUAR <ArrowRight size={18} className="ml-2" />
                   </button>
@@ -317,12 +313,12 @@ export default function RegisterClub() {
                       onClick={() => setSelectedPlanId(plan.id)}
                       className={`relative p-6 rounded-[32px] border-2 cursor-pointer transition-all duration-300 ${
                         selectedPlanId === plan.id 
-                        ? 'border-[#CCFF00] bg-[#CCFF00]/5 shadow-xl' 
+                        ? 'border-[#182332] bg-[#182332]/5 shadow-xl' 
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                       }`}
                     >
                       {selectedPlanId === plan.id && (
-                        <div className="absolute top-4 right-4 text-[#CCFF00]">
+                        <div className="absolute top-4 right-4 text-[#182332]">
                           <Check size={20} className="stroke-[3px]" />
                         </div>
                       )}
@@ -340,15 +336,15 @@ export default function RegisterClub() {
 
                       <div className="grid grid-cols-2 gap-y-2 mb-6">
                         <div className="flex items-center gap-2 text-[10px] font-bold text-gray-600">
-                          <Users size={12} className="text-[#CCFF00]" />
+                          <Users size={12} className="text-[#182332]" />
                           {plan.limite_jugadores === -1 ? 'Jugadores Ilimitados' : `${plan.limite_jugadores} Jugadores`}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-gray-600">
-                          <Trophy size={12} className="text-[#CCFF00]" />
+                          <Trophy size={12} className="text-[#182332]" />
                           {plan.limite_equipos === -1 ? 'Equipos Ilimitados' : `${plan.limite_equipos} Equipos`}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-gray-600">
-                          <Layout size={12} className="text-[#CCFF00]" />
+                          <Layout size={12} className="text-[#182332]" />
                           {plan.modulos_activos?.length || 0} Módulos Activos
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 italic">
@@ -360,7 +356,7 @@ export default function RegisterClub() {
                       {selectedPlanId === plan.id && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {plan.modulos_activos?.map((mod: string) => (
-                            <span key={mod} className="px-2 py-0.5 bg-black text-[#CCFF00] text-[7px] font-black uppercase rounded-md tracking-tighter">
+                            <span key={mod} className="px-2 py-0.5 bg-[#182332]/10 text-[#182332] text-[7px] font-black uppercase rounded-md tracking-tighter">
                               {mod.replace('_', ' ')}
                             </span>
                           ))}
@@ -380,7 +376,7 @@ export default function RegisterClub() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-black bg-[#CCFF00] hover:bg-[#b8e600] focus:outline-none transition-all shadow-xl"
+                    className="flex-[2] flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all shadow-xl"
                   >
                     CONTINUAR <ArrowRight size={18} className="ml-2" />
                   </button>
@@ -395,28 +391,28 @@ export default function RegisterClub() {
                   <input
                     type="text" required placeholder="Nombre completo del Administrador"
                     value={adminData.nombreCompleto} onChange={e => setAdminData({...adminData, nombreCompleto: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div>
                   <input
                     type="email" required placeholder="Correo de acceso"
                     value={adminData.email} onChange={e => setAdminData({...adminData, email: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div>
                   <input
                     type="password" required placeholder="Contraseña"
                     value={adminData.password} onChange={e => setAdminData({...adminData, password: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
                 <div>
                   <input
                     type="password" required placeholder="Repetir Contraseña"
                     value={adminData.confirmPassword} onChange={e => setAdminData({...adminData, confirmPassword: e.target.value})}
-                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#CCFF00] focus:border-[#CCFF00] sm:text-sm"
+                    className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
                 </div>
 
@@ -431,7 +427,7 @@ export default function RegisterClub() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group relative flex-[2] flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-[#CCFF00] bg-black hover:bg-gray-900 focus:outline-none transition-colors disabled:opacity-70"
+                    className="group relative flex-[2] flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all disabled:opacity-70"
                   >
                     {loading ? 'CREANDO...' : 'REGISTRAR CLUB'}
                   </button>
@@ -467,7 +463,7 @@ export default function RegisterClub() {
             
             <button
               onClick={handleModalClose}
-              className="w-full py-3.5 px-4 font-bold rounded-full text-[#CCFF00] bg-black hover:bg-gray-900 focus:outline-none transition-colors"
+              className="w-full py-3.5 px-4 font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all"
             >
               IR A INICIAR SESIÓN
             </button>

@@ -108,60 +108,86 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-50"
-        style={{ 
-          backgroundImage: 'url("/assets/bg-login.jpg")',
-          maskImage: 'radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
-          WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)'
-        }}
-      />
+    <div className="min-h-screen bg-[#bd0f10] flex items-center justify-center relative overflow-hidden">
+      
       
       <div className="relative z-10 w-full max-w-[400px] px-4">
-        <div className="bg-white rounded-[40px] p-10 shadow-2xl flex flex-col items-center">
+        {/* Solid White Card */}
+        <div className="bg-white rounded-[40px] p-10 shadow-[0_25px_60px_rgba(0,0,0,0.3)] border border-gray-100 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center">
-            <img src="/assets/logo-login.png" alt="Promesas App" className="w-40 h-auto" />
-            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mt-4 italic text-center">Protocolo Operativo</p>
+            <img src="/assets/logo_color.png" alt="Promesas App" className="w-48 h-auto object-contain" />
+            <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">Protocolo Operativo</p>
           </div>
-
+ 
           <form className="w-full space-y-5" onSubmit={handleLogin}>
             {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs text-center border border-red-100 animate-in fade-in slide-in-from-top-2">
+              <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs text-center border border-red-100 animate-in fade-in slide-in-from-top-2 w-full">
                 {error}
               </div>
             )}
             
-            <input type="email" required placeholder="Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#CCFF00] bg-gray-50 text-gray-900 placeholder-gray-400" disabled={loading} />
-            <input type="password" required placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#CCFF00] bg-gray-50 text-gray-900 placeholder-gray-400" disabled={loading} />
-
-            <div className="flex justify-between px-2">
-                <div className="flex items-center">
-                  <input id="remember_me" type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
-                  <label htmlFor="remember_me" className="ml-2 text-xs text-gray-400 font-bold italic">Recordarme</label>
-                </div>
-                <button type="button" className="text-xs text-gray-400 font-bold hover:text-black italic">¿Olvido clave?</button>
+            <div className="space-y-4">
+              <input 
+                type="email" 
+                required 
+                placeholder="Correo electrónico" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#182332] focus:border-[#182332] bg-gray-50 text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm" 
+                disabled={loading} 
+              />
+              <input 
+                type="password" 
+                required 
+                placeholder="Contraseña" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#182332] focus:border-[#182332] bg-gray-50 text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm" 
+                disabled={loading} 
+              />
+            </div>
+ 
+            <div className="flex justify-between items-center px-1">
+              <div className="flex items-center">
+                <input 
+                  id="remember_me" 
+                  type="checkbox" 
+                  checked={rememberMe} 
+                  onChange={(e) => setRememberMe(e.target.checked)} 
+                  className="h-4 w-4 rounded border-gray-300 text-[#182332] focus:ring-[#182332] accent-[#182332]" 
+                />
+                <label htmlFor="remember_me" className="ml-2 text-xs text-gray-400 font-bold italic hover:text-gray-900 transition-colors cursor-pointer select-none">
+                  Recordarme
+                </label>
+              </div>
+              <button type="button" className="text-xs text-gray-400 font-bold hover:text-gray-900 transition-colors italic">
+                ¿Olvido clave?
+              </button>
             </div>
             
-            <button type="submit" disabled={loading} className="w-full bg-black text-[#CCFF00] font-black py-5 rounded-2xl transition-all hover:scale-[1.02] shadow-xl uppercase tracking-widest text-[11px] italic">
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full bg-[#182332] text-white hover:text-[#CCFF00] font-black py-5 rounded-2xl transition-all hover:bg-[#202f43] hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#182332]/10 uppercase tracking-widest text-[11px] italic"
+            >
               {loading ? 'Validando...' : 'Acceder al Sistema'}
             </button>
-
-            <div className="pt-4 text-center">
-              <Link to="/registro-club" className="text-[10px] font-black text-gray-400 hover:text-black uppercase tracking-widest italic">
+ 
+            <div className="pt-4 text-center border-t border-gray-100 mt-2">
+              <Link to="/registro-club" className="text-[10px] font-black text-gray-400 hover:text-[#182332] transition-colors uppercase tracking-widest italic">
                 ¿Nuevo club? REGISTRATE AQUÍ
               </Link>
             </div>
           </form>
         </div>
       </div>
-
+ 
       {showSuspendedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-white rounded-[40px] p-12 max-w-sm w-full text-center shadow-2xl">
+          <div className="bg-white border border-gray-100 rounded-[40px] p-12 max-w-sm w-full text-center shadow-2xl">
             <h3 className="text-2xl font-black text-black uppercase italic mb-4">Acceso Bloqueado</h3>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-loose mb-10">Tu organización ha sido suspendida. Contacta con administración.</p>
-            <button onClick={() => setShowSuspendedModal(false)} className="w-full py-5 bg-black text-[#CCFF00] font-black rounded-2xl uppercase italic tracking-widest">Entendido</button>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-loose mb-10">Tu organización ha sido suspendida. Contacta con administración.</p>
+            <button onClick={() => setShowSuspendedModal(false)} className="w-full py-5 bg-[#182332] text-white hover:text-[#CCFF00] font-black rounded-2xl uppercase italic tracking-widest hover:bg-[#202f43]">Entendido</button>
           </div>
         </div>
       )}
