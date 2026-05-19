@@ -51,7 +51,7 @@ function extractFileBody(contentType: string | undefined, body: Buffer): Buffer 
   const doubleCrlf = Buffer.from('\r\n\r\n');
 
   let pos = 0;
-  let bestPart = Buffer.alloc(0);
+  let bestPart: any = Buffer.alloc(0);
 
   while (pos < body.length) {
     const boundaryStart = body.indexOf(boundaryBuf, pos);

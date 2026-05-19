@@ -141,7 +141,7 @@ export async function sendNotificationEmail(
     let contenido = plantilla.cuerpo || '';
 
     // 3. Replace variables in body and subject
-    const mergedVars = {
+    const mergedVars: Record<string, any> = {
       ...variables,
       club: clubName,
     };
