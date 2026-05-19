@@ -4,6 +4,8 @@ import cors from 'cors';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import path from 'path';
+import fs from 'fs';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma';
@@ -25,29 +27,144 @@ app.use(cors({
   allowedHeaders: '*'
 }));
 
-// Proxy storage requests to real Supabase
-const SUPABASE_PROJECT_URL = process.env.SUPABASE_PROJECT_URL || 'https://skssegbltojjokjtvgev.supabase.co';
-app.all('/storage/v1/*splat', async (req, res) => {
-  try {
-    const targetUrl = `${SUPABASE_PROJECT_URL}${req.originalUrl}`;
-    const headers: Record<string, string> = {};
-    const forwardHeaders = ['authorization', 'content-type', 'x-upsert', 'cache-control'];
-    for (const h of forwardHeaders) {
-      const val = req.headers[h];
-      if (val) headers[h] = Array.isArray(val) ? val.join(', ') : val;
+// Local file storage (replaces Supabase Storage)
+const UPLOADS_DIR = path.resolve(__dirname, '..', 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+function safePath(bucket: string, filePath: string): string | null {
+  const clean = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+  const full = path.resolve(UPLOADS_DIR, bucket, clean);
+  const base = path.resolve(UPLOADS_DIR, bucket);
+  if (!full.startsWith(base)) return null;
+  return full;
+}
+
+/** Extract file body from multipart/form-data or return raw body */
+function extractFileBody(contentType: string | undefined, body: Buffer): Buffer {
+  if (!contentType || !contentType.includes('multipart/form-data')) return body;
+  const boundaryMatch = contentType.match(/boundary=([^;\s]+)/);
+  if (!boundaryMatch) return body;
+
+  const boundaryStr = `--${boundaryMatch[1]}`;
+  const boundaryBuf = Buffer.from(boundaryStr);
+  const crlf = Buffer.from('\r\n');
+  const doubleCrlf = Buffer.from('\r\n\r\n');
+
+  let pos = 0;
+  let bestPart = Buffer.alloc(0);
+
+  while (pos < body.length) {
+    const boundaryStart = body.indexOf(boundaryBuf, pos);
+    if (boundaryStart === -1) break;
+    const afterBoundary = boundaryStart + boundaryBuf.length;
+
+    // Check if this is the closing boundary (ends with --)
+    if (afterBoundary + 1 < body.length && body[afterBoundary] === 45 && body[afterBoundary + 1] === 45) break;
+
+    let eol = body.indexOf(Buffer.from('\n'), afterBoundary);
+    if (eol === -1) break;
+    const partStart = eol + 1;
+
+    let headersEnd = body.indexOf(doubleCrlf, partStart);
+    if (headersEnd === -1) break;
+    const dataStart = headersEnd + 4;
+
+    const nextBoundary = body.indexOf(boundaryBuf, dataStart);
+    if (nextBoundary === -1) break;
+
+    let dataEnd = nextBoundary;
+    if (dataEnd >= 2 && body[dataEnd - 2] === 13 && body[dataEnd - 1] === 10) dataEnd -= 2;
+    if (dataEnd >= 1 && body[dataEnd - 1] === 10) dataEnd -= 1;
+
+    const part = body.subarray(dataStart, dataEnd);
+    if (part.length > bestPart.length) {
+      bestPart = part;
     }
-    const fetchRes = await fetch(targetUrl, {
-      method: req.method,
-      headers,
-      body: ['GET', 'HEAD'].includes(req.method.toUpperCase()) ? undefined : req
-    });
-    const body = fetchRes.headers.get('content-type')?.includes('application/json')
-      ? await fetchRes.json()
-      : await fetchRes.text();
-    res.status(fetchRes.status).set(fetchRes.headers).send(body);
+
+    pos = nextBoundary;
+  }
+
+  return bestPart.length > 0 ? bestPart : body;
+}
+
+app.all(/\/storage\/v1\/.*/, async (req, res) => {
+  const relativePath = req.path.replace(/^\/storage\/v1\//, '');
+  const parts = relativePath.split('/');
+  const method = req.method.toUpperCase();
+  console.log(`[local storage] ${method} ${req.path}`);
+
+  // Collect body
+  const chunks: Buffer[] = [];
+  req.on('data', (chunk: Buffer) => chunks.push(chunk));
+  await new Promise<void>(resolve => req.on('end', resolve));
+  const rawBody = chunks.length > 0 ? Buffer.concat(chunks) : Buffer.alloc(0);
+  const fileBody = extractFileBody(req.headers['content-type'], rawBody);
+
+  try {
+    // POST /storage/v1/object/list/:bucket — list objects
+    if (parts[0] === 'object' && parts[1] === 'list' && method === 'POST') {
+      const bucket = parts[2];
+      const dir = path.resolve(UPLOADS_DIR, bucket);
+      if (!fs.existsSync(dir)) return res.json([]);
+      const files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f.toString())).isFile());
+      const result = files.map((f: any) => {
+        const stat = fs.statSync(path.join(dir, f.toString()));
+        return {
+          name: f.toString(),
+          id: crypto.randomUUID(),
+          updated_at: stat.mtime.toISOString(),
+          created_at: stat.birthtime.toISOString(),
+          last_accessed_at: stat.atime.toISOString(),
+          metadata: { size: stat.size, mimetype: 'application/octet-stream' },
+        };
+      });
+      return res.json(result);
+    }
+
+    // GET /storage/v1/object/public/:bucket/:path — serve public file
+    if (parts[0] === 'object' && parts[1] === 'public' && (method === 'GET' || method === 'HEAD')) {
+      const bucket = parts[2];
+      const fileRelPath = parts.slice(3).join('/');
+      const full = safePath(bucket, fileRelPath);
+      if (!full || !fs.existsSync(full)) return res.status(404).json({ error: 'File not found' });
+      return res.sendFile(full);
+    }
+
+    // GET /storage/v1/bucket/:id — bucket info
+    if (parts[0] === 'bucket' && method === 'GET') {
+      const bucketId = parts[1];
+      const dir = path.resolve(UPLOADS_DIR, bucketId);
+      if (!fs.existsSync(dir)) return res.status(404).json({ error: 'Bucket not found' });
+      return res.json({ id: bucketId, name: bucketId, public: true });
+    }
+
+    // POST or PUT /storage/v1/object/:bucket/:path — upload file
+    if (parts[0] === 'object' && !parts[1]?.startsWith('public') && !parts[1]?.startsWith('list') && (method === 'POST' || method === 'PUT')) {
+      const bucket = parts[1];
+      const fileRelPath = parts.slice(2).join('/');
+      const full = safePath(bucket, fileRelPath);
+      if (!full) return res.status(403).json({ error: 'Invalid path' });
+      const dir = path.dirname(full);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(full, fileBody);
+      const fileId = crypto.randomUUID();
+      return res.status(200).json({ Key: `${bucket}/${fileRelPath}`, Id: fileId });
+    }
+
+    // DELETE /storage/v1/object/:bucket/:path — delete file
+    if (parts[0] === 'object' && method === 'DELETE') {
+      const bucket = parts[1];
+      const fileRelPath = parts.slice(2).join('/');
+      const full = safePath(bucket, fileRelPath);
+      if (!full || !fs.existsSync(full)) return res.status(404).json({ error: 'File not found' });
+      fs.unlinkSync(full);
+      return res.status(200).json({ message: 'Deleted' });
+    }
+
+    return res.status(404).json({ error: 'Not found', path: req.path });
   } catch (err: any) {
-    console.error('Storage proxy error:', err);
-    res.status(502).json({ error: 'Storage proxy error', message: err.message });
+    console.error('[local storage] error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

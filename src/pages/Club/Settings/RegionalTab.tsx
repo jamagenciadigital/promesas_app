@@ -128,7 +128,7 @@ export default function RegionalTab() {
   }
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+    <div className="p-[1.2rem] space-y-6 pb-20 animate-in fade-in duration-500">
       <div className="flex items-center gap-3">
         <Globe className="w-6 h-6 text-gray-900" />
         <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Configuración Regional</h2>

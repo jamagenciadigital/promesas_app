@@ -7,6 +7,12 @@ import { Input } from '../../../components/ui/Input';
 import { ImageUpload } from '../../../components/ui/ImageUpload';
 import { CheckCircle2, Building2, Upload, CalendarDays, RefreshCw } from 'lucide-react';
 
+function toDateInputValue(date: string | null | undefined): string {
+  if (!date) return '';
+  if (date.includes('T')) return date.split('T')[0];
+  return date;
+}
+
 export default function GeneralInfoTab() {
   const { profile } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
@@ -69,8 +75,8 @@ export default function GeneralInfoTab() {
             website: data.website || '',
             color_principal: data.color_principal || '#E53E13',
             logo_url: data.logo_url || '',
-            temporada_inicio: data.temporada_inicio || '',
-            temporada_fin: data.temporada_fin || '',
+            temporada_inicio: toDateInputValue(data.temporada_inicio),
+            temporada_fin: toDateInputValue(data.temporada_fin),
             nit: data.nit || ''
           });
         }
@@ -176,8 +182,8 @@ export default function GeneralInfoTab() {
 
     try {
       // Detectar si cambiaron las fechas
-      const datesChanged = formData.temporada_inicio !== club?.temporada_inicio || 
-                           formData.temporada_fin !== club?.temporada_fin;
+      const datesChanged = formData.temporada_inicio !== toDateInputValue(club?.temporada_inicio) || 
+                           formData.temporada_fin !== toDateInputValue(club?.temporada_fin);
 
       const { error: updateError } = await supabase
         .from('clubes')

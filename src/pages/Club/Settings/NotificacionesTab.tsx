@@ -296,7 +296,7 @@ export default function NotificacionesTab() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-6">
       <div className="flex items-center gap-3 mb-2">
         <Mail className="w-6 h-6 text-blue-600" />
         <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Notificaciones por Correo</h2>

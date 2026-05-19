@@ -92,7 +92,7 @@ export default function WhatsAppTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-6">
       <div className="flex items-center gap-3 mb-2">
         <MessageCircle className="w-6 h-6 text-green-600" />
         <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Notificaciones de WhatsApp</h2>

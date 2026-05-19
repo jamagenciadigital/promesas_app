@@ -9,13 +9,15 @@ interface ImageCropperProps {
   onCropComplete: (croppedImage: Blob) => void;
   onCancel: () => void;
   aspect?: number;
+  outputFormat?: 'image/jpeg' | 'image/png';
 }
 
 export const ImageCropper: React.FC<ImageCropperProps> = ({ 
   image, 
   onCropComplete, 
   onCancel,
-  aspect = 1 / 1 
+  aspect = 1 / 1,
+  outputFormat = 'image/jpeg'
 }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -35,7 +37,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 
   const handleCrop = async () => {
     try {
-      const croppedImage = await getCroppedImg(image, croppedAreaPixels);
+      const croppedImage = await getCroppedImg(image, croppedAreaPixels, 0, { horizontal: false, vertical: false }, outputFormat);
       if (croppedImage) {
         onCropComplete(croppedImage);
       }

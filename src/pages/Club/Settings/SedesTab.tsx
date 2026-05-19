@@ -122,7 +122,7 @@ export default function SedesTab() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-emerald-500/10 rounded-lg">

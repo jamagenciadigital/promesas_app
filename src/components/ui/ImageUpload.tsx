@@ -26,10 +26,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
+  const [fileType, setFileType] = useState<'image/jpeg' | 'image/png'>('image/jpeg');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFileType(file.type === 'image/png' ? 'image/png' : 'image/jpeg');
       const reader = new FileReader();
       reader.onload = () => {
         setImageToCrop(reader.result as string);
@@ -45,13 +47,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageToCrop(null);
 
     try {
-      const fileName = `${path}-${Date.now()}.jpg`;
+      const ext = fileType === 'image/png' ? 'png' : 'jpg';
+      const fileName = `${path}-${Date.now()}.${ext}`;
       const fullPath = `${path}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fullPath, blob, {
-          contentType: 'image/jpeg',
+          contentType: fileType,
           upsert: true
         });
 
@@ -80,11 +83,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <div className="relative group">
-          <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-gray-100 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-white/10 flex items-center justify-center transition-all group-hover:border-[#CCFF00]/50">
+          <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center transition-all group-hover:border-[#CCFF00]/50">
             {value ? (
               <img src={value} alt="Preview" className="w-full h-full object-cover" />
             ) : (
-              <ImageIcon className="text-gray-300 dark:text-gray-700" size={40} />
+              <ImageIcon className="text-gray-300" size={40} />
             )}
             
             {uploading && (
@@ -117,7 +120,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </div>
 
         <div className="flex-1 text-center sm:text-left space-y-2">
-          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Formatos aceptados: JPG, PNG.
           </p>
           <p className="text-[9px] text-gray-400 italic">
@@ -151,6 +154,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           }}
           onCropComplete={handleCropComplete}
           aspect={aspect}
+          outputFormat={fileType}
         />
       )}
     </div>

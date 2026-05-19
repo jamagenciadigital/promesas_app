@@ -147,7 +147,7 @@ export default function PaymentsTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-500/10 rounded-lg">
           <CreditCard className="w-6 h-6 text-blue-500" />

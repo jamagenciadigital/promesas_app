@@ -327,7 +327,7 @@ export default function UsersTab() {
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+    <div className="p-[1.2rem] space-y-6 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Gestión de Usuarios</h2>
