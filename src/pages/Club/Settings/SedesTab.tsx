@@ -122,21 +122,21 @@ export default function SedesTab() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-emerald-500/10 rounded-lg">
             <MapPin className="w-6 h-6 text-emerald-500" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-tight font-outfit">Sedes del Club</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Gestiona los lugares donde se realizan tus actividades.</p>
+            <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Sedes del Club</h2>
+            <p className="text-sm text-gray-500">Gestiona los lugares donde se realizan tus actividades.</p>
           </div>
         </div>
         
         <Button 
           onClick={() => { setEditingSede(null); setFormData({ nombre: '', direccion: '' }); setShowModal(true); }} 
-          className="bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 shadow-lg shadow-black/5 hover:scale-105 active:scale-95 font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 border-0 transition-all"
+          className="bg-black text-white font-bold rounded-xl shadow-sm hover:bg-black/90 transition-all px-6 py-2.5 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Nueva Sede
@@ -145,19 +145,19 @@ export default function SedesTab() {
 
       {loading ? (
         <div className="py-12 flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#daff01]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
         </div>
       ) : sedes.length === 0 ? (
-        <div className="py-12 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
-          <MapPin className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-          <h3 className="text-gray-900 dark:text-white font-medium">No hay sedes registradas</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Agrega tu primera sede para que aparezca en el mapa.</p>
+        <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+          <MapPin className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+          <h3 className="text-gray-900 font-medium">No hay sedes registradas</h3>
+          <p className="text-sm text-gray-500 mt-1">Agrega tu primera sede para que aparezca en el mapa.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sedes.map((sede) => (
-            <div key={sede.id} className="bg-gray-50 dark:bg-[#1e293b]/50 border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
-              <div className="h-48 w-full bg-gray-200 dark:bg-gray-800 relative group">
+            <div key={sede.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+              <div className="h-48 w-full bg-gray-200 relative group">
                 <iframe
                   title={`Map of ${sede.nombre}`}
                   width="100%"
@@ -170,14 +170,14 @@ export default function SedesTab() {
                 <div className="absolute top-2 right-2 flex gap-2">
                     <button 
                       onClick={() => { setEditingSede(sede); setFormData({ nombre: sede.nombre, direccion: sede.direccion }); setShowModal(true); }}
-                      className="p-2 bg-white dark:bg-[#1e293b] rounded-xl shadow-lg text-gray-600 dark:text-gray-400 hover:text-[#daff01] dark:hover:text-[#daff01] hover:bg-gray-50 dark:hover:bg-white/5 transition-all"
+                      className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all hover:bg-gray-100 hover:text-gray-600"
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => handleDelete(sede.id)}
-                      className="p-2 bg-white dark:bg-[#1e293b] rounded-xl shadow-lg text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-all"
+                      className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all hover:bg-red-50 hover:text-red-500"
                       title="Eliminar"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -187,8 +187,8 @@ export default function SedesTab() {
               <div className="p-4 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-tight">{sede.nombre}</h3>
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <h3 className="font-bold text-gray-900 uppercase tracking-tight">{sede.nombre}</h3>
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
                       <MapPin className="w-3.5 h-3.5" />
                       <span>{sede.direccion}</span>
                     </div>
@@ -197,7 +197,7 @@ export default function SedesTab() {
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sede.direccion)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 text-gray-400 hover:text-[#daff01] hover:bg-[#daff01]/10 rounded-lg transition-all"
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
@@ -222,9 +222,9 @@ export default function SedesTab() {
             required
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección Exacta</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Dirección Exacta</label>
             <textarea
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#334155] bg-white dark:bg-[#1e293b] text-base md:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none transition-all placeholder-gray-400 min-h-[100px]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all min-h-[100px]"
               rows={3}
               placeholder="Ej. Calle 123 # 45-67, Ciudad, País"
               value={formData.direccion}
@@ -245,7 +245,7 @@ export default function SedesTab() {
             <Button 
               type="submit" 
               isLoading={saving} 
-              className="flex-1 bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 font-bold rounded-2xl h-12 border-0 shadow-lg shadow-black/5"
+              className="flex-1 bg-black text-white font-bold rounded-xl shadow-sm hover:bg-black/90 transition-all h-12"
             >
               {editingSede ? 'Guardar Cambios' : 'Crear Sede'}
             </Button>

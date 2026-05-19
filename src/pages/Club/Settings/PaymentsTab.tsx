@@ -147,29 +147,29 @@ export default function PaymentsTab() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-500/10 rounded-lg">
           <CreditCard className="w-6 h-6 text-blue-500" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white font-outfit uppercase tracking-tight">Configuración de Pagos</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Configura el código QR y las instrucciones de pago que verán tus miembros.</p>
+          <h2 className="text-xl font-bold text-gray-900 font-outfit uppercase tracking-tight">Configuración de Pagos</h2>
+          <p className="text-sm text-gray-500">Configura el código QR y las instrucciones de pago que verán tus miembros.</p>
         </div>
       </div>
 
       {successMsg && (
-        <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4 flex items-start gap-3 animate-in fade-in">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
           <div>
-            <h4 className="text-sm font-semibold text-green-800 dark:text-green-400">¡Configuración actualizada!</h4>
-            <p className="text-sm text-green-700 dark:text-green-500/80 mt-1">{successMsg}</p>
+            <h4 className="text-sm font-semibold text-green-700">¡Configuración actualizada!</h4>
+            <p className="text-sm text-green-700 mt-1">{successMsg}</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 text-sm text-red-600 dark:text-red-400">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -179,11 +179,11 @@ export default function PaymentsTab() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <QrCode className="w-4 h-4 text-gray-400" />
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Código QR para Pagos</h3>
+            <h3 className="text-sm font-bold text-[#182332] uppercase tracking-wider">Código QR para Pagos</h3>
           </div>
           
           <div className="space-y-3">
-            <div className={`relative w-full bg-gray-50 dark:bg-[#1e293b]/50 border-2 border-dashed ${qrFile ? 'border-[#CCFF00] bg-[#CCFF00]/5' : 'border-gray-200 dark:border-[#334155] hover:border-gray-300 dark:hover:border-gray-600'} rounded-2xl p-8 flex flex-col items-center justify-center min-h-[220px] transition-all group overflow-hidden`}>
+            <div className={`relative w-full bg-gray-50 border-2 border-dashed ${qrFile ? 'border-[#CCFF00] bg-[#CCFF00]/5' : 'border-gray-200 hover:border-gray-300'} rounded-2xl p-8 flex flex-col items-center justify-center min-h-[220px] transition-all group overflow-hidden`}>
                <input 
                  type="file" 
                  accept="image/*" 
@@ -197,7 +197,7 @@ export default function PaymentsTab() {
                   <img 
                     src={previewUrl || getDirectImageUrl(formData.qr_url)} 
                     alt="Vista previa QR" 
-                    className="max-h-40 rounded-xl shadow-md mx-auto object-contain border border-gray-100 dark:border-white/10 bg-white"
+                    className="max-h-40 rounded-xl shadow-md mx-auto object-contain border border-gray-100 bg-white"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                        e.currentTarget.style.display = 'none';
@@ -210,12 +210,12 @@ export default function PaymentsTab() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center text-center space-y-3 relative z-0">
-                  <div className="w-12 h-12 bg-white dark:bg-black rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                     <Upload className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[#CCFF00] transition-colors" />
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                     <Upload className="w-5 h-5 text-gray-400 group-hover:text-[#CCFF00] transition-colors" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">Haz clic aquí para subir tu QR</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Formatos soportados: JPG, PNG, WEBP (Máx 5MB)</p>
+                    <p className="text-sm font-bold text-gray-900">Haz clic aquí para subir tu QR</p>
+                    <p className="text-xs text-gray-500 mt-1">Formatos soportados: JPG, PNG, WEBP (Máx 5MB)</p>
                   </div>
                 </div>
               )}
@@ -227,7 +227,7 @@ export default function PaymentsTab() {
                     e.preventDefault();
                     setQrFile(null);
                     setPreviewUrl(null);
-                    if (!previewUrl) setFormData(prev => ({...prev, qr_url: ''})); // Si ya existía, lo borramos
+                    if (!previewUrl) setFormData(prev => ({...prev, qr_url: ''}));
                   }}
                   className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-20 shadow-lg"
                   title="Eliminar QR"
@@ -236,7 +236,7 @@ export default function PaymentsTab() {
                 </button>
               )}
             </div>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest pl-1">Los miembros verán este código QR cuando realicen pagos</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest pl-1">Los miembros verán este código QR cuando realicen pagos</p>
           </div>
         </div>
 
@@ -244,41 +244,41 @@ export default function PaymentsTab() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <AlignLeft className="w-4 h-4 text-gray-400" />
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Instrucciones de Pago</h3>
+            <h3 className="text-sm font-bold text-[#182332] uppercase tracking-wider">Instrucciones de Pago</h3>
           </div>
           
           <div className="space-y-2">
             <textarea
-              className="w-full bg-white dark:bg-[#1e293b] border border-gray-300 dark:border-[#334155] rounded-2xl px-5 py-4 text-base text-gray-900 dark:text-white focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none transition-all placeholder-gray-400 min-h-[140px] shadow-sm"
+              className="w-full bg-white border border-gray-300 rounded-2xl px-5 py-4 text-base text-gray-900 focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none transition-all placeholder-gray-400 min-h-[140px] shadow-sm"
               placeholder="Ejemplo: Número de cuenta: 123124132 Bancolombia Ahorros Titular: Club Deportivo Favor enviar comprobante al WhatsApp"
               value={formData.pago_instrucciones}
               onChange={(e) => setFormData({ ...formData, pago_instrucciones: e.target.value })}
             />
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest pl-1">Información adicional que aparecerá junto al QR (número de cuenta, titular, etc.)</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest pl-1">Información adicional que aparecerá junto al QR (número de cuenta, titular, etc.)</p>
           </div>
         </div>
 
         {/* Sección Vista Previa */}
-        <div className="pt-6 border-t border-gray-100 dark:border-[#334155]">
+        <div className="pt-6 border-t border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 text-gray-400" />
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Vista Previa</h3>
+              <h3 className="text-sm font-bold text-[#182332] uppercase tracking-wider">Vista Previa</h3>
             </div>
           </div>
           
-          <div className="bg-gray-100 dark:bg-[#0f1115] rounded-3xl p-8 flex justify-center border border-gray-200 dark:border-white/5 shadow-inner">
-            <div className="w-full max-w-[320px] aspect-[9/16] bg-white dark:bg-[#1e293b] rounded-[40px] border-[8px] border-gray-900 shadow-2xl overflow-hidden flex flex-col relative group overflow-y-auto">
+          <div className="bg-gray-100 rounded-3xl p-8 flex justify-center border border-gray-200 shadow-inner">
+            <div className="w-full max-w-[320px] aspect-[9/16] bg-white rounded-[40px] border-[8px] border-gray-900 shadow-2xl overflow-hidden flex flex-col relative group overflow-y-auto">
               <div className="p-6 space-y-6">
                 <div className="text-center">
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">Realizar Pago</h4>
+                  <h4 className="text-lg font-bold text-gray-900">Realizar Pago</h4>
                   <p className="text-xs text-gray-500">Sigue las instrucciones para validar tu pago.</p>
                 </div>
                 
                 {formData.qr_url || formData.pago_instrucciones ? (
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
                     {formData.qr_url && (
-                      <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-3xl border border-gray-100 dark:border-white/5 flex flex-col items-center">
+                      <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center">
                         <img 
                           src={previewUrl || getDirectImageUrl(formData.qr_url)} 
                           alt="QR Mockup" 
@@ -293,23 +293,23 @@ export default function PaymentsTab() {
                     )}
                     
                     {formData.pago_instrucciones && (
-                      <div className="p-5 bg-blue-50/50 dark:bg-white/5 rounded-3xl border border-blue-100/50 dark:border-white/10">
-                        <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed font-medium">
+                      <div className="p-5 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                        <p className="text-sm text-gray-700 leading-relaxed font-medium">
                           {formData.pago_instrucciones}
                         </p>
                       </div>
                     )}
 
                     <div className="pt-4">
-                      <div className="w-full h-12 bg-gray-900 dark:bg-[#CCFF00] rounded-2xl flex items-center justify-center text-white dark:text-gray-900 font-bold text-sm shadow-xl">
+                      <div className="w-full h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-xl">
                         Subir Comprobante
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center py-20 px-6">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
-                       <QrCode className="w-8 h-8 text-gray-300 dark:text-gray-600" />
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                       <QrCode className="w-8 h-8 text-gray-300" />
                     </div>
                     <p className="text-sm text-gray-400 font-medium">Agrega un QR o instrucciones para ver la vista previa</p>
                   </div>
@@ -326,7 +326,7 @@ export default function PaymentsTab() {
           <Button 
             type="submit" 
             isLoading={saving}
-            className="px-10 py-4 bg-gray-900 dark:bg-[#CCFF00] dark:text-black rounded-2xl shadow-xl shadow-blue-500/10 hover:shadow-blue-500/20 transition-all font-bold flex items-center gap-3 uppercase tracking-wider text-xs"
+            className="px-10 py-4 bg-black text-white font-bold rounded-xl shadow-sm hover:bg-black/90 flex items-center gap-3 uppercase tracking-wider text-xs"
           >
             <Save className="w-4 h-4" />
             Guardar Configuración

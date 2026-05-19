@@ -337,7 +337,7 @@ export default function RegisterParent() {
 
       {/* Footer Branding */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-center opacity-30">
-         <img src="/assets/LOGO-HORIZONTAL.png" className="h-6 object-contain" alt="Promesas Logo" />
+         <img src="/assets/LOGO-HORIZONTAL.png" className="h-6 object-contain" alt="Fichaje Logo" />
       </div>
     </div>
   );

@@ -195,9 +195,15 @@ export default function RegisterClub() {
       
       {/* Decorative Left Side Image (Based on User Mockup) */}
       <div 
-        className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-1/3 absolute md:relative inset-y-0 left-0 z-0 bg-[#FF0000] shadow-[10px_0_30px_rgba(0,0,0,0.5)] items-center justify-center p-8"
+        className="hidden md:block md:w-[45%] lg:w-[40%] xl:w-1/3 absolute md:relative inset-y-0 left-0 z-0 bg-cover bg-center shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
+        style={{ 
+          backgroundImage: 'url("/assets/bg-login.jpg")'
+        }}
       >
-        <img src="/assets/logo_white.png" className="w-48 h-auto object-contain animate-fade-in" alt="Promesas Logo"/>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
+        <div className="absolute bottom-8 left-8 right-8 flex items-center gap-3">
+          <img src="/assets/LOGO-HORIZONTAL.png" className="w-auto h-12" alt="Fichaje Logo"/>
+        </div>
       </div>
 
       <div className="flex-1 flex justify-center py-12 px-4 sm:px-6 lg:px-8 z-10 w-full overflow-y-auto">

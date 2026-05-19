@@ -7,6 +7,7 @@ import SedesTab from './SedesTab';
 import PaymentsTab from './PaymentsTab';
 import SubscriptionTab from './SubscriptionTab';
 import UsersTab from './UsersTab';
+import NotificacionesTab from './NotificacionesTab';
 import { MapPin, CreditCard as CardIcon } from 'lucide-react';
 
 type Tab = 'general' | 'regional' | 'whatsapp' | 'notifications' | 'payments' | 'subscription' | 'users' | 'sedes';
@@ -31,9 +32,9 @@ export default function ClubSettings() {
 
       <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap gap-8">
         {/* Sidebar de Secciones */}
-        <div className="md:w-64 flex-shrink-0">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 px-2">Secciones</h2>
-          <nav className="flex flex-col space-y-1">
+        <div className="md:w-64 flex-shrink-0 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <h2 className="text-sm font-bold text-[#182332] uppercase tracking-wider px-4 pt-4 pb-3">Secciones</h2>
+          <nav className="flex flex-col space-y-1 px-3 pb-3">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -44,11 +45,11 @@ export default function ClubSettings() {
                   onClick={() => setActiveTab(tab.id as Tab)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive 
-                      ? 'bg-gray-100 dark:bg-[#1e293b] text-gray-900 dark:text-[#daff01]' 
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-[#182332] text-white' 
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-gray-900 dark:text-[#daff01]' : 'text-gray-400'}`} />
+                  <Icon className="w-5 h-5 text-gray-400" />
                   {tab.label}
                 </button>
               );
@@ -57,7 +58,7 @@ export default function ClubSettings() {
         </div>
 
         {/* Contenido Principal */}
-        <div className="flex-1 bg-white dark:bg-[#16171b] border border-gray-200 dark:border-[#26282e] rounded-2xl shadow-sm min-h-[500px]">
+        <div className="flex-1 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm min-h-[500px]">
           {activeTab === 'general' && <GeneralInfoTab />}
           {activeTab === 'regional' && <RegionalTab />}
           {activeTab === 'whatsapp' && <WhatsAppTab />}
@@ -65,10 +66,11 @@ export default function ClubSettings() {
           {activeTab === 'payments' && <PaymentsTab />}
           {activeTab === 'subscription' && <SubscriptionTab />}
           {activeTab === 'users' && <UsersTab />}
-          {(activeTab !== 'general' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users') && (
-            <div className="p-12 flex flex-col items-center justify-center text-center h-full text-gray-500 dark:text-gray-400">
-              <Settings className="w-12 h-12 mb-4 text-gray-300 dark:text-gray-600" />
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Próximamente</h3>
+          {activeTab === 'notifications' && <NotificacionesTab />}
+          {(activeTab !== 'general' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users' && activeTab !== 'notifications') && (
+            <div className="p-12 flex flex-col items-center justify-center text-center h-full text-gray-500">
+              <Settings className="w-12 h-12 mb-4 text-gray-300" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Próximamente</h3>
               <p className="max-w-sm">Esta sección de configuración está en desarrollo y estará disponible pronto.</p>
             </div>
           )}

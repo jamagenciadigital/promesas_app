@@ -27,6 +27,12 @@ export interface Club {
   whatsapp_notif_bienvenida?: boolean;
   whatsapp_notif_cargos?: boolean;
   whatsapp_notif_recordatorios?: boolean;
+  resend_api_key?: string;
+  resend_from_email?: string;
+  template_id_registro?: string;
+  template_id_recuperacion?: string;
+  template_id_notificaciones?: string;
+  activar_correos?: boolean;
   estado?: string;
   pais?: string;
   ciudad?: string;
@@ -167,6 +173,19 @@ export interface PQRS {
   feedback_usuario?: FeedbackPQRS;
   feedback_motivo?: string;
   created_at: string;
+}
+
+export type TipoNotificacionCorreo = 'cartera' | 'pagos' | 'agenda' | 'entrenamientos' | 'eventos' | 'partidos';
+
+export interface PlantillaCorreo {
+  id: string;
+  club_id: string;
+  tipo: TipoNotificacionCorreo;
+  asunto?: string;
+  cuerpo: string;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export type EstadoInventario = 'bueno' | 'regular' | 'mal_estado';

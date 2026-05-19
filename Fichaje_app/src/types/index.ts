@@ -169,6 +169,19 @@ export interface PQRS {
   created_at: string;
 }
 
+export type TipoNotificacionCorreo = 'cartera' | 'pagos' | 'agenda' | 'entrenamientos' | 'eventos' | 'partidos';
+
+export interface PlantillaCorreo {
+  id: string;
+  club_id: string;
+  tipo: TipoNotificacionCorreo;
+  asunto?: string;
+  cuerpo: string;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type EstadoInventario = 'bueno' | 'regular' | 'mal_estado';
 
 export interface InventarioItem {

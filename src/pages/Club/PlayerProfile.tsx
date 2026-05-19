@@ -409,7 +409,7 @@ export default function PlayerProfile() {
            <div className="flex justify-between items-end">
               <div className="space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Generado por</p>
-                <p className="text-2xl font-black italic tracking-tighter">PROMESAS<span className="text-gray-400">APP</span></p>
+                <p className="text-2xl font-black italic tracking-tighter">FICHAJE<span className="text-gray-400">APP</span></p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha de Impresión</p>

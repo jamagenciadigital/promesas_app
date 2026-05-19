@@ -32,20 +32,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeClubId, setActiveClubIdState] = useState<string | null>(localStorage.getItem('promesas_active_club'));
-  const [isViewOnly, setIsViewOnlyState] = useState<boolean>(localStorage.getItem('promesas_view_only') === 'true');
+  const [activeClubId, setActiveClubIdState] = useState<string | null>(localStorage.getItem('fichaje_active_club'));
+  const [isViewOnly, setIsViewOnlyState] = useState<boolean>(localStorage.getItem('fichaje_view_only') === 'true');
 
   const setActiveClubId = (id: string | null) => {
     if (id) {
-      localStorage.setItem('promesas_active_club', id);
+      localStorage.setItem('fichaje_active_club', id);
     } else {
-      localStorage.removeItem('promesas_active_club');
+      localStorage.removeItem('fichaje_active_club');
     }
     setActiveClubIdState(id);
   };
 
   const setIsViewOnly = (viewOnly: boolean) => {
-    localStorage.setItem('promesas_view_only', viewOnly.toString());
+    localStorage.setItem('fichaje_view_only', viewOnly.toString());
     setIsViewOnlyState(viewOnly);
   };
 
@@ -112,8 +112,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    localStorage.removeItem('promesas_active_club');
-    localStorage.removeItem('promesas_view_only');
+    localStorage.removeItem('fichaje_active_club');
+    localStorage.removeItem('fichaje_view_only');
     await supabase.auth.signOut();
   };
 

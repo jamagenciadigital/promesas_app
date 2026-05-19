@@ -7,6 +7,7 @@ import SedesTab from './SedesTab';
 import PaymentsTab from './PaymentsTab';
 import SubscriptionTab from './SubscriptionTab';
 import UsersTab from './UsersTab';
+import NotificacionesTab from './NotificacionesTab';
 import { MapPin, CreditCard as CardIcon } from 'lucide-react';
 
 type Tab = 'general' | 'regional' | 'whatsapp' | 'notifications' | 'payments' | 'subscription' | 'users' | 'sedes';
@@ -65,7 +66,8 @@ export default function ClubSettings() {
           {activeTab === 'payments' && <PaymentsTab />}
           {activeTab === 'subscription' && <SubscriptionTab />}
           {activeTab === 'users' && <UsersTab />}
-          {(activeTab !== 'general' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users') && (
+          {activeTab === 'notifications' && <NotificacionesTab />}
+          {(activeTab !== 'general' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users' && activeTab !== 'notifications') && (
             <div className="p-12 flex flex-col items-center justify-center text-center h-full text-gray-500 dark:text-gray-400">
               <Settings className="w-12 h-12 mb-4 text-gray-300 dark:text-gray-600" />
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Próximamente</h3>

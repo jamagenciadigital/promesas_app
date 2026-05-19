@@ -896,7 +896,7 @@ export default function PublicReservation() {
                 <ShieldCheck className="w-6 h-6 transition-transform group-hover:scale-110" />
                 <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] block">Military-Grade Encryption</span>
-                    <span className="text-[8px] font-bold uppercase tracking-widest block opacity-50">Authorized by Promesas App Analytics</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest block opacity-50">Authorized by Fichaje.Pro Analytics</span>
                 </div>
             </div>
             <div className="flex gap-12">

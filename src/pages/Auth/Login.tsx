@@ -108,15 +108,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#bd0f10] flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
       
       
       <div className="relative z-10 w-full max-w-[400px] px-4">
         {/* Solid White Card */}
         <div className="bg-white rounded-[40px] p-10 shadow-[0_25px_60px_rgba(0,0,0,0.3)] border border-gray-100 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center">
-            <img src="/assets/logo_color.png" alt="Promesas App" className="w-48 h-auto object-contain" />
-            <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">Protocolo Operativo</p>
+            <img src="/assets/logo-login.png" alt="Fichaje" className="w-28 h-auto object-contain" />
+            <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">GESTION DEPORTIVA</p>
           </div>
  
           <form className="w-full space-y-5" onSubmit={handleLogin}>

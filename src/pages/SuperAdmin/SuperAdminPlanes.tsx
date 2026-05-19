@@ -274,7 +274,7 @@ export default function SuperAdminPlanes() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Planes B2B & Suscripciones</h1>
           <p className="text-sm text-gray-500 mt-1">Configuración de modelos de negocio para Formativos y Profesionales.</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="bg-black text-[#CCFF00] rounded-xl font-bold px-6">
+        <Button onClick={() => handleOpenModal()} className="bg-black text-white rounded-xl font-bold px-6">
           <Plus size={18} className="mr-2" /> Crear Plan
         </Button>
       </div>
@@ -287,27 +287,27 @@ export default function SuperAdminPlanes() {
       ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {planes.map(plan => (
-               <div key={plan.id} className="bg-white dark:bg-[#16171b] shadow-sm rounded-[32px] p-8 border border-gray-100 dark:border-white/5 flex flex-col relative overflow-hidden group hover:border-[#CCFF00]/50 transition-all duration-300">
-                  {!plan.estado && <div className="absolute top-6 right-6 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-red-500/20 tracking-widest">Inactivo</div>}
-                  {plan.estado && <div className="absolute top-6 right-6 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-emerald-500/20 tracking-widest">Activo</div>}
+               <div key={plan.id} className="bg-[#1e293b] shadow-lg shadow-black/20 rounded-[32px] p-8 flex flex-col relative overflow-hidden group hover:border-[#CCFF00]/50 transition-all duration-300 border border-gray-700/50">
+                  {!plan.estado && <div className="absolute top-6 right-6 bg-red-500/20 text-red-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-red-500/20 tracking-widest">Inactivo</div>}
+                  {plan.estado && <div className="absolute top-6 right-6 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-emerald-500/20 tracking-widest">Activo</div>}
                   
                   <div className="flex-1">
-                     <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter pr-20">{plan.nombre}</h3>
+                     <h3 className="text-2xl font-black text-white uppercase tracking-tighter pr-20">{plan.nombre}</h3>
                      <p className="text-5xl font-black text-[#CCFF00] mt-2 mb-2 tracking-tighter">${plan.precio.toLocaleString()}</p>
-                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">{plan.descripcion || 'Sin descripción'}</p>
+                     <p className="text-sm text-gray-400 mb-8">{plan.descripcion || 'Sin descripción'}</p>
 
                      <div className="space-y-3 mb-8">
-                        <div className="flex justify-between items-center text-sm font-bold border-b border-gray-50 dark:border-white/5 pb-3">
-                           <span className="text-gray-500 dark:text-gray-400">Equipos:</span>
-                           <span className="text-gray-900 dark:text-white text-base">{plan.limite_equipos === -1 ? 'Ilimitado' : plan.limite_equipos}</span>
+                        <div className="flex justify-between items-center text-sm font-bold border-b border-white/10 pb-3">
+                           <span className="text-gray-400">Equipos:</span>
+                           <span className="text-white text-base">{plan.limite_equipos === -1 ? 'Ilimitado' : plan.limite_equipos}</span>
                         </div>
-                        <div className="flex justify-between items-center text-sm font-bold border-b border-gray-50 dark:border-white/5 pb-3">
-                           <span className="text-gray-500 dark:text-gray-400">Jugadores:</span>
-                           <span className="text-gray-900 dark:text-white text-base">{plan.limite_jugadores === -1 ? 'Ilimitado' : plan.limite_jugadores}</span>
+                        <div className="flex justify-between items-center text-sm font-bold border-b border-white/10 pb-3">
+                           <span className="text-gray-400">Jugadores:</span>
+                           <span className="text-white text-base">{plan.limite_jugadores === -1 ? 'Ilimitado' : plan.limite_jugadores}</span>
                         </div>
-                         <div className="flex justify-between items-center text-sm font-bold border-b border-gray-50 dark:border-white/5 pb-3">
-                           <span className="text-gray-500 dark:text-gray-400">Comisión Fija:</span>
-                           <span className="text-gray-900 dark:text-white text-base">${(plan.comision || 0).toLocaleString()}</span>
+                         <div className="flex justify-between items-center text-sm font-bold border-b border-white/10 pb-3">
+                           <span className="text-gray-400">Comisión Fija:</span>
+                           <span className="text-white text-base">${(plan.comision || 0).toLocaleString()}</span>
                         </div>
                      </div>
                      
@@ -319,23 +319,23 @@ export default function SuperAdminPlanes() {
                   </div>
 
                   <div className="flex gap-2 mt-auto w-full">
-                     <Button onClick={() => handleOpenModal(plan)} className="flex-1 rounded-2xl h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-black uppercase tracking-widest text-[10px]">
+                     <Button onClick={() => handleOpenModal(plan)} className="flex-1 rounded-2xl h-14 bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors font-black uppercase tracking-widest text-[10px]">
                         Gestión de Plan
                      </Button>
-                     <Button 
-                        onClick={() => handleToggleEstado(plan)} 
-                        className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-300 ${
-                           plan.estado 
-                              ? 'border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 bg-amber-500/5 hover:bg-amber-500/10' 
-                              : 'border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10'
-                        }`}
+                      <Button 
+                         onClick={() => handleToggleEstado(plan)} 
+                         className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                            plan.estado 
+                               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20' 
+                               : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                         }`}
                         title={plan.estado ? "Desactivar Plan" : "Activar Plan"}
                      >
                         {plan.estado ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
                      </Button>
-                     <Button 
-                        onClick={() => handleDeletePlan(plan)} 
-                        className="w-14 h-14 rounded-2xl border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 bg-red-500/5 hover:bg-red-500/10 flex items-center justify-center transition-all duration-300"
+                      <Button 
+                         onClick={() => handleDeletePlan(plan)} 
+                         className="w-14 h-14 rounded-2xl border border-red-500/20 text-red-400 bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center transition-all duration-300"
                         title="Eliminar Plan"
                      >
                         <Trash2 size={18} />
@@ -463,7 +463,7 @@ export default function SuperAdminPlanes() {
                </div>
                <div className="flex gap-4">
                   <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                  <Button type="submit" isLoading={saving} className="bg-[#ccff00] text-black hover:bg-[#aacc00] px-8 py-3 rounded-xl font-bold">
+                  <Button type="submit" isLoading={saving} className="bg-black text-white hover:bg-black/90 px-8 py-3 rounded-xl font-bold">
                      {editingPlan ? 'Guardar Cambios' : 'Crear Plan Suscripción'}
                   </Button>
                </div>

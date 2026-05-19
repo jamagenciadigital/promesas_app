@@ -92,25 +92,25 @@ export default function WhatsAppTab() {
   }
 
   return (
-    <div className="p-8">
+    <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <MessageCircle className="w-6 h-6 text-green-600 dark:text-[#daff01]" />
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Notificaciones de WhatsApp</h2>
+        <MessageCircle className="w-6 h-6 text-green-600" />
+        <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Notificaciones de WhatsApp</h2>
       </div>
-      <p className="text-gray-500 text-sm mb-8">Activa las notificaciones automáticas por WhatsApp para tus miembros.</p>
+      <p className="text-sm text-gray-400 mt-1">Activa las notificaciones automáticas por WhatsApp para tus miembros.</p>
 
       {successMsg && (
-        <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4 flex items-start gap-3 mb-6 animate-in fade-in">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 mb-6 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
           <div>
-            <h4 className="text-sm font-semibold text-green-800 dark:text-green-400">¡Guardado!</h4>
-            <p className="text-sm text-green-700 dark:text-green-500/80 mt-1">{successMsg}</p>
+            <h4 className="text-sm font-semibold text-green-800">¡Guardado!</h4>
+            <p className="text-sm text-green-700 mt-1">{successMsg}</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 mb-6 text-sm text-red-600 dark:text-red-400">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -120,11 +120,11 @@ export default function WhatsAppTab() {
         {/* Toggle options */}
         <label className={`flex items-start gap-4 p-5 rounded-xl border cursor-pointer transition-colors ${
           formData.whatsapp_notif_bienvenida 
-            ? 'bg-blue-50/50 dark:bg-[#daff01]/5 border-blue-200 dark:border-[#daff01]/30' 
-            : 'bg-white dark:bg-[#111215] border-gray-200 dark:border-[#334155] hover:border-gray-300 dark:hover:border-gray-600'
+            ? 'bg-gray-50 border-gray-200' 
+            : 'bg-white border-gray-200 hover:border-gray-300'
         }`}>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Bienvenida a la plataforma</h3>
+            <h3 className="font-semibold text-gray-900 text-base">Bienvenida a la plataforma</h3>
             <p className="text-gray-500 text-sm mt-1">Envía un mensaje de bienvenida cuando un miembro se registra.</p>
           </div>
           <div className="pt-1">
@@ -133,18 +133,18 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_bienvenida"
               checked={formData.whatsapp_notif_bienvenida}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 dark:text-[#daff01] focus:ring-blue-500 dark:focus:ring-[#daff01] bg-white dark:bg-[#26282e]"
+              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
             />
           </div>
         </label>
 
         <label className={`flex items-start gap-4 p-5 rounded-xl border cursor-pointer transition-colors ${
           formData.whatsapp_notif_cargos 
-            ? 'bg-blue-50/50 dark:bg-[#daff01]/5 border-blue-200 dark:border-[#daff01]/30' 
-            : 'bg-white dark:bg-[#111215] border-gray-200 dark:border-[#334155] hover:border-gray-300 dark:hover:border-gray-600'
+            ? 'bg-gray-50 border-gray-200' 
+            : 'bg-white border-gray-200 hover:border-gray-300'
         }`}>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Envío de Cargos</h3>
+            <h3 className="font-semibold text-gray-900 text-base">Envío de Cargos</h3>
             <p className="text-gray-500 text-sm mt-1">Permite enviar recibos en PDF por WhatsApp.</p>
           </div>
           <div className="pt-1">
@@ -153,18 +153,18 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_cargos"
               checked={formData.whatsapp_notif_cargos}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 dark:text-[#daff01] focus:ring-blue-500 dark:focus:ring-[#daff01] bg-white dark:bg-[#26282e]"
+              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
             />
           </div>
         </label>
 
         <label className={`flex items-start gap-4 p-5 rounded-xl border cursor-pointer transition-colors ${
           formData.whatsapp_notif_recordatorios 
-            ? 'bg-blue-50/50 dark:bg-[#daff01]/5 border-blue-200 dark:border-[#daff01]/30' 
-            : 'bg-white dark:bg-[#111215] border-gray-200 dark:border-[#334155] hover:border-gray-300 dark:hover:border-gray-600'
+            ? 'bg-gray-50 border-gray-200' 
+            : 'bg-white border-gray-200 hover:border-gray-300'
         }`}>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Recordatorio de pago</h3>
+            <h3 className="font-semibold text-gray-900 text-base">Recordatorio de pago</h3>
             <p className="text-gray-500 text-sm mt-1">Envía recordatorios automáticos de pagos que vencen el mismo día.</p>
           </div>
           <div className="pt-1">
@@ -173,25 +173,25 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_recordatorios"
               checked={formData.whatsapp_notif_recordatorios}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 dark:text-[#daff01] focus:ring-blue-500 dark:focus:ring-[#daff01] bg-white dark:bg-[#26282e]"
+              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
             />
           </div>
         </label>
 
-        <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-[#26282e] mt-8">
+        <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-8">
           <span className="text-sm text-gray-500">* Campos obligatorios</span>
           <div className="flex gap-4">
             <Button 
               type="button" 
               variant="outline"
-              className="px-6 py-2.5 rounded-xl border-gray-300 dark:border-[#334155] text-gray-700 dark:text-gray-300"
+              className="px-6 py-2.5 rounded-xl border-gray-300 text-gray-700"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               isLoading={saving}
-              className="px-6 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1ebd5a] dark:bg-[#daff01] dark:hover:bg-[#cbe600] text-white dark:text-gray-900 font-semibold border-0"
+              className="px-6 py-2.5 rounded-xl bg-black text-white font-bold shadow-sm hover:bg-black/90 transition-all border-0"
             >
               Guardar Cambios
             </Button>

@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma';
+import { sendEmail, sendNotificationEmail } from './services/email.service';
 
 console.log("DATABASE_URL in backend:", process.env.DATABASE_URL);
 
@@ -419,19 +420,28 @@ app.post('/auth/v1/signup', async (req, res) => {
       'authenticated'
     );
 
-    await prisma.$executeRawUnsafe(`
-      INSERT INTO public.perfiles (
-        id, email, nombre, rol, club_id, telefono, created_at
-      ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7)
-    `,
-      userId,
-      email,
-      userMetadata.nombre || userMetadata.nombre_completo || '',
-      userMetadata.rol || 'entrenador',
-      userMetadata.club_id || null,
-      userMetadata.telefono || '',
-      now
+    // Insert profile (skip if already exists — Supabase trigger may have created it)
+    const existingProfile = await prisma.$queryRawUnsafe<any[]>(
+      'SELECT id FROM public.perfiles WHERE id = $1 LIMIT 1',
+      userId
     );
+    if (existingProfile.length === 0) {
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO public.perfiles (
+          id, email, nombre, rol, club_id, telefono, deportista_id, estado, created_at
+        ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7, $8, $9)
+      `,
+        userId,
+        email,
+        userMetadata.nombre || userMetadata.nombre_completo || '',
+        userMetadata.rol || 'entrenador',
+        userMetadata.club_id || null,
+        userMetadata.telefono || '',
+        userMetadata.deportista_id || null,
+        userMetadata.estado || 'activo',
+        now
+      );
+    }
 
     const access_token = jwt.sign(
       { sub: userId, email, role: 'authenticated', aud: 'authenticated' },
@@ -466,6 +476,22 @@ app.post('/auth/v1/signup', async (req, res) => {
       created_at: now,
       updated_at: now
     };
+
+    // Enviar correo de bienvenida/registro
+    const clubId = userMetadata.club_id || null;
+    if (clubId) {
+      try {
+        const clubRes = await prisma.$queryRawUnsafe<any[]>('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+        const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Nuestra Plataforma';
+        await sendEmail(prisma, email, 'registro', {
+          nombre: userMetadata.nombre || userMetadata.nombre_completo || 'Usuario',
+          email: email,
+          club: clubNombre
+        }, clubId);
+      } catch (e) {
+        console.error("Error enviando correo de bienvenida:", e);
+      }
+    }
 
     return res.status(200).json({
       access_token,
@@ -661,6 +687,49 @@ app.post('/auth/v1/logout', (req, res) => {
   return res.status(200).json({});
 });
 
+// AUTH RECOVER PASSWORD (Send Email)
+app.post('/auth/v1/recover', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const users = await prisma.$queryRawUnsafe<any[]>(
+      'SELECT id, raw_user_meta_data FROM auth.users WHERE email = $1 LIMIT 1', 
+      email
+    );
+    
+    if (users.length > 0) {
+      const user = users[0];
+      const meta = user.raw_user_meta_data || {};
+      const nombre = meta.nombre || meta.nombre_completo || 'Usuario';
+      
+      const clubId = meta.club_id || null;
+      const resetLink = `https://fichaje.pro/reset-password?email=${encodeURIComponent(email)}`;
+
+      try {
+        let clubNombre = 'Club';
+        if (clubId) {
+          const clubRes = await prisma.$queryRawUnsafe<any[]>('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+          if (clubRes.length > 0) clubNombre = clubRes[0].nombre;
+        }
+        await sendEmail(prisma, email, 'recuperacion', {
+          nombre: nombre,
+          link_recuperacion: resetLink,
+          club: clubNombre
+        }, clubId || undefined);
+      } catch (e) {
+        console.error("Error enviando correo de recuperación:", e);
+      }
+    }
+
+    // Siempre retornamos 200 aunque el correo no exista, por seguridad
+    return res.status(200).json({ message: 'If the email exists, a recovery link was sent.' });
+  } catch (error) {
+    console.error('Recover error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // REST V1 RPC ENDPOINT
 app.post('/rest/v1/rpc/:functionName', async (req, res) => {
   const { functionName } = req.params;
@@ -829,6 +898,57 @@ app.all('/rest/v1/:table', async (req, res) => {
   }
 });
 
+// SEND NOTIFICATION EMAIL
+app.post('/api/notifications/send', async (req, res) => {
+  const { to, tipo, variables, club_id } = req.body;
+
+  if (!to || !tipo || !club_id) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: to, tipo, club_id' });
+  }
+
+  try {
+    const result = await sendNotificationEmail(prisma, to, tipo, variables || {}, club_id);
+
+    if (result) {
+      return res.status(200).json({ success: true, message: 'Notificación enviada' });
+    } else {
+      return res.status(400).json({ success: false, message: 'No se pudo enviar la notificación' });
+    }
+  } catch (error: any) {
+    console.error('Error sending notification:', error);
+    return res.status(500).json({ error: error.message || 'Error interno' });
+  }
+});
+
+// SEND WELCOME EMAIL (registration template) — called after user creation from Club panel
+app.post('/api/notifications/welcome', async (req, res) => {
+  const { to, nombre, club_id } = req.body;
+
+  if (!to || !nombre || !club_id) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: to, nombre, club_id' });
+  }
+
+  try {
+    const clubRes = await prisma.$queryRawUnsafe<any[]>('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', club_id);
+    const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Club';
+
+    const result = await sendEmail(prisma, to, 'registro', {
+      nombre,
+      email: to,
+      club: clubNombre
+    }, club_id);
+
+    if (result) {
+      return res.status(200).json({ success: true, message: 'Correo de bienvenida enviado' });
+    } else {
+      return res.status(400).json({ success: false, message: 'No se pudo enviar el correo de bienvenida' });
+    }
+  } catch (error: any) {
+    console.error('Error sending welcome email:', error);
+    return res.status(500).json({ error: error.message || 'Error interno' });
+  }
+});
+
 app.listen(port, () => {
-  console.log(`🚀 Promesas Backend running on port ${port}`);
+  console.log(`🚀 Fichaje Backend running on port ${port}`);
 });

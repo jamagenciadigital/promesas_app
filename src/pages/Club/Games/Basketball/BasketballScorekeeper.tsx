@@ -459,7 +459,7 @@ export default function BasketballScorekeeper() {
           </div>
           {!isMobile && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontWeight: '900', fontSize: '0.9rem', color: colors.accent, letterSpacing: '0.5px' }}>PROMESAS LIVE</span>
+              <span style={{ fontWeight: '900', fontSize: '0.9rem', color: colors.accent, letterSpacing: '0.5px' }}>FICHAJE LIVE</span>
               <span style={{ fontSize: '0.65rem', color: '#888', fontWeight: 'bold' }}>{match.nombre_local} vs {match.nombre_visitante}</span>
             </div>
           )}

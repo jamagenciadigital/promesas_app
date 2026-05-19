@@ -128,24 +128,24 @@ export default function RegionalTab() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Globe className="w-6 h-6 text-gray-900 dark:text-[#daff01]" />
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Configuración Regional</h2>
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+      <div className="flex items-center gap-3">
+        <Globe className="w-6 h-6 text-gray-900" />
+        <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Configuración Regional</h2>
       </div>
 
       {successMsg && (
-        <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4 flex items-start gap-3 mb-6 animate-in fade-in">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
           <div>
-            <h4 className="text-sm font-semibold text-green-800 dark:text-green-400">¡Guardado!</h4>
-            <p className="text-sm text-green-700 dark:text-green-500/80 mt-1">{successMsg}</p>
+            <h4 className="text-sm font-semibold text-green-800">¡Guardado!</h4>
+            <p className="text-sm text-green-700 mt-1">{successMsg}</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 mb-6 text-sm text-red-600 dark:text-red-400">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -155,7 +155,7 @@ export default function RegionalTab() {
         {/* Dropdowns */}
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-gray-200 mb-1.5 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -165,7 +165,7 @@ export default function RegionalTab() {
               name="zona_horaria"
               value={formData.zona_horaria}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#0f1115] border border-gray-300 dark:border-[#334155] rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#daff01] focus:border-transparent outline-none transition-all appearance-none"
+              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all appearance-none"
             >
               {TIMEZONES.map(tz => (
                 <option key={tz} value={tz}>{tz}</option>
@@ -175,14 +175,14 @@ export default function RegionalTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-gray-200 mb-1.5 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <span className="font-bold text-gray-500">$</span> Moneda
             </label>
             <select
               name="moneda"
               value={formData.moneda}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#0f1115] border border-gray-300 dark:border-[#334155] rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#daff01] focus:border-transparent outline-none transition-all appearance-none"
+              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all appearance-none"
             >
               {CURRENCIES.map(curr => (
                 <option key={curr} value={curr}>{curr}</option>
@@ -193,41 +193,41 @@ export default function RegionalTab() {
         </div>
 
         {/* Warning Alert */}
-        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-6 text-sm">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-sm">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="space-y-4">
-              <h3 className="font-semibold text-amber-900 dark:text-amber-500 text-base">Importante: Zona Horaria y Filtros</h3>
+              <h3 className="font-semibold text-amber-900 text-base">Importante: Zona Horaria y Filtros</h3>
               
-              <div className="space-y-3 text-amber-800 dark:text-amber-500/80">
+              <div className="space-y-3 text-amber-800">
                 <p>
-                  <strong className="text-amber-900 dark:text-amber-500 font-semibold">Afecta principalmente:</strong> Esta configuración determina cómo se filtran y agrupan los datos en reportes, estadísticas y gráficas. Por ejemplo, al filtrar por "día de hoy" o generar estadísticas mensuales.
+                  <strong className="text-amber-900 font-semibold">Afecta principalmente:</strong> Esta configuración determina cómo se filtran y agrupan los datos en reportes, estadísticas y gráficas. Por ejemplo, al filtrar por "día de hoy" o generar estadísticas mensuales.
                 </p>
                 <p>
-                  <strong className="text-amber-900 dark:text-amber-500 font-semibold">Cambio no retroactivo:</strong> Los datos históricos permanecen en la zona horaria original. Solo afecta cómo se interpretan y filtran los datos de ahora en adelante.
+                  <strong className="text-amber-900 font-semibold">Cambio no retroactivo:</strong> Los datos históricos permanecen en la zona horaria original. Solo afecta cómo se interpretan y filtran los datos de ahora en adelante.
                 </p>
                 <p>
-                  <strong className="text-amber-900 dark:text-amber-500 font-semibold">No afecta tu navegador:</strong> Esta es una configuración del servidor. La hora mostrada en tu navegador seguirá siendo la de tu dispositivo.
+                  <strong className="text-amber-900 font-semibold">No afecta tu navegador:</strong> Esta es una configuración del servidor. La hora mostrada en tu navegador seguirá siendo la de tu dispositivo.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#26282e]">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <span className="text-sm text-gray-500">* Campos obligatorios</span>
           <div className="flex gap-4">
             <Button 
               type="button" 
               variant="outline"
-              className="px-6 py-2.5 rounded-xl border-gray-300 dark:border-[#334155] text-gray-700 dark:text-gray-300"
+              className="px-6 py-2.5 rounded-xl border-gray-200 text-gray-700"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               isLoading={saving}
-              className="px-6 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-[#daff01] dark:hover:bg-[#cbe600] text-white dark:text-gray-900 font-semibold border-0"
+              className="px-6 py-2.5 rounded-xl bg-black text-white font-bold shadow-sm hover:bg-black/90 transition-all"
             >
               Guardar Cambios
             </Button>

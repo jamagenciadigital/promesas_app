@@ -197,7 +197,8 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
   };
 
   const sidebarClasses = cn(
-    "flex flex-col bg-[#bd0f10] text-white transition-all duration-300 relative",
+    "flex flex-col text-white transition-all duration-300 relative",
+    virtualRole === 'superadmin' ? 'bg-[#1a1a1a]' : 'bg-[#bd0f10]',
     isMobile 
       ? cn(
           "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl",
@@ -232,9 +233,9 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
       <div className={cn("flex items-center border-b border-white/10", isCollapsed ? "h-20 justify-center px-4" : "h-24 justify-center")}>
         <div className="flex items-center justify-center w-full h-full relative">
           {isCollapsed ? (
-            <img src="/assets/FAVICON.svg" alt="Promesas Icon" className="w-10 h-10 object-contain brightness-0 invert" />
+            <img src="/assets/FAVICON.svg" alt="Fichaje Icon" className="w-10 h-10 object-contain" />
           ) : (
-            <img src="/assets/logo_white.png" alt="Promesas Logo" className="h-16 object-contain" />
+            <img src="/assets/LogoVertical.png" alt="Fichaje Logo" className="h-16 object-contain" />
           )}
         </div>
       </div>

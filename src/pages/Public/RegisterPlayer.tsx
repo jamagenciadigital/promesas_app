@@ -307,7 +307,7 @@ export default function RegisterPlayer() {
       <div className="hidden lg:block lg:w-[40%] xl:w-1/3 absolute lg:relative inset-y-0 left-0 z-0 bg-cover bg-center shadow-[10px_0_30px_rgba(0,0,0,0.5)] print:hidden" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80")' }}>
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
         <div className="absolute bottom-12 left-12 right-12 text-white">
-          <img src="/assets/LOGO-HORIZONTAL.png" className="w-auto h-16 mb-6" alt="Promesas Logo"/>
+          <img src="/assets/LOGO-HORIZONTAL.png" className="w-auto h-16 mb-6" alt="Fichaje Logo"/>
           <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none mb-4">Registro Oficial</h1>
           <p className="text-lg font-medium text-white/70">La plataforma #1 para la gestión de talentos deportivos.</p>
         </div>

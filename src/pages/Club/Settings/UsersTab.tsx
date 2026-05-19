@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../context/AuthContext';
-import { Users, Plus, Mail, Shield, ShieldCheck, UserPlus, Search, Trash2, Power, PowerOff, CheckCircle2, Edit3 } from 'lucide-react';
+import { Users, Plus, Mail, Shield, ShieldCheck, UserPlus, Search, Trash2, Power, PowerOff, CheckCircle2, Edit3, KeyRound } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 
@@ -214,6 +214,8 @@ export default function UsersTab() {
               nombre: userForm.nombre,
               rol: userForm.rol,
               club_id: profile.club_id,
+              deportista_id: userForm.rol === 'padre' ? userForm.deportista_id : null,
+              estado: 'activo',
             }
           }
         });
@@ -221,21 +223,17 @@ export default function UsersTab() {
         if (authError) throw authError;
 
         if (authData.user) {
-          const { error: profileError } = await supabase
-            .from('perfiles')
-            .upsert({
-              id: authData.user.id,
-              email: userForm.email.toLowerCase().trim(),
+          fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/welcome`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: userForm.email.toLowerCase().trim(),
               nombre: userForm.nombre,
-              rol: userForm.rol,
               club_id: profile.club_id,
-              deportista_id: userForm.rol === 'padre' ? userForm.deportista_id : null,
-              estado: 'activo'
-            });
+            })
+          }).catch(err => console.error('Error sending welcome email:', err));
 
-          if (profileError) throw profileError;
-
-          setSuccessMsg('Usuario creado correctamente. Se ha enviado un correo de confirmación.');
+          setSuccessMsg('Usuario creado correctamente. Se ha enviado un correo de bienvenida.');
           setShowModal(false);
           fetchUsers();
           setTimeout(() => setSuccessMsg(null), 8000);
@@ -285,6 +283,26 @@ export default function UsersTab() {
     }
   };
 
+  const handleSendRecovery = async (user: UserMember) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/recover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al enviar recuperación');
+      }
+
+      setSuccessMsg(`Correo de recuperación enviado a ${user.email}`);
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     u.nombre?.toLowerCase().includes(search.toLowerCase()) || 
     u.email?.toLowerCase().includes(search.toLowerCase())
@@ -292,13 +310,13 @@ export default function UsersTab() {
 
   const getRoleBadge = (rol: string) => {
     const roleLabels: any = {
-      admin_club: { label: 'Admin Club', class: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border-red-200/50' },
-      direccion_deportiva: { label: 'Dirección Deportiva', class: 'bg-lime-50 text-lime-700 dark:bg-[#daff01]/10 dark:text-[#daff01] border-lime-200/50' },
-      cartera: { label: 'Cartera', class: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/50' },
-      comunicaciones: { label: 'Comunicaciones', class: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border-indigo-200/50' },
-      admin_equipo: { label: 'Admin Equipo', class: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50' },
-      entrenador: { label: 'Entrenador', class: 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 border-green-200/50' },
-      padre: { label: 'Padre/Hijo', class: 'bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border-purple-200/50' }
+      admin_club: { label: 'Admin Club', class: 'bg-red-50 text-red-700 border-red-200/50' },
+      direccion_deportiva: { label: 'Dirección Deportiva', class: 'bg-lime-50 text-lime-700 border-lime-200/50' },
+      cartera: { label: 'Cartera', class: 'bg-blue-50 text-blue-700 border-blue-200/50' },
+      comunicaciones: { label: 'Comunicaciones', class: 'bg-indigo-50 text-indigo-700 border-indigo-200/50' },
+      admin_equipo: { label: 'Admin Equipo', class: 'bg-amber-50 text-amber-700 border-amber-200/50' },
+      entrenador: { label: 'Entrenador', class: 'bg-green-50 text-green-700 border-green-200/50' },
+      padre: { label: 'Padre/Hijo', class: 'bg-purple-50 text-purple-700 border-purple-200/50' }
     };
     const role = roleLabels[rol] || { label: rol, class: 'bg-gray-50 text-gray-700' };
     return (
@@ -309,22 +327,16 @@ export default function UsersTab() {
   };
 
   return (
-    <div className="p-8 space-y-8 animate-in fade-in">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-500/10 rounded-lg">
-            <Users className="w-6 h-6 text-blue-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-tight font-outfit">Gestión de Usuarios</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Administra el personal y sus roles dentro del club.</p>
-          </div>
+        <div>
+          <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Gestión de Usuarios</h2>
+          <p className="text-sm text-gray-400 mt-1">Administra el personal y sus roles dentro del club.</p>
         </div>
-        
-        <Button 
+        <Button
           onClick={handleOpenModal}
           disabled={atUserLimit}
-          className={`${atUserLimit ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 shadow-lg shadow-black/5 hover:scale-105 active:scale-95'} font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 border-0 transition-all`}
+          className={`${atUserLimit ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-black/90'} font-bold px-5 h-11 rounded-2xl flex items-center gap-2 border-0 shadow-sm transition-all`}
           title={atUserLimit ? `Límite de usuarios alcanzado (${planLimits?.usuarios})` : 'Añadir nuevo usuario'}
         >
           <UserPlus className="w-4 h-4" />
@@ -333,56 +345,56 @@ export default function UsersTab() {
       </div>
 
       {successMsg && (
-        <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4 flex items-start gap-3 animate-in fade-in">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
-          <p className="text-sm font-medium text-green-700 dark:text-green-400">{successMsg}</p>
+          <p className="text-sm font-medium text-green-700">{successMsg}</p>
         </div>
       )}
 
       {/* Buscador */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input 
+        <input
           type="text"
           placeholder="Buscar por nombre o email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white"
+          className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
         />
       </div>
 
       {/* Tabla de Usuarios */}
-      <div className="bg-white dark:bg-[#16171b] border border-gray-200 dark:border-[#26282e] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-[#26282e]">
-            <thead className="bg-gray-50 dark:bg-[#111215]">
+          <table className="min-w-full divide-y divide-gray-50">
+            <thead className="bg-gray-50/80">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Usuario</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rol</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Usuario</th>
+                <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Rol</th>
+                <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
+                <th className="px-6 py-4 text-right text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-[#26282e]">
+            <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">Cargando usuarios...</td>
+                  <td colSpan={4} className="px-6 py-12 text-center text-sm text-gray-400">Cargando usuarios...</td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">No se encontraron usuarios.</td>
+                  <td colSpan={4} className="px-6 py-12 text-center text-sm text-gray-400">No se encontraron usuarios.</td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gray-900 dark:bg-[#daff01] flex items-center justify-center text-white dark:text-gray-900 font-bold">
+                        <div className="h-9 w-9 rounded-xl bg-[#182332] flex items-center justify-center text-white font-bold text-sm">
                           {user.nombre?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{user.nombre}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                          <p className="text-sm font-semibold text-gray-900">{user.nombre}</p>
+                          <p className="text-xs text-gray-400">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -390,30 +402,37 @@ export default function UsersTab() {
                       {getRoleBadge(user.rol)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.estado === 'activo' ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold ${user.estado === 'activo' ? 'text-emerald-600' : 'text-red-500'}`}>
                         {user.estado === 'activo' ? <CheckCircle2 className="w-3 h-3" /> : <PowerOff className="w-3 h-3" />}
                         {user.estado === 'activo' ? 'Activo' : 'Suspendido'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
+                          onClick={() => handleSendRecovery(user)}
+                          className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all hover:bg-yellow-50 hover:text-yellow-500"
+                          title="Restaurar contraseña"
+                        >
+                          <KeyRound className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleEditUser(user)}
-                          className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all hover:bg-blue-50 hover:text-blue-500"
                           title="Editar"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => toggleUserStatus(user)}
-                          className={`p-2 rounded-lg transition-colors ${user.estado === 'activo' ? 'text-gray-400 hover:text-red-500 hover:bg-red-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                          className={`p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all ${user.estado === 'activo' ? 'hover:bg-amber-50 hover:text-amber-500' : 'hover:bg-emerald-50 hover:text-emerald-500'}`}
                           title={user.estado === 'activo' ? 'Suspender' : 'Activar'}
                         >
                           {user.estado === 'activo' ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                         </button>
-                        <button 
+                        <button
                           onClick={() => deleteUser(user.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:scale-110 transition-all hover:bg-red-50 hover:text-red-500"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -431,76 +450,85 @@ export default function UsersTab() {
       {/* Modal Nuevo Usuario */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-[#16171b] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-gray-100 dark:border-[#26282e] bg-gray-50/50 dark:bg-[#111215]">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white font-outfit uppercase tracking-tight">{isEditMode ? 'Actualizar Personal' : 'Nuevo Personal'}</h3>
-              <p className="text-sm text-gray-500 mt-1">{isEditMode ? 'Modifica los datos del colaborador.' : 'Ingresa los datos para autorizar a un nuevo colaborador.'}</p>
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-[#182332]">{isEditMode ? 'Actualizar Personal' : 'Nuevo Personal'}</h3>
+              <p className="text-sm text-gray-400 mt-1">{isEditMode ? 'Modifica los datos del colaborador.' : 'Ingresa los datos para autorizar a un nuevo colaborador.'}</p>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              <Input
-                label="Nombre Completo"
-                placeholder="Ej: Juan Pérez"
-                required
-                value={userForm.nombre}
-                onChange={(e) => setUserForm({ ...userForm, nombre: e.target.value })}
-              />
 
-              <Input
-                label="Correo Electrónico"
-                type="email"
-                placeholder="juan@ejemplo.com"
-                required
-                disabled={isEditMode}
-                value={userForm.email}
-                onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                icon={<Mail className="w-4 h-4" />}
-              />
+            <form onSubmit={handleSubmit} className="p-6 modal-form space-y-5">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nombre Completo</label>
+                <input
+                  placeholder="Ej: Juan Pérez"
+                  required
+                  value={userForm.nombre}
+                  onChange={(e) => setUserForm({ ...userForm, nombre: e.target.value })}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Correo Electrónico</label>
+                <input
+                  type="email"
+                  placeholder="juan@ejemplo.com"
+                  required
+                  disabled={isEditMode}
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                />
+              </div>
 
               {!isEditMode && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                    label="Contraseña"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    value={userForm.password}
-                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Contraseña</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      value={userForm.password}
+                      onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
                     />
-                    <Input
-                    label="Confirmar Contraseña"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    value={userForm.confirmPassword}
-                    onChange={(e) => setUserForm({ ...userForm, confirmPassword: e.target.value })}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Confirmar Contraseña</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      value={userForm.confirmPassword}
+                      onChange={(e) => setUserForm({ ...userForm, confirmPassword: e.target.value })}
+                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
                     />
+                  </div>
                 </div>
               )}
 
               <div className="space-y-3">
-                <label className="block text-sm font-bold text-gray-900 dark:text-gray-200 uppercase tracking-wider">Asignar Rol</label>
+                <label className="block text-xs font-semibold text-gray-700">Asignar Rol</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
                   {ROLES.filter(role => !activeModules || activeModules.includes(role.moduleKey)).map((role) => (
                     <button
                       key={role.value}
                       type="button"
                       onClick={() => setUserForm({ ...userForm, rol: role.value })}
-                      className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
                         userForm.rol === role.value
                           ? 'bg-[#CCFF00]/5 border-[#CCFF00] shadow-sm'
-                          : 'bg-white dark:bg-[#1e293b]/30 border-gray-100 dark:border-[#334155] hover:border-gray-200 dark:hover:border-[#475569]'
+                          : 'bg-white border-gray-100 hover:border-gray-200'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm font-bold ${
-                          userForm.rol === role.value ? 'text-gray-900 dark:text-[#daff01]' : 'text-gray-700 dark:text-gray-300'
-                        }`}>
+                        <span className={`text-sm font-semibold ${userForm.rol === role.value ? 'text-gray-900' : 'text-gray-700'}`}>
                           {role.label}
                         </span>
                         {userForm.rol === role.value && <ShieldCheck className="w-4 h-4 text-[#CCFF00]" />}
                       </div>
-                      <p className="text-[10px] font-medium leading-relaxed text-gray-500 dark:text-gray-400">
+                      <p className="text-[10px] font-medium leading-relaxed text-gray-400">
                         {role.description}
                       </p>
                     </button>
@@ -510,12 +538,12 @@ export default function UsersTab() {
 
               {userForm.rol === 'padre' && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-200 uppercase tracking-wider">Vincular Deportista</label>
+                  <label className="block text-xs font-semibold text-gray-700">Vincular Deportista</label>
                   <select
                     required
                     value={userForm.deportista_id}
                     onChange={(e) => setUserForm({ ...userForm, deportista_id: e.target.value })}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                    className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
                   >
                     <option value="">Selecciona un deportista...</option>
                     {deportistas.map((d) => (
@@ -528,24 +556,24 @@ export default function UsersTab() {
               )}
 
               {error && (
-                <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100">
+                <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-semibold border border-red-100">
                   {error}
                 </div>
               )}
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 pt-4 border-t border-gray-100">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 font-bold rounded-2xl h-12"
+                  className="flex-1 h-12 rounded-xl font-bold text-gray-500"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   isLoading={saving}
-                  className="flex-1 bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 font-bold rounded-2xl h-12 border-0 shadow-lg shadow-black/5"
+                  className="flex-[2] h-12 bg-black text-white font-bold rounded-xl shadow-sm hover:bg-black/90 transition-all"
                 >
                   {isEditMode ? 'Actualizar' : 'Crear Usuario'}
                 </Button>

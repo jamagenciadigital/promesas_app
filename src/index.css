@@ -18,3 +18,10 @@
     filter: invert(1); /* Blanco en modo oscuro */
   }
 }
+
+/* Force space-y spacing to zero inside modals (forms use manual spacing) */
+.modal-form.space-y-6 > :not([hidden]) ~ :not([hidden]),
+.modal-form.space-y-5 > :not([hidden]) ~ :not([hidden]),
+.modal-form.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0 !important;
+}

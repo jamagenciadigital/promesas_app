@@ -165,7 +165,7 @@ export default function SportsConfig() {
             Gestiona los deportes soportados y personaliza los campos dinámicos para cada uno.
           </p>
         </div>
-        <Button onClick={() => setIsNewDeporteModalOpen(true)} className="flex items-center gap-2">
+        <Button onClick={() => setIsNewDeporteModalOpen(true)} className="flex items-center gap-2 bg-black text-white hover:bg-black/90 rounded-xl font-bold px-5">
           <Plus className="h-4 w-4" />
           <span>Añadir Deporte</span>
         </Button>
@@ -273,7 +273,7 @@ export default function SportsConfig() {
 
       {/* Modals */}
       <Modal isOpen={isNewDeporteModalOpen} onClose={() => setIsNewDeporteModalOpen(false)} title="Añadir Deporte">
-        <form onSubmit={handleCreateDeporte} className="space-y-4">
+        <form onSubmit={handleCreateDeporte} className="modal-form space-y-4">
           <Input
             label="Nombre del Deporte"
             placeholder="Ej. Fútbol, Baloncesto, Tenis..."
@@ -289,7 +289,7 @@ export default function SportsConfig() {
       </Modal>
 
       <Modal isOpen={isNewConfigModalOpen} onClose={() => setIsNewConfigModalOpen(false)} title="Agregar Parámetro">
-        <form onSubmit={handleCreateConfig} className="space-y-5">
+        <form onSubmit={handleCreateConfig} className="modal-form space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Parámetro</label>
             <select 
@@ -311,7 +311,7 @@ export default function SportsConfig() {
           />
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <Button type="button" variant="ghost" onClick={() => setIsNewConfigModalOpen(false)}>Cancelar</Button>
-            <Button type="submit">Añadir Parámetro</Button>
+            <Button type="submit" className="bg-black text-white hover:bg-black/90 rounded-xl font-bold px-5">Añadir Parámetro</Button>
           </div>
         </form>
       </Modal>

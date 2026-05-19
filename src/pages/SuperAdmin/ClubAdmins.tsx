@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { createClient } from '@supabase/supabase-js';
-import { 
-  Users, ShieldAlert, Search, UserPlus, Power, 
-  Trash2, Edit3, Mail, Activity, ArrowLeft,
-  ShieldCheck, Key, Building2, MapPin
+import {
+  Users, ShieldAlert, Search, UserPlus,
+  Trash2, Edit3, Mail, ArrowLeft,
+  ShieldCheck, Key, Building2, RefreshCw
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
-import { Badge } from '../../components/ui/Badge';
-import { Input } from '../../components/ui/Input';
-import { useNavigate } from 'react-router-dom';
+import { Toast } from '../../components/ui/Toast';
+import { cn } from '../../lib/utils';
 
 interface AdminClubProfile {
   id: string;
@@ -32,7 +30,6 @@ const ROLES_DISPONIBLES = [
 ];
 
 export default function ClubAdmins() {
-  const navigate = useNavigate();
   const [admins, setAdmins] = useState<AdminClubProfile[]>([]);
   const [clubs, setClubs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,22 +43,65 @@ export default function ClubAdmins() {
   const [actionLoading, setActionLoading] = useState(false);
   const [newUser, setNewUser] = useState({ nombre: '', email: '', password: '', rol: 'escenario_deportivo', club_id: '' });
   const [resetError, setResetError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDanger?: boolean;
+  } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
+
+  const askConfirmation = (config: {
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDanger?: boolean;
+  }) => {
+    setConfirmConfig({ isOpen: true, ...config });
+  };
 
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { data: profiles, error: pError } = await supabase.from('perfiles').select('*, clubes(nombre)').order('created_at', { ascending: false });
+      const { data: profiles, error: pError } = await supabase
+        .from('perfiles')
+        .select('*, clubes(nombre)')
+        .order('created_at', { ascending: false });
       if (pError) throw pError;
+
       const { data: clubsList } = await supabase.from('clubes').select('id, nombre').order('nombre');
       setClubs(clubsList || []);
-      const { data: escList } = await supabase.from('escenarios').select('id, nombre, deporte');
+
+      const { data: escList } = await supabase.from('escenarios').select('id, nombre, deporte, gestor_id');
       setAllEscenarios(escList || []);
+
       setAdmins(profiles?.map((p: any) => ({
-        id: p.id, nombre: p.nombre || 'N/A', email: p.email || 'N/A', club_nombre: p.clubes?.nombre || 'CENTRAL', estado: p.estado || 'activo', created_at: p.created_at, club_id: p.club_id, rol: p.rol || 'unassigned'
+        id: p.id,
+        nombre: p.nombre || 'N/A',
+        email: p.email || 'N/A',
+        club_nombre: p.clubes?.nombre || 'CENTRAL',
+        estado: p.estado || 'activo',
+        created_at: p.created_at,
+        club_id: p.club_id,
+        rol: p.rol || 'unassigned'
       })) || []);
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Error al cargar usuarios: " + err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateOrUpdate = async (e: React.FormEvent) => {
@@ -71,65 +111,109 @@ export default function ClubAdmins() {
 
     try {
       if (isEditMode && editingAdminId) {
-        const { error } = await supabase.from('perfiles').update({ nombre: newUser.nombre, rol: newUser.rol, club_id: newUser.club_id || null }).eq('id', editingAdminId);
+        const { error } = await supabase
+          .from('perfiles')
+          .update({ nombre: newUser.nombre, rol: newUser.rol, club_id: newUser.club_id || null })
+          .eq('id', editingAdminId);
         if (error) throw error;
-        if (newUser.rol === 'escenario_deportivo') {
-            await supabase.from('escenarios').update({ gestor_id: null }).eq('gestor_id', editingAdminId);
-            if (selectedEscenarios.length > 0) await supabase.from('escenarios').update({ gestor_id: editingAdminId }).in('id', selectedEscenarios);
+
+        await supabase.from('escenarios').update({ gestor_id: null }).eq('gestor_id', editingAdminId);
+        if (newUser.rol === 'escenario_deportivo' && selectedEscenarios.length > 0) {
+          await supabase.from('escenarios').update({ gestor_id: editingAdminId }).in('id', selectedEscenarios);
         }
+        showToast('Usuario actualizado exitosamente', 'success');
       } else {
-        const ghostClient = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-        
-        const { data: authData, error: authError } = await ghostClient.auth.signUp({
-          email: newUser.email,
-          password: newUser.password,
-          options: { 
-            data: { 
-              full_name: newUser.nombre,
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: newUser.email,
+            password: newUser.password,
+            data: {
               nombre: newUser.nombre,
-              rol: newUser.rol
-            } 
-          }
+              rol: newUser.rol,
+              club_id: newUser.club_id || null
+            }
+          })
         });
 
-        if (authError) throw new Error(`Paso 1 (Auth) Falló: ${authError.message}`);
-        const uid = authData.user?.id;
-        if (!uid) throw new Error("No se pudo obtener el UID del nuevo usuario.");
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Error al crear usuario');
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const uid = result.user?.id;
+        if (!uid) throw new Error('No se pudo obtener el ID del nuevo usuario');
 
-        const { error: profileError } = await supabase.from('perfiles').upsert({ 
-          id: uid, 
-          nombre: newUser.nombre, 
-          email: newUser.email, 
-          rol: newUser.rol, 
-          club_id: newUser.club_id || null, 
-          estado: 'activo' 
-        }, { onConflict: 'id' });
-
-        if (profileError) throw new Error(`Paso 2 (Perfil) Falló: ${profileError.message}`);
-        
         if (newUser.rol === 'escenario_deportivo' && selectedEscenarios.length > 0) {
-            const { error: escError } = await supabase.from('escenarios').update({ gestor_id: uid }).in('id', selectedEscenarios);
-            if (escError) console.error("Error vinculación escenarios:", escError);
+          const { error: escError } = await supabase
+            .from('escenarios')
+            .update({ gestor_id: uid })
+            .in('id', selectedEscenarios);
+          if (escError) console.error("Error vinculando escenarios:", escError);
         }
+        showToast('Usuario creado exitosamente', 'success');
       }
 
       await fetchData();
       setIsCreateModalOpen(false);
       resetForm();
-    } catch (err: any) { 
-        setResetError(err.message);
-    } finally { setActionLoading(false); }
+    } catch (err: any) {
+      setResetError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("🚨 ¿Eliminar este acceso permanentemente?")) return;
+  const handleDelete = (admin: AdminClubProfile) => {
+    askConfirmation({
+      title: 'Eliminar Usuario',
+      message: `¿Estás seguro de eliminar permanentemente a "${admin.nombre}" (${admin.email})?\n\nSe eliminarán todos sus datos de acceso y se desvincularán sus escenarios asignados.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      isDanger: true,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+
+          await supabase.from('escenarios').update({ gestor_id: null }).eq('gestor_id', admin.id);
+          await supabase.from('perfiles').delete().eq('id', admin.id);
+
+          const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?id=eq.${admin.id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            console.warn("Error al eliminar de auth.users:", text);
+          }
+
+          showToast(`Usuario "${admin.nombre}" eliminado`, 'success');
+          await fetchData();
+        } catch (err: any) {
+          showToast("Error al eliminar: " + err.message, 'error');
+        } finally {
+          setActionLoading(false);
+        }
+      }
+    });
+  };
+
+  const handleSendRecovery = async (admin: AdminClubProfile) => {
     try {
-      const { error } = await supabase.from('perfiles').delete().eq('id', id);
-      if (error) throw error;
-      await fetchData();
-    } catch (err: any) { alert(err.message); }
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/recover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: admin.email })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al enviar recuperación');
+      }
+
+      showToast(`Correo de recuperación enviado a ${admin.email}`, 'success');
+    } catch (err: any) {
+      showToast("Error: " + err.message, 'error');
+    }
   };
 
   const openEditModal = (admin: AdminClubProfile) => {
@@ -146,280 +230,331 @@ export default function ClubAdmins() {
     setEditingAdminId(null);
     setNewUser({ nombre: '', email: '', password: '', rol: 'escenario_deportivo', club_id: '' });
     setSelectedEscenarios([]);
+    setResetError(null);
   };
 
-    const filteredAdmins = admins.filter(admin => {
-    const matchesSearch = admin.nombre.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredAdmins = admins.filter(admin => {
+    const matchesSearch = admin.nombre.toLowerCase().includes(search.toLowerCase()) ||
                          admin.email.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesClub = selectedClub === 'all' || 
+    const matchesClub = selectedClub === 'all' ||
                        (selectedClub === 'central' && !admin.club_id) ||
                        (admin.club_id === selectedClub);
-                       
     return matchesSearch && matchesClub;
   });
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] -m-8 p-8">
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-700">
-        {/* Header Premium */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => navigate('/superadmin')}
-                className="p-2 hover:bg-white dark:hover:bg-white/5 rounded-xl transition-all text-gray-400 hover:text-black dark:hover:text-white"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="h-10 w-1 bg-[#CCFF00] rounded-full"></div>
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">
-                Accesos <span className="text-[#CCFF00]">Administrativos</span>
-              </h1>
-            </div>
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] ml-14">
-              Control de Personal y Rango de Autorización • {admins.length} Usuarios
-            </p>
-          </div>
-
-          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-            <div className="relative group min-w-[300px]">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#CCFF00] transition-colors">
-                <Search size={18} />
-              </div>
-              <input 
-                type="text"
-                placeholder="BUSCAR USUARIO..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-14 bg-white dark:bg-[#1e293b] border-0 rounded-2xl pl-12 pr-6 text-xs font-black uppercase tracking-widest focus:ring-2 focus:ring-[#CCFF00] shadow-sm transition-all outline-none text-gray-900 dark:text-white"
-              />
-            </div>
-            <div className="relative group min-w-[200px]">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#CCFF00] transition-colors">
-                <Building2 size={18} />
-              </div>
-              <select 
-                value={selectedClub}
-                onChange={(e) => setSelectedClub(e.target.value)}
-                className="w-full h-14 bg-white dark:bg-[#1e293b] border-0 rounded-2xl pl-12 pr-10 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#CCFF00] shadow-sm transition-all outline-none text-gray-900 dark:text-white appearance-none cursor-pointer"
-              >
-                <option value="all">TODOS LOS CLUBES</option>
-                <option value="central">SISTEMA CENTRAL</option>
-                {clubs.map(c => (
-                  <option key={c.id} value={c.id}>{c.nombre.toUpperCase()}</option>
-                ))}
-              </select>
-            </div>
-            <Button 
-              onClick={() => { resetForm(); setIsCreateModalOpen(true); }}
-              className="h-14 px-8 bg-black text-[#CCFF00] font-black uppercase italic tracking-widest rounded-2xl shadow-xl flex items-center gap-2"
-            >
-              <UserPlus size={18} />
-              Nuevo Acceso
-            </Button>
-          </div>
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#182332] tracking-tight">Accesos Administrativos</h1>
+          <p className="text-sm text-gray-400 mt-1">Control de Personal y Rango de Autorización</p>
         </div>
-
-        {/* Table Container */}
-        <div className="bg-white dark:bg-[#1e293b] rounded-[40px] shadow-2xl shadow-black/5 overflow-hidden border border-gray-100 dark:border-white/5">
-          {loading ? (
-            <div className="py-32 flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 border-4 border-gray-100 dark:border-white/5 border-t-[#CCFF00] rounded-full animate-spin"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Verificando Credenciales...</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50/50 dark:bg-black/20 border-b border-gray-100 dark:border-white/5">
-                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Sujeto / Identidad</th>
-                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Rango de Operación</th>
-                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Organización</th>
-                    <th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                  {filteredAdmins.map((admin) => (
-                    <tr key={admin.id} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all duration-300">
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-2xl bg-black dark:bg-white/10 flex items-center justify-center text-[#CCFF00] font-black italic text-xl shadow-lg border border-white/5">
-                            {admin.nombre.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-gray-900 dark:text-white uppercase italic leading-none group-hover:text-[#CCFF00] transition-colors">{admin.nombre}</p>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase mt-1.5 lowercase flex items-center gap-1">
-                              <Mail size={10} /> {admin.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <Badge className={`uppercase text-[9px] font-black italic tracking-widest py-1.5 px-4 rounded-xl border-none ${
-                          admin.rol === 'escenario_deportivo' 
-                          ? 'bg-blue-500 text-white' 
-                          : admin.rol === 'admin_club'
-                          ? 'bg-[#CCFF00] text-black'
-                          : admin.rol === 'jefatura'
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-purple-500 text-white'
-                        }`}>
-                          {ROLES_DISPONIBLES.find(r => r.id === admin.rol)?.label || admin.rol}
-                        </Badge>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2">
-                          <Building2 size={12} className="text-[#CCFF00]" />
-                          <p className="text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase italic">
-                            {admin.club_nombre}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button 
-                            onClick={() => openEditModal(admin)} 
-                            className="p-3 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-blue-500 rounded-2xl hover:scale-110 transition-all"
-                            title="Editar Perfil"
-                          >
-                            <Edit3 size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(admin.id)} 
-                            className="p-3 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-red-500 rounded-2xl hover:scale-110 transition-all"
-                            title="Revocar Acceso"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <div className="flex items-center gap-2 bg-[#182332] px-4 py-2 rounded-full">
+          <Users size={14} className="text-[#CCFF00]" />
+          <span className="text-[11px] font-semibold text-[#CCFF00]">{admins.length} Usuarios</span>
         </div>
       </div>
 
-      {/* Modal modernizado */}
-      <Modal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
-        title={isEditMode ? "ACTUALIZAR CREDENCIALES" : "EMISIÓN DE NUEVO ACCESO"}
+      {/* Filters Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
+            <Search size={16} />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar usuario..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
+          />
+        </div>
+        <div className="relative min-w-[200px]">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
+            <Building2 size={16} />
+          </div>
+          <select
+            value={selectedClub}
+            onChange={(e) => setSelectedClub(e.target.value)}
+            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm font-medium focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 appearance-none cursor-pointer"
+          >
+            <option value="all">Todos los clubes</option>
+            <option value="central">Sistema Central</option>
+            {clubs.map(c => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+        </div>
+        <Button
+          onClick={() => { resetForm(); setIsCreateModalOpen(true); }}
+          className="h-11 px-5 bg-black text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-black/90 transition-all shadow-sm"
+        >
+          <UserPlus size={16} />
+          Nuevo Acceso
+        </Button>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        {loading ? (
+          <div className="py-32 flex flex-col items-center justify-center space-y-4">
+            <div className="w-10 h-10 border-3 border-gray-100 border-t-[#182332] rounded-full animate-spin"></div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cargando usuarios...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50/80 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4">Sujeto / Identidad</th>
+                  <th className="px-6 py-4">Rango de Operación</th>
+                  <th className="px-6 py-4">Organización</th>
+                  <th className="px-6 py-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredAdmins.map((admin) => (
+                  <tr key={admin.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#182332] flex items-center justify-center text-white font-bold text-sm">
+                          {admin.nombre.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-[#182332]">{admin.nombre}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                            <Mail size={10} /> {admin.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide",
+                        admin.rol === 'escenario_deportivo'
+                          ? 'bg-blue-50 text-blue-600'
+                          : admin.rol === 'admin_club'
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : admin.rol === 'jefatura'
+                          ? 'bg-amber-50 text-amber-600'
+                          : 'bg-purple-50 text-purple-600'
+                      )}>
+                        {ROLES_DISPONIBLES.find(r => r.id === admin.rol)?.label || admin.rol}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 size={12} className="text-gray-400" />
+                        <p className="text-sm font-medium text-gray-600">{admin.club_nombre}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => handleSendRecovery(admin)}
+                          className="p-2 bg-gray-50 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg hover:scale-110 transition-all"
+                          title="Enviar recuperación de contraseña"
+                        >
+                          <RefreshCw size={14} />
+                        </button>
+                        <button
+                          onClick={() => openEditModal(admin)}
+                          className="p-2 bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg hover:scale-110 transition-all"
+                          title="Editar Perfil"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(admin)}
+                          className="p-2 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg hover:scale-110 transition-all"
+                          title="Eliminar Usuario"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Create / Edit Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => { setIsCreateModalOpen(false); resetForm(); }}
+        title={isEditMode ? "Actualizar Credenciales" : "Emisión de Nuevo Acceso"}
       >
-        <form onSubmit={handleCreateOrUpdate} className="space-y-6 p-2">
+        <form onSubmit={handleCreateOrUpdate} className="modal-form space-y-6">
           {resetError && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3">
+            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3">
               <ShieldAlert size={20} className="text-red-500 shrink-0" />
-              <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">{resetError}</p>
+              <p className="text-sm font-medium text-red-700">{resetError}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input 
-              label="NOMBRE COMPLETO" 
-              required 
-              value={newUser.nombre} 
-              onChange={e => setNewUser({...newUser, nombre: e.target.value})} 
-              className="h-14 bg-gray-50 dark:bg-white/5 border-0 font-black italic uppercase"
-              icon={<Users size={16} />}
-            />
-            <Input 
-              label="CORREO ELECTRÓNICO" 
-              type="email" 
-              required 
-              disabled={isEditMode} 
-              value={newUser.email} 
-              onChange={e => setNewUser({...newUser, email: e.target.value})} 
-              className="h-14 bg-gray-50 dark:bg-white/5 border-0 font-black"
-              icon={<Mail size={16} />}
-            />
+          <div>
+            <h4 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4">Información General</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Nombre Completo</label>
+                <input
+                  required
+                  value={newUser.nombre}
+                  onChange={e => setNewUser({...newUser, nombre: e.target.value})}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  placeholder="Nombre del usuario"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Correo Electrónico</label>
+                <input
+                  type="email"
+                  required
+                  disabled={isEditMode}
+                  value={newUser.email}
+                  onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                  placeholder="email@dominio.com"
+                />
+              </div>
+            </div>
           </div>
 
           {!isEditMode && (
-            <Input 
-              label="CLAVE DE ACCESO TEMPORAL" 
-              type="password" 
-              required 
-              value={newUser.password} 
-              onChange={e => setNewUser({...newUser, password: e.target.value})} 
-              className="h-14 bg-gray-50 dark:bg-white/5 border-0"
-              icon={<Key size={16} />}
-            />
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-white/5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Club / Organización</label>
-              <select 
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-0 rounded-2xl px-5 text-xs font-black uppercase italic tracking-widest outline-none focus:ring-2 focus:ring-[#CCFF00] text-gray-900 dark:text-white" 
-                value={newUser.club_id} 
-                onChange={e => setNewUser({...newUser, club_id: e.target.value})}
-              >
-                <option value="" className="bg-white dark:bg-[#1e293b]">SISTEMA CENTRAL</option>
-                {clubs.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#1e293b]">{c.nombre.toUpperCase()}</option>)}
-              </select>
+            <div className="border-t border-gray-100 pt-2">
+              <h4 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4">Credenciales Iniciales</h4>
+              <div className="max-w-md">
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Clave de Acceso Temporal</label>
+                <input
+                  type="password"
+                  required
+                  value={newUser.password}
+                  onChange={e => setNewUser({...newUser, password: e.target.value})}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Rango de Autorización</label>
-              <select 
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-0 rounded-2xl px-5 text-xs font-black uppercase italic tracking-widest outline-none focus:ring-2 focus:ring-[#CCFF00] text-gray-900 dark:text-white" 
-                value={newUser.rol} 
-                onChange={e => setNewUser({...newUser, rol: e.target.value})}
-              >
-                {ROLES_DISPONIBLES.map(r => <option key={r.id} value={r.id} className="bg-white dark:bg-[#1e293b]">{r.label.toUpperCase()}</option>)}
-              </select>
+          <div className="border-t border-gray-100 pt-2">
+            <h4 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4">Asignación</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Club / Organización</label>
+                <select
+                  value={newUser.club_id}
+                  onChange={e => setNewUser({...newUser, club_id: e.target.value})}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
+                >
+                  <option value="">Sistema Central</option>
+                  {clubs.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Rango de Autorización</label>
+                <select
+                  value={newUser.rol}
+                  onChange={e => setNewUser({...newUser, rol: e.target.value})}
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
+                >
+                  {ROLES_DISPONIBLES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                </select>
+              </div>
             </div>
           </div>
 
           {newUser.rol === 'escenario_deportivo' && (
-            <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/5">
-              <div className="flex items-center justify-between px-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Activos Asignados ({selectedEscenarios.length})</label>
-                <ShieldCheck size={14} className="text-[#CCFF00]" />
+            <div className="border-t border-gray-100 pt-2">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-black text-sm uppercase tracking-widest text-gray-400">Activos Asignados ({selectedEscenarios.length})</h4>
+                <ShieldCheck size={16} className="text-emerald-500" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[180px] overflow-y-auto p-1 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto custom-scrollbar">
                 {allEscenarios.map(esc => (
-                  <button 
-                    key={esc.id} 
-                    type="button" 
-                    onClick={() => (setSelectedEscenarios(prev => prev.includes(esc.id) ? prev.filter(i => i !== esc.id) : [...prev, esc.id]))} 
+                  <button
+                    key={esc.id}
+                    type="button"
+                    onClick={() => setSelectedEscenarios(prev => prev.includes(esc.id) ? prev.filter(i => i !== esc.id) : [...prev, esc.id])}
                     className={`flex flex-col text-left p-4 rounded-2xl border-2 transition-all ${
-                      selectedEscenarios.includes(esc.id) 
-                      ? 'bg-[#CCFF00] border-[#CCFF00] text-black' 
-                      : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                      selectedEscenarios.includes(esc.id)
+                        ? 'border-emerald-500 bg-emerald-50/50'
+                        : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-300'
                     }`}
                   >
-                    <span className="text-[10px] font-black uppercase italic leading-none">{esc.nombre}</span>
-                    <span className={`text-[8px] font-bold uppercase mt-1.5 tracking-widest ${selectedEscenarios.includes(esc.id) ? 'text-black/50' : 'text-gray-500'}`}>{esc.deporte}</span>
+                    <span className={`text-sm font-bold ${selectedEscenarios.includes(esc.id) ? 'text-emerald-700' : 'text-gray-900'}`}>{esc.nombre}</span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider mt-1 ${selectedEscenarios.includes(esc.id) ? 'text-emerald-600' : 'text-gray-400'}`}>{esc.deporte}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="flex gap-4 pt-6">
-            <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)} className="flex-1 h-14 rounded-3xl uppercase font-black">
+          <div className="flex gap-4 pt-4 border-t border-gray-100">
+            <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)} className="flex-1 h-12 rounded-xl font-bold text-gray-500">
               Cancelar
             </Button>
-            <Button 
-              isLoading={actionLoading} 
-              type="submit" 
-              className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase italic tracking-widest rounded-3xl shadow-xl"
+            <Button
+              isLoading={actionLoading}
+              type="submit"
+              className="flex-[2] h-12 bg-black text-white font-bold rounded-xl shadow-sm hover:bg-black/90 transition-all"
             >
-              Confirmar Acceso
+              {isEditMode ? 'Guardar Cambios' : 'Crear Acceso'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CCFF00; border-radius: 10px; }
-      `}</style>
+      {/* Confirmation Modal */}
+      {confirmConfig?.isOpen && (
+        <Modal
+          isOpen={confirmConfig.isOpen}
+          onClose={() => setConfirmConfig(prev => prev ? { ...prev, isOpen: false } : null)}
+          title={confirmConfig.title}
+          maxWidth="max-w-md"
+        >
+          <div className="modal-form space-y-6">
+            <p className="text-sm font-medium text-gray-600 leading-relaxed whitespace-pre-line">
+            </p>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <Button
+                variant="ghost"
+                onClick={() => setConfirmConfig(prev => prev ? { ...prev, isOpen: false } : null)}
+                className="rounded-xl px-5 text-gray-500"
+              >
+                {confirmConfig.cancelText || 'Cancelar'}
+              </Button>
+              <Button
+                isLoading={actionLoading}
+                onClick={() => {
+                  confirmConfig.onConfirm();
+                }}
+                className={cn(
+                  "rounded-xl px-5 font-bold transition-all border-none",
+                  confirmConfig.isDanger
+                    ? "bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                    : "bg-black text-white hover:bg-black/90 shadow-sm"
+                )}
+              >
+                {confirmConfig.confirmText || 'Confirmar'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
