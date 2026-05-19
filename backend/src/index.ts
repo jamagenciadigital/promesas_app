@@ -24,6 +24,33 @@ app.use(cors({
   methods: '*',
   allowedHeaders: '*'
 }));
+
+// Proxy storage requests to real Supabase
+const SUPABASE_PROJECT_URL = process.env.SUPABASE_PROJECT_URL || 'https://skssegbltojjokjtvgev.supabase.co';
+app.all('/storage/v1/*splat', async (req, res) => {
+  try {
+    const targetUrl = `${SUPABASE_PROJECT_URL}${req.originalUrl}`;
+    const headers: Record<string, string> = {};
+    const forwardHeaders = ['authorization', 'content-type', 'x-upsert', 'cache-control'];
+    for (const h of forwardHeaders) {
+      const val = req.headers[h];
+      if (val) headers[h] = Array.isArray(val) ? val.join(', ') : val;
+    }
+    const fetchRes = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(req.method.toUpperCase()) ? undefined : req
+    });
+    const body = fetchRes.headers.get('content-type')?.includes('application/json')
+      ? await fetchRes.json()
+      : await fetchRes.text();
+    res.status(fetchRes.status).set(fetchRes.headers).send(body);
+  } catch (err: any) {
+    console.error('Storage proxy error:', err);
+    res.status(502).json({ error: 'Storage proxy error', message: err.message });
+  }
+});
+
 app.use(express.json());
 
 // Log incoming requests
