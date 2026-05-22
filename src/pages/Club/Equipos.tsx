@@ -17,6 +17,7 @@ import { Equipo } from '../../types';
 interface Coach {
   id: string;
   nombre: string;
+  email?: string;
 }
 
 interface Category {
@@ -117,10 +118,43 @@ export default function Equipos() {
         .eq('club_id', activeClubId)
         .order('nombre');
 
-      if (error) throw error;
-      setEquipos(data || []);
+      if (error) {
+        console.warn("Complex teams query failed, falling back to sequential enrichment:", error);
+        
+        // Step 1: Fetch simple teams
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('equipos')
+          .select('*')
+          .eq('club_id', activeClubId)
+          .order('nombre');
+          
+        if (simpleError) throw simpleError;
+        
+        // Step 2: Enrich each team sequentially
+        const enriched = await Promise.all((simpleData || []).map(async (team) => {
+          const [catRes, sedeRes, coordRes, coachesRes] = await Promise.all([
+            team.categoria_id ? supabase.from('deportes_config_campos').select('valor').eq('id', team.categoria_id).maybeSingle() : Promise.resolve({ data: null }),
+            team.sede_id ? supabase.from('club_sedes').select('nombre').eq('id', team.sede_id).maybeSingle() : Promise.resolve({ data: null }),
+            team.coordinador_id ? supabase.from('perfiles').select('nombre').eq('id', team.coordinador_id).maybeSingle() : Promise.resolve({ data: null }),
+            supabase.from('equipo_entrenadores').select('entrenador_id, perfiles(nombre)').eq('equipo_id', team.id)
+          ]);
+          
+          return {
+            ...team,
+            categoria: catRes.data || null,
+            sede: sedeRes.data || null,
+            coordinador: coordRes.data || null,
+            entrenadores: coachesRes.data || []
+          };
+        }));
+        
+        setEquipos(enriched as Equipo[]);
+      } else {
+        setEquipos(data || []);
+      }
     } catch (err: any) {
       console.error("Error fetching equipos:", err);
+      showToast("Error al cargar los equipos", "error");
     } finally {
       setLoading(false);
     }
@@ -134,7 +168,7 @@ export default function Equipos() {
       // 1. Coaches
       const { data: coachData } = await supabase
         .from('perfiles')
-        .select('id, nombre')
+        .select('id, nombre, email')
         .eq('club_id', activeClubId)
         .eq('rol', 'entrenador');
       setCoaches(coachData || []);
@@ -291,6 +325,79 @@ export default function Equipos() {
         await supabase.from('equipo_entrenadores').insert(coachRelations);
       }
 
+      // Send In-App Notifications
+      try {
+        const notificationsToInsert = [];
+        
+        // Notify Coaches
+        for (const coachId of formData.entrenadores_ids) {
+          notificationsToInsert.push({
+            user_id: coachId,
+            titulo: editingEquipo ? 'Actualización de Equipo' : 'Asignación de Equipo',
+            mensaje: editingEquipo 
+              ? `Se ha actualizado la información del equipo "${formData.nombre}" al que estás asignado como entrenador.`
+              : `Has sido asignado como entrenador al equipo "${formData.nombre}".`,
+            tipo: 'general',
+            data: { equipo_id: teamId }
+          });
+        }
+        
+        // Notify Coordinator
+        if (formData.coordinador_id) {
+          notificationsToInsert.push({
+            user_id: formData.coordinador_id,
+            titulo: editingEquipo ? 'Actualización de Equipo' : 'Asignación de Coordinación',
+            mensaje: editingEquipo
+              ? `Se ha actualizado la información del equipo "${formData.nombre}" del cual eres coordinador.`
+              : `Has sido asignado como coordinador del equipo "${formData.nombre}".`,
+            tipo: 'general',
+            data: { equipo_id: teamId }
+          });
+        }
+
+        if (notificationsToInsert.length > 0) {
+          await supabase.from('notificaciones').insert(notificationsToInsert);
+        }
+      } catch (notifErr) {
+        console.error("Failed to insert team notifications:", notifErr);
+      }
+
+      // Send Email Notifications to newly assigned coaches
+      try {
+        const previousCoachIds = (editingEquipo as any)?.entrenadores?.map((e: any) => e.entrenador_id) || [];
+        const newlyAssignedCoachIds = formData.entrenadores_ids.filter(id => !previousCoachIds.includes(id));
+
+        for (const coachId of newlyAssignedCoachIds) {
+          const coach = coaches.find(c => c.id === coachId);
+          if (coach?.email) {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/send`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: coach.email,
+                tipo: 'equipos',
+                club_id: activeClubId,
+                variables: {
+                  nombre: coach.nombre
+                }
+              })
+            }).then(async (res) => {
+              if (!res.ok) {
+                const errData = await res.json();
+                console.error("Failed to send team assignment email to coach:", errData);
+              } else {
+                console.log(`Team assignment email successfully sent to ${coach.email}`);
+              }
+            }).catch(emailErr => {
+              console.error("Fetch error sending team assignment email to coach:", emailErr);
+            });
+          }
+        }
+      } catch (emailTriggerErr) {
+        console.error("Failed to process coach email notifications:", emailTriggerErr);
+      }
+
+      showToast(editingEquipo ? 'Equipo actualizado exitosamente' : 'Equipo creado exitosamente', 'success');
       setIsModalOpen(false);
       fetchEquipos();
     } catch (err: any) {

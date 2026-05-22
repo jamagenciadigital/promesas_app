@@ -12,6 +12,7 @@ const TIPOS_NOTIFICACION: { tipo: TipoNotificacionCorreo; label: string; desc: s
   { tipo: 'entrenamientos', label: 'Entrenamientos', desc: 'Información sobre entrenamientos' },
   { tipo: 'eventos', label: 'Eventos', desc: 'Notificaciones de eventos programados' },
   { tipo: 'partidos', label: 'Partidos', desc: 'Información de partidos y resultados' },
+  { tipo: 'equipos', label: 'Equipos', desc: 'Notificaciones de asignación de nuevos equipos' },
 ];
 
 const PLACEHOLDER_VARS = [
@@ -55,6 +56,10 @@ const DEFAULT_TEMPLATES: Record<TipoNotificacionCorreo, { asunto: string; cuerpo
   partidos: {
     asunto: 'Convocatoria e Información de Partido - {{club}}',
     cuerpo: 'Hola {{nombre}},<br><br>Te informamos que hay novedades y detalles sobre el próximo partido de <strong>{{club}}</strong> programado para la fecha <strong>{{fecha}}</strong>.<br><br>Revisa la aplicación para ver la convocatoria oficial y los detalles del encuentro.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  equipos: {
+    asunto: 'Asignación de Nuevo Equipo - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>El <strong>{{club}}</strong> te ha asignado un nuevo equipo, ingresa y valida en tu perfil.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
   }
 };
 

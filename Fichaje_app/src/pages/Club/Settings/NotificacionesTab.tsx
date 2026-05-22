@@ -12,6 +12,7 @@ const TIPOS_NOTIFICACION: { tipo: TipoNotificacionCorreo; label: string; desc: s
   { tipo: 'entrenamientos', label: 'Entrenamientos', desc: 'Información sobre entrenamientos' },
   { tipo: 'eventos', label: 'Eventos', desc: 'Notificaciones de eventos programados' },
   { tipo: 'partidos', label: 'Partidos', desc: 'Información de partidos y resultados' },
+  { tipo: 'equipos', label: 'Equipos', desc: 'Notificaciones de asignación de nuevos equipos' },
 ];
 
 const PLACEHOLDER_VARS = [

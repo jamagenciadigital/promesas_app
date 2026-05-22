@@ -189,7 +189,7 @@ export interface PQRS {
   created_at: string;
 }
 
-export type TipoNotificacionCorreo = 'cartera' | 'pagos' | 'agenda' | 'entrenamientos' | 'eventos' | 'partidos';
+export type TipoNotificacionCorreo = 'cartera' | 'pagos' | 'agenda' | 'entrenamientos' | 'eventos' | 'partidos' | 'equipos';
 
 export interface PlantillaCorreo {
   id: string;

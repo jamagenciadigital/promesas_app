@@ -33,6 +33,10 @@ export const DEFAULT_TEMPLATES: Record<string, { asunto: string; cuerpo: string 
   partidos: {
     asunto: 'Convocatoria e Información de Partido - {{club}}',
     cuerpo: 'Hola {{nombre}},<br><br>Te informamos que hay novedades y detalles sobre el próximo partido de <strong>{{club}}</strong> programado para la fecha <strong>{{fecha}}</strong>.<br><br>Revisa la aplicación para ver la convocatoria oficial y los detalles del encuentro.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  equipos: {
+    asunto: 'Asignación de Nuevo Equipo - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>El <strong>{{club}}</strong> te ha asignado un nuevo equipo, ingresa y valida en tu perfil.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
   }
 };
 
@@ -215,8 +219,8 @@ export async function sendNotificationEmail(
       enlace_login: loginLink,
     };
     for (const [key, value] of Object.entries(mergedVars)) {
-      asunto = asunto.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), String(value ?? ''));
-      contenido = contenido.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), String(value ?? ''));
+      asunto = asunto.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'gi'), String(value ?? ''));
+      contenido = contenido.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'gi'), String(value ?? ''));
     }
     mergedVars.asunto = asunto;
 
