@@ -641,19 +641,19 @@ export default function Cartera() {
       <div className="flex gap-4">
         <button 
           onClick={() => setActiveTab('resumen')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'resumen' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'resumen' ? 'theme-btn-primary shadow-xl scale-[1.01]' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Resumen de Cobros
         </button>
         <button 
           onClick={() => setActiveTab('eventos')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'eventos' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'eventos' ? 'theme-btn-primary shadow-xl scale-[1.01]' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Productos y Eventos
         </button>
         <button 
           onClick={() => setActiveTab('validacion')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'validacion' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'validacion' ? 'theme-btn-primary shadow-xl scale-[1.01]' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Validación Documental
         </button>
@@ -740,7 +740,7 @@ export default function Cartera() {
       {activeTab === 'eventos' && (
         <div className="space-y-6">
            <div className="flex justify-end">
-              <Button onClick={() => initCreateEvent()} className="h-14 px-8 bg-club-primary text-black font-black uppercase italic tracking-widest text-[10px] rounded-[24px]">Crear Evento / Producto</Button>
+              <Button onClick={() => initCreateEvent()} className="h-14 px-8 theme-btn-primary font-black uppercase italic tracking-widest text-[10px] rounded-[24px] shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all">Crear Evento / Producto</Button>
            </div>
            
            {productos.length > 0 ? (
