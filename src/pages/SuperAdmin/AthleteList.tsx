@@ -102,7 +102,7 @@ export default function AthleteList() {
           <input 
             type="text" 
             placeholder="Buscar por nombre o documento..."
-            className="w-full pl-12 pr-4 h-14 bg-gray-50 dark:bg-white/5 rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#CCFF00]"
+            className="w-full pl-12 pr-4 h-14 bg-gray-50 dark:bg-white/5 rounded-2xl text-sm border-none focus:ring-2 focus:ring-club-primary"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -166,7 +166,7 @@ export default function AthleteList() {
                 <tr key={player.id} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gray-900 dark:bg-[#CCFF00] flex items-center justify-center text-white dark:text-black font-black italic text-lg shadow-lg">
+                      <div className="w-10 h-10 rounded-xl bg-gray-900 dark:bg-club-primary flex items-center justify-center text-white dark:text-black font-black italic text-lg shadow-lg">
                         {player.nombre_completo.charAt(0)}
                       </div>
                       <div>
@@ -194,7 +194,7 @@ export default function AthleteList() {
                   <td className="px-8 py-6">
                     <div>
                       <p className="text-xs font-black uppercase italic text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                        <Building2 size={12} className="text-[#CCFF00]" />
+                        <Building2 size={12} className="text-club-primary" />
                         {player.club?.nombre || 'Independiente'}
                       </p>
                       <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">
@@ -220,7 +220,7 @@ export default function AthleteList() {
                   <td className="px-8 py-6 text-right">
                     <button 
                       onClick={() => navigate(`/club/players/${player.id}`)}
-                      className="p-3 bg-gray-100 dark:bg-white/5 hover:bg-[#CCFF00] text-gray-500 hover:text-black rounded-2xl transition-all group flex items-center gap-2 ml-auto"
+                      className="p-3 bg-gray-100 dark:bg-white/5 hover:bg-club-primary text-gray-500 hover:text-black rounded-2xl transition-all group flex items-center gap-2 ml-auto"
                       title="Ver Ficha Completa"
                     >
                       <Eye size={18} />
@@ -239,7 +239,7 @@ export default function AthleteList() {
             onClick={() => window.print()}
             className="flex items-center gap-2 px-4 py-2 bg-black text-white text-[10px] font-black uppercase italic rounded-full shadow-lg"
           >
-            <Download size={14} className="text-[#CCFF00]" /> Exportar PDF
+            <Download size={14} className="text-club-primary" /> Exportar PDF
           </button>
         </div>
       </div>

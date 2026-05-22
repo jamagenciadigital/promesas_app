@@ -181,7 +181,7 @@ export default function RegisterElitePlayer() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-primary"></div>
       </div>
     );
   }
@@ -193,7 +193,7 @@ export default function RegisterElitePlayer() {
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap md:items-center justify-between gap-6 bg-white dark:bg-[#1e293b]/40 p-10 rounded-[48px] border border-gray-100 dark:border-white/5 relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-[#CCFF00]/5 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
+         <div className="absolute top-0 right-0 w-64 h-64 bg-club-primary/5 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
          
          <div className="space-y-4 relative z-10">
             <button 
@@ -204,12 +204,12 @@ export default function RegisterElitePlayer() {
               <span className="text-xs font-black uppercase tracking-[0.2em] italic">Volver al Plantel</span>
             </button>
             <div className="flex items-center gap-4">
-               <div className="p-4 bg-[#CCFF00]/10 rounded-3xl">
-                  <Star className="w-8 h-8 text-[#CCFF00]" />
+               <div className="p-4 bg-club-primary/10 rounded-3xl">
+                  <Star className="w-8 h-8 text-club-primary" />
                </div>
                <div>
                   <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">
-                     Registro de <span className="text-[#CCFF00]">Elite</span>
+                     Registro de <span className="text-club-primary">Elite</span>
                   </h1>
                   <p className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-2">
                      Creando perfil técnico para {team?.nombre}
@@ -231,7 +231,7 @@ export default function RegisterElitePlayer() {
          <div className="lg:col-span-1 space-y-8">
             <div className="bg-white dark:bg-[#1e293b]/40 p-8 rounded-[40px] border border-gray-100 dark:border-white/5 space-y-8">
                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-1 w-8 bg-[#CCFF00] rounded-full"></div>
+                  <div className="h-1 w-8 bg-club-primary rounded-full"></div>
                   <h4 className="text-sm font-black uppercase italic tracking-widest text-gray-900 dark:text-white">Imagen de Portada</h4>
                </div>
                <ImageUpload
@@ -264,7 +264,7 @@ export default function RegisterElitePlayer() {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Posición</label>
                     <select 
-                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white appearance-none"
+                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-club-primary outline-none transition-all dark:text-white appearance-none"
                       value={newPlayer.posicion_id}
                       onChange={(e) => setNewPlayer({...newPlayer, posicion_id: e.target.value})}
                     >
@@ -279,7 +279,7 @@ export default function RegisterElitePlayer() {
 
             <div className="bg-white dark:bg-[#1e293b]/40 p-8 rounded-[40px] border border-gray-100 dark:border-white/5">
                 <div className="flex items-center gap-2 mb-6">
-                   <TrendingUp size={18} className="text-[#CCFF00]" />
+                   <TrendingUp size={18} className="text-club-primary" />
                    <h4 className="text-sm font-black uppercase italic tracking-widest text-gray-900 dark:text-white">Antropometría</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -306,7 +306,7 @@ export default function RegisterElitePlayer() {
             {/* Tarjeta: Datos Civiles */}
             <div className="bg-white dark:bg-[#1e293b]/40 p-10 rounded-[48px] border border-gray-100 dark:border-white/5 space-y-8">
                <div className="flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-white/5">
-                  <User className="w-5 h-5 text-[#CCFF00]" />
+                  <User className="w-5 h-5 text-club-primary" />
                   <h4 className="text-base font-black uppercase italic italic tracking-widest text-gray-900 dark:text-white">Información Civil</h4>
                </div>
                
@@ -320,7 +320,7 @@ export default function RegisterElitePlayer() {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Tipo Documento</label>
                     <select 
-                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white appearance-none"
+                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-club-primary outline-none transition-all dark:text-white appearance-none"
                       value={newPlayer.tipo_documento}
                       onChange={(e) => setNewPlayer({...newPlayer, tipo_documento: e.target.value})}
                     >
@@ -338,7 +338,7 @@ export default function RegisterElitePlayer() {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Género</label>
                     <select 
-                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white appearance-none"
+                      className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-club-primary outline-none transition-all dark:text-white appearance-none"
                       value={newPlayer.genero}
                       onChange={(e) => setNewPlayer({...newPlayer, genero: e.target.value})}
                     >
@@ -356,7 +356,7 @@ export default function RegisterElitePlayer() {
             {/* Tarjeta: Trayectoria Deportiva */}
             <div className="bg-white dark:bg-[#1e293b]/40 p-10 rounded-[48px] border border-gray-100 dark:border-white/5 space-y-8">
                <div className="flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-white/5">
-                  <Shield className="w-5 h-5 text-[#CCFF00]" />
+                  <Shield className="w-5 h-5 text-club-primary" />
                   <h4 className="text-base font-black uppercase italic italic tracking-widest text-gray-900 dark:text-white">Perfil Trayectoria Deportiva</h4>
                </div>
 
@@ -385,8 +385,8 @@ export default function RegisterElitePlayer() {
                      )}
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl border border-[#CCFF00]/10 flex flex-col gap-4">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-[#CCFF00]">Registrar Experiencia</p>
+                  <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl border border-club-primary/10 flex flex-col gap-4">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-club-primary">Registrar Experiencia</p>
                      <input id="pg-equipo" className="w-full px-4 py-3 bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-white/5 rounded-xl text-xs outline-none" placeholder="Nombre del Club" />
                      <div className="grid grid-cols-2 gap-3">
                         <input id="pg-inicio" className="w-full px-4 py-3 bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-white/5 rounded-xl text-xs outline-none" placeholder="Desde (Año)" />
@@ -394,7 +394,7 @@ export default function RegisterElitePlayer() {
                      </div>
                      <Button 
                        type="button" 
-                       className="w-full bg-[#1e293b] dark:bg-[#CCFF00]/10 dark:text-[#CCFF00] border-none text-[10px] font-black uppercase h-12"
+                       className="w-full bg-[#1e293b] dark:bg-club-primary/10 dark:text-club-primary border-none text-[10px] font-black uppercase h-12"
                        onClick={() => {
                           const e = (document.getElementById('pg-equipo') as HTMLInputElement).value;
                           const i = (document.getElementById('pg-inicio') as HTMLInputElement).value;
@@ -430,7 +430,7 @@ export default function RegisterElitePlayer() {
               type="submit"
               onClick={handleSave}
               isLoading={saving}
-              className="flex-[2] bg-[#CCFF00] text-gray-900 py-6 rounded-[24px] font-black uppercase text-[12px] tracking-widest italic shadow-xl shadow-[#CCFF00]/20"
+              className="flex-[2] bg-club-primary text-gray-900 py-6 rounded-[24px] font-black uppercase text-[12px] tracking-widest italic shadow-xl shadow-club-primary/20"
             >
               Publicar Perfil Elite
             </Button>
@@ -440,7 +440,7 @@ export default function RegisterElitePlayer() {
       {/* Global Toasts */}
       {toast && (
         <div className={`fixed top-10 right-10 z-[100] px-8 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in fade-in slide-in-from-right-8 ${
-          toast.type === 'success' ? 'bg-[#CCFF00] text-black border-[#CCFF00]' : 'bg-red-500 text-white border-red-500'
+          toast.type === 'success' ? 'bg-club-primary text-black border-club-primary' : 'bg-red-500 text-white border-red-500'
         }`}>
           <CheckCircle2 size={20} />
           <span className="font-black uppercase italic text-xs tracking-widest">{toast.message}</span>

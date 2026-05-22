@@ -315,7 +315,7 @@ export default function CarteraDetails() {
            <UserCircle2 size={160} />
          </div>
          <div className="relative z-10">
-           <p className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest mb-2 font-outfit">Detalle de Cobros</p>
+           <p className="text-[10px] font-black text-club-primary uppercase tracking-widest mb-2 font-outfit">Detalle de Cobros</p>
            {athlete ? (
              <>
                <h1 className="text-4xl font-black text-white italic tracking-tighter leading-none mb-2 uppercase">
@@ -337,7 +337,7 @@ export default function CarteraDetails() {
          {/* Datos Facturación */}
          <div className="bg-white dark:bg-[#1e1f24] p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm">
            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter mb-6 flex items-center gap-3">
-             <FileBadge className="text-[#CCFF00]" />
+             <FileBadge className="text-club-primary" />
              Datos Facturación (Acudiente)
            </h3>
            
@@ -363,11 +363,11 @@ export default function CarteraDetails() {
 
                <div className="grid grid-cols-2 gap-4">
                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 overflow-hidden">
-                   <Phone className="text-[#CCFF00] shrink-0" size={18} />
+                   <Phone className="text-club-primary shrink-0" size={18} />
                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{athlete.tutor_celular || 'N/A'}</p>
                  </div>
                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 overflow-hidden">
-                   <Mail className="text-[#CCFF00] shrink-0" size={18} />
+                   <Mail className="text-club-primary shrink-0" size={18} />
                    <p className="font-bold text-xs text-gray-900 dark:text-white truncate">{athlete.tutor_email || 'N/A'}</p>
                  </div>
                </div>
@@ -393,7 +393,7 @@ export default function CarteraDetails() {
          {/* Stats y Tabla */}
          <div className="space-y-6">
            <div className="grid grid-cols-2 gap-6">
-             <div className="bg-[#CCFF00] p-6 rounded-[32px] text-black shadow-xl shadow-[#CCFF00]/10">
+             <div className="bg-club-primary p-6 rounded-[32px] text-black shadow-xl shadow-club-primary/10">
                <p className="text-[10px] font-black text-black/60 uppercase tracking-widest mb-1">Total Pagado</p>
                <h2 className="text-3xl font-black italic">{formatCurrency(charges.filter(c => c.estado === 'pagado').reduce((sum, c) => sum + c.monto, 0))}</h2>
              </div>
@@ -441,14 +441,14 @@ export default function CarteraDetails() {
                             
                             {charge.estado === 'por validar' && (
                                 <>
-                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[#CCFF00]/10 text-[#CCFF00] hover:bg-[#CCFF00] hover:text-black rounded-lg transition-all" title="Aprobar Pago"><CheckCircle2 size={16} /></button>
+                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-club-primary/10 text-club-primary hover:bg-club-primary hover:text-black rounded-lg transition-all" title="Aprobar Pago"><CheckCircle2 size={16} /></button>
                                   <button onClick={() => handleUpdateStatus(charge.id, 'pendiente')} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all" title="Rechazar Comprobante"><XCircle size={16} /></button>
                                 </>
                             )}
 
                             {(charge.estado === 'pendiente' || charge.estado === 'vencido') && (
                                 <>
-                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[#CCFF00]/10 text-[#CCFF00] hover:bg-[#CCFF00] hover:text-black rounded-lg transition-all" title="Aprobar Pago (Subir Comprobante)"><CheckCircle2 size={16} /></button>
+                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-club-primary/10 text-club-primary hover:bg-club-primary hover:text-black rounded-lg transition-all" title="Aprobar Pago (Subir Comprobante)"><CheckCircle2 size={16} /></button>
                                   <button onClick={() => handleSendReminder(charge)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-all" title="Enviar Recordatorio"><Bell size={16} /></button>
                                   <button onClick={() => handleUpdateStatus(charge.id, 'anulado')} className="p-2 hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" title="Anular Cobro"><XCircle size={16} /></button>
                                 </>
@@ -475,7 +475,7 @@ export default function CarteraDetails() {
                <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Concepto</p>
                   <p className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{approvingCharge.titulo}</p>
-                  <p className="text-xl font-black text-[#CCFF00] mt-1">{formatCurrency(approvingCharge.monto)}</p>
+                  <p className="text-xl font-black text-club-primary mt-1">{formatCurrency(approvingCharge.monto)}</p>
                </div>
 
                <div className="space-y-3">
@@ -484,20 +484,20 @@ export default function CarteraDetails() {
                   </label>
                   <div className="relative group">
                      {previewUrl ? (
-                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-[#CCFF00]">
+                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-club-primary">
                            <img src={previewUrl} className="w-full h-full object-cover" />
                            <button onClick={() => { setComprobanteFile(null); setPreviewUrl(null); }} className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full"><X size={16}/></button>
                         </div>
                      ) : approvingCharge.comprobante_url ? (
                         <div className="relative w-full h-48 sm:h-64 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex items-center justify-center">
                            <img src={approvingCharge.comprobante_url} className="max-w-full max-h-full object-contain p-2" />
-                           <label className="absolute top-3 right-3 px-3 py-1.5 bg-black/80 text-white hover:text-[#CCFF00] rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-black transition-colors backdrop-blur-md">
+                           <label className="absolute top-3 right-3 px-3 py-1.5 bg-black/80 text-white hover:text-club-primary rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-black transition-colors backdrop-blur-md">
                              Reemplazar
                              <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
                            </label>
                         </div>
                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:border-[#CCFF00] transition-colors">
+                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:border-club-primary transition-colors">
                            <Upload size={32} className="text-gray-300 mb-2" />
                            <span className="text-[10px] font-black text-gray-400 uppercase">Seleccionar Imagen</span>
                            <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
@@ -521,7 +521,7 @@ export default function CarteraDetails() {
                   )}
 
                   <Button 
-                    className="w-full sm:flex-[2] h-14 bg-[#CCFF00] text-black rounded-2xl font-black uppercase text-xs gap-2" 
+                    className="w-full sm:flex-[2] h-14 bg-club-primary text-black rounded-2xl font-black uppercase text-xs gap-2" 
                     disabled={(!comprobanteFile && !approvingCharge.comprobante_url) || uploading}
                     isLoading={uploading}
                     onClick={processApproval}

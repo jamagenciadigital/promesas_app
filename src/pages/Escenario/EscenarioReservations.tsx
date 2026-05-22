@@ -579,7 +579,7 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                                 {/* Html5QrcodeScanner se inyectará aquí automáticamente */}
                             </div>
                         ) : (
-                            <button onClick={() => setCameraEnabled(true)} className="w-full h-40 bg-[#CCFF00]/10 hover:bg-[#CCFF00]/20 border border-[#CCFF00]/20 rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all text-[#CCFF00] group/cam">
+                            <button onClick={() => setCameraEnabled(true)} className="w-full h-40 bg-club-primary/10 hover:bg-club-primary/20 border border-club-primary/20 rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all text-club-primary group/cam">
                                 <Camera className="w-12 h-12 group-hover/cam:scale-110 transition-transform" />
                                 <span className="text-[12px] uppercase font-black tracking-widest">Activar Escáner de Acceso</span>
                             </button>

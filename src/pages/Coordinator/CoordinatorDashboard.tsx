@@ -77,24 +77,24 @@ export default function CoordinatorDashboard() {
             <div 
               key={team.id} 
               onClick={() => navigate(`/coordinator/teams/${team.codigo}`)}
-              className="group cursor-pointer bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[#CCFF00] hover:shadow-2xl hover:shadow-[#CCFF00]/5 transition-all duration-300"
+              className="group cursor-pointer bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-club-primary hover:shadow-2xl hover:shadow-club-primary/5 transition-all duration-300"
             >
               <div className="p-8 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <Badge variant="success" className="mb-2 bg-[#CCFF00]/10 text-[#CCFF00] border-[#CCFF00]/20 px-3 py-1 uppercase text-[10px] font-black tracking-widest">
+                    <Badge variant="success" className="mb-2 bg-club-primary/10 text-club-primary border-club-primary/20 px-3 py-1 uppercase text-[10px] font-black tracking-widest">
                       {team.categoria?.valor || 'Categoría'}
                     </Badge>
                     <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase leading-none tracking-tight">{team.nombre}</h3>
                   </div>
-                  <div className="p-3 bg-gray-100 dark:bg-white/5 rounded-2xl group-hover:bg-[#CCFF00] group-hover:text-gray-900 transition-colors">
+                  <div className="p-3 bg-gray-100 dark:bg-white/5 rounded-2xl group-hover:bg-club-primary group-hover:text-gray-900 transition-colors">
                     <ArrowRight className="w-5 h-5" />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-lg"><Hash className="w-4 h-4 text-[#CCFF00]" /></div>
+                    <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-lg"><Hash className="w-4 h-4 text-club-primary" /></div>
                     <span className="font-mono font-bold tracking-widest">{team.codigo}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">

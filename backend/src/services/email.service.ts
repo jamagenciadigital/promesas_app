@@ -102,6 +102,9 @@ export async function sendEmail(
       ? from_email
       : clubName + ' <' + from_email + '>';
 
+    const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
+    const loginLink = `${frontendUrl}/login?club=${club_id}`;
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -113,7 +116,11 @@ export async function sendEmail(
         to: [to],
         template: {
           id: templateId,
-          variables: variables
+          variables: {
+            club: clubName,
+            enlace_login: loginLink,
+            ...variables
+          }
         }
       })
     });
@@ -199,9 +206,13 @@ export async function sendNotificationEmail(
     }
 
     // 3. Replace variables in body and subject
+    const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
+    const loginLink = `${frontendUrl}/login?club=${club_id}`;
+
     const mergedVars: Record<string, any> = {
       ...variables,
       club: clubName,
+      enlace_login: loginLink,
     };
     for (const [key, value] of Object.entries(mergedVars)) {
       asunto = asunto.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), String(value ?? ''));

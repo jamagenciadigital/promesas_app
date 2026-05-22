@@ -219,7 +219,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none flex items-center gap-4">
-            <Building2 className="text-[#CCFF00]" size={40} /> Jefatura de Escenarios
+            <Building2 className="text-club-primary" size={40} /> Jefatura de Escenarios
           </h1>
           <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-2 italic">
             Dashboard Estratégico e Indicadores de Gestión
@@ -229,25 +229,25 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-2xl border border-gray-200 dark:border-white/10">
           <button 
             onClick={() => setActiveTab('indicators')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'indicators' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'indicators' ? 'bg-club-primary text-black shadow-lg shadow-club-primary/20' : 'text-gray-500 hover:text-white'}`}
           >
             <BarChart3 className="inline-flex mr-2" size={14} /> Indicadores
           </button>
           <button 
             onClick={() => setActiveTab('pqrs')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'pqrs' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'pqrs' ? 'bg-club-primary text-black shadow-lg shadow-club-primary/20' : 'text-gray-500 hover:text-white'}`}
           >
             <MessageSquare className="inline-flex mr-2" size={14} /> Buzón PQRS
           </button>
           <button 
             onClick={() => setActiveTab('venues')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'venues' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'venues' ? 'bg-club-primary text-black shadow-lg shadow-club-primary/20' : 'text-gray-500 hover:text-white'}`}
           >
             <MapPin className="inline-flex mr-2" size={14} /> Escenarios
           </button>
           <button 
             onClick={() => setActiveTab('assignments')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'assignments' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'assignments' ? 'bg-club-primary text-black shadow-lg shadow-club-primary/20' : 'text-gray-500 hover:text-white'}`}
           >
             <UserPlus className="inline-flex mr-2" size={14} /> Asignación
           </button>
@@ -286,8 +286,8 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               value="---" 
               subtitle="Promedio semanal" 
               icon={<TrendingUp />} 
-              color="text-[#CCFF00]"
-              bg="bg-[#CCFF00]/10"
+              color="text-club-primary"
+              bg="bg-club-primary/10"
               isDevelopment
             />
 
@@ -327,7 +327,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
           {/* PQRS Stats */}
           <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10">
             <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <MessageSquare className="text-[#CCFF00]" /> Gestión de PQRS por Escenario
+              <MessageSquare className="text-club-primary" /> Gestión de PQRS por Escenario
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -358,12 +358,12 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10">
             <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <MessageSquare className="text-[#CCFF00]" /> Buzón de PQRS Recibidas
+              <MessageSquare className="text-club-primary" /> Buzón de PQRS Recibidas
             </h3>
             
             <div className="space-y-4">
               {pqrsList.length > 0 ? pqrsList.map(p => (
-                <div key={p.id} className="p-6 bg-gray-50 dark:bg-black/20 rounded-[32px] border border-gray-100 dark:border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-[#CCFF00]/30 transition-all group">
+                <div key={p.id} className="p-6 bg-gray-50 dark:bg-black/20 rounded-[32px] border border-gray-100 dark:border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-club-primary/30 transition-all group">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-gray-500 uppercase italic tracking-widest">{p.codigo}</span>
@@ -385,7 +385,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
                     </div>
                     <button 
                       onClick={() => { setSelectedPqrs(p); setPqrsResponse(p.respuesta || ''); setIsPqrsModalOpen(true); }}
-                      className="flex-1 md:flex-none px-6 py-3 bg-white dark:bg-white/5 hover:bg-[#CCFF00] hover:text-black rounded-2xl font-black text-[10px] uppercase italic transition-all"
+                      className="flex-1 md:flex-none px-6 py-3 bg-white dark:bg-white/5 hover:bg-club-primary hover:text-black rounded-2xl font-black text-[10px] uppercase italic transition-all"
                     >
                       Gestionar
                     </button>
@@ -412,7 +412,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10 space-y-8">
            <div className="flex justify-between items-center">
               <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Asignación de Personal</h3>
-              <Button onClick={() => setIsAssignModalOpen(true)} className="bg-[#CCFF00] text-black font-black uppercase italic text-[10px] rounded-xl px-6 h-12">Asignar Nuevo</Button>
+              <Button onClick={() => setIsAssignModalOpen(true)} className="bg-club-primary text-black font-black uppercase italic text-[10px] rounded-xl px-6 h-12">Asignar Nuevo</Button>
            </div>
            
            <div className="overflow-x-auto">
@@ -502,7 +502,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
             </select>
           </div>
 
-          <Button onClick={handleAssign} className="w-full bg-[#CCFF00] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[#CCFF00]/10 mt-4">
+          <Button onClick={handleAssign} className="w-full bg-club-primary text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-club-primary/10 mt-4">
             Confirmar Asignación
           </Button>
         </div>
@@ -515,18 +515,18 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         <div className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-white/5">
-              <p className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">Solicitante</p>
+              <p className="text-[9px] font-black text-club-primary uppercase tracking-widest mb-1">Solicitante</p>
               <p className="text-sm font-bold text-white">{selectedPqrs?.solicitante_nombre}</p>
               <p className="text-[10px] text-gray-500">{selectedPqrs?.solicitante_email}</p>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-white/5">
-              <p className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">Descripción del {selectedPqrs?.tipo}</p>
+              <p className="text-[9px] font-black text-club-primary uppercase tracking-widest mb-1">Descripción del {selectedPqrs?.tipo}</p>
               <p className="text-sm text-gray-300 italic">"{selectedPqrs?.descripcion}"</p>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Tu Respuesta</label>
               <textarea 
-                className="w-full h-32 p-4 bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl text-white text-sm focus:border-[#CCFF00] outline-none transition-all resize-none"
+                className="w-full h-32 p-4 bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl text-white text-sm focus:border-club-primary outline-none transition-all resize-none"
                 placeholder="Escribe aquí la respuesta oficial..."
                 value={pqrsResponse}
                 onChange={(e) => setPqrsResponse(e.target.value)}
@@ -544,7 +544,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
             <Button 
               onClick={() => { handleRespondPqrs(selectedPqrs.id, pqrsResponse); setIsPqrsModalOpen(false); }}
               disabled={!pqrsResponse}
-              className="flex-2 bg-[#CCFF00] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[#CCFF00]/10"
+              className="flex-2 bg-club-primary text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-club-primary/10"
             >
               Enviar Respuesta
             </Button>
@@ -566,7 +566,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               </div>
               <div className="p-6 bg-gray-50 dark:bg-black/20 rounded-3xl text-center">
                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Recaudación</p>
-                 <h4 className="text-2xl font-black text-[#CCFF00] italic">{formatCurrency(selectedVenueMetrics?.revenue)}</h4>
+                 <h4 className="text-2xl font-black text-club-primary italic">{formatCurrency(selectedVenueMetrics?.revenue)}</h4>
               </div>
               <div className="p-6 bg-gray-50 dark:bg-black/20 rounded-3xl text-center">
                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">PQRS Recibidas</p>
@@ -600,7 +600,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               </div>
            </div>
            
-           <Button onClick={() => setIsMetricsModalOpen(false)} className="w-full bg-black text-[#CCFF00] font-black uppercase italic h-14 rounded-2xl">Cerrar Detalle</Button>
+           <Button onClick={() => setIsMetricsModalOpen(false)} className="w-full bg-black text-club-primary font-black uppercase italic h-14 rounded-2xl">Cerrar Detalle</Button>
         </div>
       </Modal>
     </div>

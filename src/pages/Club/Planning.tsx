@@ -321,7 +321,7 @@ export default function Planning() {
         
         <Button 
           onClick={() => { resetForm(); setShowModal(true); }}
-          className="bg-[#CCFF00] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
+          className="bg-club-primary text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
         >
           <PlusCircle size={16} /> {t('planning.new_session')}
         </Button>
@@ -330,7 +330,7 @@ export default function Planning() {
       {/* Sessions Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#CCFF00]" />
+          <Loader2 className="w-8 h-8 animate-spin text-club-primary" />
         </div>
       ) : sessions.length === 0 ? (
         <div className="bg-white dark:bg-[#1e293b]/40 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[48px] p-20 text-center">
@@ -343,25 +343,25 @@ export default function Planning() {
             <div 
               key={session.id}
               onClick={() => { setForm(session); setShowModal(true); }}
-              className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-8 hover:border-[#CCFF00]/50 transition-all cursor-pointer group"
+              className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-8 hover:border-club-primary/50 transition-all cursor-pointer group"
             >
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500">
                   <CalendarIcon size={20} />
                 </div>
                 {session.completada && (
-                  <div className="bg-[#CCFF00] text-black text-[8px] font-black px-2 py-1 rounded-full uppercase italic">
+                  <div className="bg-club-primary text-black text-[8px] font-black px-2 py-1 rounded-full uppercase italic">
                     {t('calendar.pres')}
                   </div>
                 )}
               </div>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic mb-2 truncate group-hover:text-[#CCFF00] transition-colors">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic mb-2 truncate group-hover:text-club-primary transition-colors">
                 {session.titulo}
               </h3>
               <div className="flex items-center gap-2 text-xs text-gray-500 font-bold mb-6">
                  {session.equipo?.nombre && (
                    <>
-                    <span className="text-[#CCFF00]">{session.equipo.nombre}</span>
+                    <span className="text-club-primary">{session.equipo.nombre}</span>
                     <span>•</span>
                    </>
                  )}
@@ -420,7 +420,7 @@ export default function Planning() {
               <select 
                 required
                 disabled={form.completada}
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-[#CCFF00] dark:text-white disabled:opacity-50"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-club-primary dark:text-white disabled:opacity-50"
                 value={form.equipo_id}
                 onChange={e => setForm({...form, equipo_id: e.target.value})}
               >
@@ -453,7 +453,7 @@ export default function Planning() {
                   <select 
                     required
                     disabled={form.completada}
-                    className="w-full h-14 bg-[#CCFF00]/5 border-2 border-[#CCFF00]/20 rounded-2xl px-6 text-sm font-black appearance-none focus:ring-2 focus:ring-[#CCFF00] dark:text-white transition-all hover:border-[#CCFF00]/50"
+                    className="w-full h-14 bg-club-primary/5 border-2 border-club-primary/20 rounded-2xl px-6 text-sm font-black appearance-none focus:ring-2 focus:ring-club-primary dark:text-white transition-all hover:border-club-primary/50"
                     value={form.fecha}
                     onChange={async (e) => {
                       const selectedDate = e.target.value;
@@ -488,7 +488,7 @@ export default function Planning() {
                       </option>
                     ))}
                   </select>
-                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#CCFF00]">
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-club-primary">
                     <CalendarIcon size={18} />
                   </div>
                 </div>
@@ -499,7 +499,7 @@ export default function Planning() {
                   disabled={form.completada}
                   value={form.fecha}
                   onChange={e => setForm({...form, fecha: e.target.value})}
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white disabled:opacity-50"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-club-primary dark:text-white disabled:opacity-50"
                 />
               )}
             </div>
@@ -521,15 +521,15 @@ export default function Planning() {
                       return `${h12.toString().padStart(2, '0')}:${m} ${ampm}`;
                     })()
                   ) : '--:-- --'}
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-black focus:ring-2 focus:ring-[#CCFF00] dark:text-white cursor-default"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-black focus:ring-2 focus:ring-club-primary dark:text-white cursor-default"
                 />
                 <Clock className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
             <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Semana del Año</label>
-              <div className="flex items-center h-14 bg-[#CCFF00]/5 rounded-2xl px-6 border border-[#CCFF00]/10">
-                <span className="text-sm font-black text-[#CCFF00] italic uppercase tracking-widest">
+              <div className="flex items-center h-14 bg-club-primary/5 rounded-2xl px-6 border border-club-primary/10">
+                <span className="text-sm font-black text-club-primary italic uppercase tracking-widest">
                   {form.semana_no > 0 ? `Semana ${form.semana_no}` : '--'}
                 </span>
               </div>
@@ -542,7 +542,7 @@ export default function Planning() {
                 placeholder="--"
                 value={form.sesion_no || ''}
                 onChange={e => setForm({...form, sesion_no: parseInt(e.target.value) || 0})}
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-black focus:ring-2 focus:ring-[#CCFF00] dark:text-white disabled:opacity-50"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-black focus:ring-2 focus:ring-club-primary dark:text-white disabled:opacity-50"
               />
             </div>
           </div>
@@ -553,7 +553,7 @@ export default function Planning() {
               disabled={form.completada}
               value={form.descripcion}
               onChange={e => setForm({...form, descripcion: e.target.value})}
-              className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-[32px] text-sm font-medium focus:ring-2 focus:ring-[#CCFF00] dark:text-white min-h-[100px] disabled:opacity-50"
+              className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-[32px] text-sm font-medium focus:ring-2 focus:ring-club-primary dark:text-white min-h-[100px] disabled:opacity-50"
             />
           </div>
 
@@ -561,13 +561,13 @@ export default function Planning() {
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#CCFF00]/10 rounded-xl text-[#CCFF00]">
+                <div className="p-2 bg-club-primary/10 rounded-xl text-club-primary">
                   <Target size={18} />
                 </div>
                 <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase italic">{t('planning.objectives')}</h4>
               </div>
               {!form.completada && (
-                <Button type="button" onClick={handleAddObjective} variant="ghost" className="text-[#CCFF00] hover:bg-[#CCFF00]/5 gap-2 font-black italic uppercase text-[10px] tracking-widest">
+                <Button type="button" onClick={handleAddObjective} variant="ghost" className="text-club-primary hover:bg-club-primary/5 gap-2 font-black italic uppercase text-[10px] tracking-widest">
                   <Plus size={16} /> {t('planning.add_objective')}
                 </Button>
               )}
@@ -601,14 +601,14 @@ export default function Planning() {
                         onClick={() => handleObjectiveChange(index, 'met', !obj.met)}
                         className={cn(
                           "p-1.5 rounded-lg transition-all",
-                          obj.met ? "bg-[#CCFF00] text-black" : "bg-gray-200 dark:bg-white/10 text-gray-400"
+                          obj.met ? "bg-club-primary text-black" : "bg-gray-200 dark:bg-white/10 text-gray-400"
                         )}
                       >
                         <Check size={14} />
                       </button>
                     )}
                     {form.completada && obj.met && (
-                      <div className="bg-[#CCFF00] text-black p-1 rounded-lg">
+                      <div className="bg-club-primary text-black p-1 rounded-lg">
                         <Check size={14} />
                       </div>
                     )}
@@ -630,7 +630,7 @@ export default function Planning() {
           {/* Section 3: Phases */}
           <div className="space-y-8">
             <div className="flex items-center gap-3 border-b border-gray-100 dark:border-white/5 pb-4">
-              <div className="p-2 bg-[#CCFF00]/10 rounded-xl text-[#CCFF00]">
+              <div className="p-2 bg-club-primary/10 rounded-xl text-club-primary">
                 <Layers size={18} />
               </div>
               <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase italic">{t('planning.phases')}</h4>
@@ -646,7 +646,7 @@ export default function Planning() {
                     <Button 
                       type="button" 
                       onClick={() => handleAddTask(phaseKey)}
-                      className="h-9 rounded-xl bg-[#CCFF00] text-black hover:bg-[#CCFF00]/90 text-[9px] font-black uppercase tracking-widest gap-1 border-none shadow-lg shadow-[#CCFF00]/10"
+                      className="h-9 rounded-xl bg-club-primary text-black hover:bg-club-primary/90 text-[9px] font-black uppercase tracking-widest gap-1 border-none shadow-lg shadow-club-primary/10"
                     >
                       <Plus size={14} /> {t('planning.add_task')}
                     </Button>
@@ -656,7 +656,7 @@ export default function Planning() {
                 <textarea 
                   disabled={form.completada}
                   placeholder={t('planning.phase_description')}
-                  className="w-full p-4 bg-white dark:bg-[#1e293b]/20 border-none rounded-2xl text-xs font-medium focus:ring-1 focus:ring-[#CCFF00] dark:text-white min-h-[60px] disabled:opacity-50"
+                  className="w-full p-4 bg-white dark:bg-[#1e293b]/20 border-none rounded-2xl text-xs font-medium focus:ring-1 focus:ring-club-primary dark:text-white min-h-[60px] disabled:opacity-50"
                   value={form[phaseKey].description}
                   onChange={e => setForm({...form, [phaseKey]: { ...form[phaseKey], description: e.target.value }})}
                 />
@@ -664,12 +664,12 @@ export default function Planning() {
                 <div className="space-y-3">
                   {form[phaseKey].tasks.map((task, idx) => (
                     <div key={idx} className="flex gap-3 items-center group">
-                      <div className="w-1 h-10 bg-[#CCFF00] rounded-full shrink-0" />
+                      <div className="w-1 h-10 bg-club-primary rounded-full shrink-0" />
                       <input 
                         type="text"
                         disabled={form.completada}
                         placeholder={t('planning.add_task')}
-                        className="flex-1 bg-white dark:bg-[#1e293b]/20 border-none rounded-xl px-4 h-10 text-xs font-bold dark:text-white focus:ring-1 focus:ring-[#CCFF00] disabled:opacity-50"
+                        className="flex-1 bg-white dark:bg-[#1e293b]/20 border-none rounded-xl px-4 h-10 text-xs font-bold dark:text-white focus:ring-1 focus:ring-club-primary disabled:opacity-50"
                         value={task}
                         onChange={e => handleTaskChange(phaseKey, idx, e.target.value)}
                       />
@@ -693,7 +693,7 @@ export default function Planning() {
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#CCFF00]/10 rounded-xl text-[#CCFF00]">
+                <div className="p-2 bg-club-primary/10 rounded-xl text-club-primary">
                   <FileText size={18} />
                 </div>
                 <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase italic">{t('planning.general_notes')}</h4>
@@ -710,17 +710,17 @@ export default function Planning() {
               placeholder={t('planning.notes_placeholder')}
               className={cn(
                 "w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-[32px] text-sm font-medium dark:text-white min-h-[100px] transition-all",
-                !isNotesActive ? "opacity-30 cursor-not-allowed italic" : "focus:ring-2 focus:ring-[#CCFF00]"
+                !isNotesActive ? "opacity-30 cursor-not-allowed italic" : "focus:ring-2 focus:ring-club-primary"
               )}
               value={form.notas_generales}
               onChange={e => setForm({...form, notas_generales: e.target.value})}
             />
 
             {isNotesActive && (
-              <div className="flex items-center gap-3 p-4 bg-[#CCFF00]/5 rounded-2xl border border-[#CCFF00]/10">
-                <CheckCircle2 size={16} className="text-[#CCFF00]" />
+              <div className="flex items-center gap-3 p-4 bg-club-primary/5 rounded-2xl border border-club-primary/10">
+                <CheckCircle2 size={16} className="text-club-primary" />
                 <p className="text-[10px] text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wide">
-                  {t('planning.complete_session')} <span className="text-[#CCFF00]">(Nota requerida)</span>
+                  {t('planning.complete_session')} <span className="text-club-primary">(Nota requerida)</span>
                 </p>
                 <div className="ml-auto">
                    <input 
@@ -733,7 +733,7 @@ export default function Planning() {
                         showToast("Debe dejar una nota general para completar la sesión", 'error');
                       }
                     }}
-                    className="w-5 h-5 rounded-lg border-none bg-white dark:bg-white/10 text-[#CCFF00] focus:ring-[#CCFF00]"
+                    className="w-5 h-5 rounded-lg border-none bg-white dark:bg-white/10 text-club-primary focus:ring-club-primary"
                    />
                 </div>
               </div>
@@ -746,14 +746,14 @@ export default function Planning() {
               <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="flex-1 h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest">
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-[#CCFF00] dark:text-black h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest gap-2">
+              <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-club-primary dark:text-black h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest gap-2">
                 <Save size={16} /> {t('planning.save_session')}
               </Button>
             </div>
           )}
           
           {form.completada && (
-            <div className="pt-8 text-center text-[10px] font-black uppercase tracking-widest text-[#CCFF00] italic">
+            <div className="pt-8 text-center text-[10px] font-black uppercase tracking-widest text-club-primary italic">
                {t('planning.complete_session')}
             </div>
           )}

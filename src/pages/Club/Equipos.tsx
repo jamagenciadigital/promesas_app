@@ -371,14 +371,14 @@ export default function Equipos() {
             placeholder="Buscar por nombre..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white shadow-sm"
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl text-sm focus:ring-2 focus:ring-club-primary outline-none transition-all dark:text-white shadow-sm"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="py-20 text-center text-gray-500">
-           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#CCFF00] mx-auto mb-4"></div>
+           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-club-primary mx-auto mb-4"></div>
            Cargando equipos...
         </div>
       ) : filteredEquipos.length === 0 ? (
@@ -390,12 +390,12 @@ export default function Equipos() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEquipos.map((equipo: any) => (
-            <div key={equipo.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[#CCFF00] hover:shadow-2xl hover:shadow-[#CCFF00]/5 transition-all duration-300">
+            <div key={equipo.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-club-primary hover:shadow-2xl hover:shadow-club-primary/5 transition-all duration-300">
               <div className="p-8 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="success" className="bg-[#CCFF00]/10 text-[#CCFF00] border-[#CCFF00]/20 px-3 py-1 uppercase text-[10px] font-black tracking-widest">
+                      <Badge variant="success" className="bg-club-primary/10 text-club-primary border-club-primary/20 px-3 py-1 uppercase text-[10px] font-black tracking-widest">
                         {equipo.categoria?.valor || 'Sin Categoría'}
                       </Badge>
                       {equipo.estado && equipo.estado !== 'activo' && (
@@ -447,7 +447,7 @@ export default function Equipos() {
                     )}
                     <button 
                       onClick={() => navigate(`${equipo.codigo}`)}
-                      className="p-2.5 bg-[#CCFF00]/10 text-[#CCFF00] rounded-xl hover:bg-[#CCFF00] hover:text-gray-900 transition-all font-black text-[10px] uppercase tracking-widest"
+                      className="p-2.5 bg-club-primary/10 text-club-primary rounded-xl hover:bg-club-primary hover:text-gray-900 transition-all font-black text-[10px] uppercase tracking-widest"
                     >
                       Ver Equipo
                     </button>
@@ -473,9 +473,9 @@ export default function Equipos() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 bg-[#CCFF00]/5 p-2 rounded-xl border border-[#CCFF00]/10">
-                    <div className="p-2 bg-[#CCFF00] rounded-lg"><Hash className="w-4 h-4 text-gray-900" /></div>
-                    <span className="font-mono font-bold tracking-widest text-[#CCFF00]">{equipo.codigo}</span>
+                  <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 bg-club-primary/5 p-2 rounded-xl border border-club-primary/10">
+                    <div className="p-2 bg-club-primary rounded-lg"><Hash className="w-4 h-4 text-gray-900" /></div>
+                    <span className="font-mono font-bold tracking-widest text-club-primary">{equipo.codigo}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                     <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-lg"><Trophy className="w-4 h-4" /></div>
@@ -503,7 +503,7 @@ export default function Equipos() {
                         <div className="flex -space-x-2 justify-end">
                           {equipo.entrenadores?.length > 0 ? (
                             equipo.entrenadores.map((e: any, idx: number) => (
-                              <div key={idx} className="h-8 w-8 rounded-full bg-gray-900 dark:bg-[#CCFF00] border-2 border-white dark:border-[#1e293b] flex items-center justify-center text-[10px] font-black text-white dark:text-gray-900 uppercase" title={e.perfiles?.nombre}>
+                              <div key={idx} className="h-8 w-8 rounded-full bg-gray-900 dark:bg-club-primary border-2 border-white dark:border-[#1e293b] flex items-center justify-center text-[10px] font-black text-white dark:text-gray-900 uppercase" title={e.perfiles?.nombre}>
                                 {e.perfiles?.nombre?.charAt(0)}
                               </div>
                             ))
@@ -556,7 +556,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Estado del Equipo</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-club-primary transition-all"
                     value={formData.estado}
                     onChange={(e) => setFormData({ ...formData, estado: e.target.value as any })}
                     required
@@ -572,7 +572,7 @@ export default function Equipos() {
                     <button 
                       type="button" 
                       onClick={() => setFormData({...formData, codigo: Math.random().toString(36).substring(2, 8).toUpperCase()})}
-                      className="text-[#CCFF00] hover:rotate-180 transition-transform duration-500"
+                      className="text-club-primary hover:rotate-180 transition-transform duration-500"
                     >
                       <RefreshCcw className="w-3 h-3" />
                     </button>
@@ -581,7 +581,7 @@ export default function Equipos() {
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
-                      className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] font-mono font-bold uppercase transition-all"
+                      className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-club-primary font-mono font-bold uppercase transition-all"
                       value={formData.codigo}
                       onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toUpperCase() })}
                       required
@@ -601,7 +601,7 @@ export default function Equipos() {
                         onClick={() => setFormData({ ...formData, nivel_habilidad: level })}
                         className={`flex-1 py-3 px-2 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
                           formData.nivel_habilidad === level
-                            ? 'bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]'
+                            ? 'bg-club-primary/10 border-club-primary text-club-primary'
                             : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-gray-200'
                         }`}
                       >
@@ -613,7 +613,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Categoría</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-club-primary transition-all"
                     value={formData.categoria_id}
                     onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
                     required
@@ -630,7 +630,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Sede de Entrenamiento</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-club-primary transition-all"
                     value={formData.sede_id}
                     onChange={(e) => setFormData({ ...formData, sede_id: e.target.value })}
                   >
@@ -676,7 +676,7 @@ export default function Equipos() {
                       onClick={() => toggleDay(day)}
                       className={`px-5 py-3 rounded-2xl text-[11px] font-black uppercase transition-all border-2 ${
                         formData.dias_entrenamiento.includes(day)
-                          ? 'bg-[#CCFF00] border-[#CCFF00] text-gray-900 shadow-lg shadow-[#CCFF00]/20'
+                          ? 'bg-club-primary border-club-primary text-gray-900 shadow-lg shadow-club-primary/20'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-gray-200'
                       }`}
                     >
@@ -713,7 +713,7 @@ export default function Equipos() {
                       onClick={() => toggleCoach(coach.id)}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                         formData.entrenadores_ids.includes(coach.id)
-                          ? 'bg-[#CCFF00]/5 border-[#CCFF00] text-gray-900 dark:text-white'
+                          ? 'bg-club-primary/5 border-club-primary text-gray-900 dark:text-white'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 font-medium'
                       }`}
                     >
@@ -736,7 +736,7 @@ export default function Equipos() {
                       onClick={() => setFormData(prev => ({ ...prev, coordinador_id: prev.coordinador_id === coord.id ? '' : coord.id }))}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                         formData.coordinador_id === coord.id
-                          ? 'bg-[#CCFF00] border-[#CCFF00] text-gray-900'
+                          ? 'bg-club-primary border-club-primary text-gray-900'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 font-medium'
                       }`}
                     >
@@ -753,7 +753,7 @@ export default function Equipos() {
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest">
                   Cancelar
                 </Button>
-                <Button type="submit" isLoading={saving} className="flex-1 bg-gray-900 dark:bg-[#CCFF00] dark:text-gray-900 h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl shadow-[#CCFF00]/10">
+                <Button type="submit" isLoading={saving} className="flex-1 bg-gray-900 dark:bg-club-primary dark:text-gray-900 h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl shadow-club-primary/10">
                   {editingEquipo ? 'Guardar Cambios' : 'Crear Equipo'}
                 </Button>
               </div>

@@ -88,7 +88,7 @@ export default function CoachDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-club-primary"></div>
       </div>
     );
   }
@@ -97,8 +97,8 @@ export default function CoachDashboard() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in">
       <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-4 bg-[#CCFF00]/10 rounded-2xl">
-            <Shield className="w-8 h-8 text-[#CCFF00]" />
+          <div className="p-4 bg-club-primary/10 rounded-2xl">
+            <Shield className="w-8 h-8 text-club-primary" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">
@@ -124,20 +124,20 @@ export default function CoachDashboard() {
           {teams.map((team) => (
             <div 
               key={team.id}
-              className="group bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 rounded-[40px] overflow-hidden hover:border-[#CCFF00] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-1"
+              className="group bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 rounded-[40px] overflow-hidden hover:border-club-primary transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-1"
             >
               <div className="p-8 space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <Badge className="text-[9px] font-black uppercase tracking-widest bg-gray-900 dark:bg-black text-[#CCFF00] border-[#CCFF00]/30 shadow-sm leading-none py-1">
+                    <Badge className="text-[9px] font-black uppercase tracking-widest bg-gray-900 dark:bg-black text-club-primary border-club-primary/30 shadow-sm leading-none py-1">
                       {team.codigo}
                     </Badge>
-                    <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight group-hover:text-[#CCFF00] transition-colors line-clamp-2">
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight group-hover:text-club-primary transition-colors line-clamp-2">
                       {team.nombre}
                     </h3>
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                    <Trophy className="w-6 h-6 text-gray-300 group-hover:text-[#CCFF00] transition-colors" />
+                    <Trophy className="w-6 h-6 text-gray-300 group-hover:text-club-primary transition-colors" />
                   </div>
                 </div>
 
@@ -165,7 +165,7 @@ export default function CoachDashboard() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => navigate(`/coach/teams/${team.id}`)}
-                    className="flex-1 h-14 bg-gray-900 dark:bg-white text-white dark:text-black rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2 hover:bg-[#CCFF00] hover:text-black transition-all"
+                    className="flex-1 h-14 bg-gray-900 dark:bg-white text-white dark:text-black rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2 hover:bg-club-primary hover:text-black transition-all"
                   >
                     Ver Dashboard <ArrowUpRight size={16} />
                   </Button>

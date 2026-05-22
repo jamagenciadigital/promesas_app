@@ -177,7 +177,7 @@ export default function Entrenadores() {
                 placeholder="Buscar entrenador..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white dark:bg-[#1e293b]/50 border border-gray-100 dark:border-white/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] min-w-[250px]"
+                className="pl-10 pr-4 py-2 bg-white dark:bg-[#1e293b]/50 border border-gray-100 dark:border-white/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-club-primary min-w-[250px]"
               />
            </div>
         </div>
@@ -197,7 +197,7 @@ export default function Entrenadores() {
                 </div>
 
                 <div 
-                  className="w-24 h-24 rounded-[32px] bg-gray-900 border-2 border-gray-100 dark:border-white/5 overflow-hidden flex items-center justify-center text-white dark:text-black text-3xl font-black italic shadow-lg mb-6 cursor-pointer hover:border-[#CCFF00] transition-all"
+                  className="w-24 h-24 rounded-[32px] bg-gray-900 border-2 border-gray-100 dark:border-white/5 overflow-hidden flex items-center justify-center text-white dark:text-black text-3xl font-black italic shadow-lg mb-6 cursor-pointer hover:border-club-primary transition-all"
                   onClick={() => navigate(`/club/coaches/${coach.id}`)}
                 >
                     {coach.foto_url ? (
@@ -212,7 +212,7 @@ export default function Entrenadores() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900 dark:bg-[#CCFF00]">
+                      <div className="w-full h-full flex items-center justify-center bg-gray-900 dark:bg-club-primary">
                         {coach.nombre.charAt(0)}
                       </div>
                     )}
@@ -222,12 +222,12 @@ export default function Entrenadores() {
 
                 <div className="w-full space-y-2 pt-4 border-t border-gray-50 dark:border-white/5 mb-8 text-center">
                   <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400">
-                      <Mail size={14} className="text-[#CCFF00]" />
+                      <Mail size={14} className="text-club-primary" />
                       <span className="truncate">{coach.email || 'Sin correo'}</span>
                   </div>
                   {coach.telefono && (
                     <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400">
-                        <Phone size={14} className="text-[#CCFF00]" />
+                        <Phone size={14} className="text-club-primary" />
                         <span>{coach.telefono}</span>
                     </div>
                   )}
@@ -303,7 +303,7 @@ export default function Entrenadores() {
             <Input label="Teléfono" value={selectedCoach.telefono || ''} onChange={e => setSelectedCoach({...selectedCoach, telefono: e.target.value})} className="bg-gray-50 border-none h-14" />
 
             <div className="flex gap-4 pt-4">
-               <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-[#CCFF00] dark:text-black h-14 rounded-3xl font-black uppercase italic text-xs gap-2">
+               <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-club-primary dark:text-black h-14 rounded-3xl font-black uppercase italic text-xs gap-2">
                  <Save size={16} /> {saving ? 'Guardando...' : 'Guardar Permanentemente'}
                </Button>
             </div>

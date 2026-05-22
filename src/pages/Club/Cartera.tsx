@@ -633,7 +633,7 @@ export default function Cartera() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in pb-20">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#CCFF00]/10 rounded-2xl"><Wallet className="w-8 h-8 text-[#CCFF00]" /></div>
+          <div className="p-3 bg-club-primary/10 rounded-2xl"><Wallet className="w-8 h-8 text-club-primary" /></div>
           <div><h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">{t('nav.cartera')}</h1><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Gestión de Cobros por Deportista</p></div>
         </div>
       </div>
@@ -641,19 +641,19 @@ export default function Cartera() {
       <div className="flex gap-4">
         <button 
           onClick={() => setActiveTab('resumen')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'resumen' ? 'bg-black text-[#CCFF00] shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'resumen' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Resumen de Cobros
         </button>
         <button 
           onClick={() => setActiveTab('eventos')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'eventos' ? 'bg-black text-[#CCFF00] shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'eventos' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Productos y Eventos
         </button>
         <button 
           onClick={() => setActiveTab('validacion')}
-          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'validacion' ? 'bg-black text-[#CCFF00] shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
+          className={`flex-1 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'validacion' ? 'bg-black text-club-primary shadow-xl' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-black dark:hover:text-white'}`}
         >
           Validación Documental
         </button>
@@ -670,7 +670,7 @@ export default function Cartera() {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{t('finance.paid')}</p>
               <h2 className="text-3xl font-black text-emerald-500 italic">{formatCurrency(stats.totalPaid)}</h2>
             </div>
-            <div className="bg-[#CCFF00] p-6 rounded-[32px] flex items-center justify-between shadow-xl shadow-[#CCFF00]/20">
+            <div className="bg-club-primary p-6 rounded-[32px] flex items-center justify-between shadow-xl shadow-club-primary/20">
                <div>
                  <p className="text-[10px] font-black text-black/60 uppercase tracking-widest mb-2">{t('finance.effectiveness')}</p>
                  <h2 className="text-3xl font-black text-black italic">{charges.length > 0 ? Math.round((stats.totalPaid / (stats.totalPaid + stats.totalPending)) * 100) : 0}%</h2>
@@ -680,19 +680,19 @@ export default function Cartera() {
           </div>
 
           <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap gap-4 bg-white dark:bg-[#1e1f24] p-4 rounded-3xl border border-gray-100 dark:border-white/5">
-            <div className="flex-1 relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input type="text" placeholder="Buscar por nombre de deportista..." className="w-full pl-12 pr-4 h-14 bg-gray-50 dark:bg-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-[#CCFF00]" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+            <div className="flex-1 relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input type="text" placeholder="Buscar por nombre de deportista..." className="w-full pl-12 pr-4 h-14 bg-gray-50 dark:bg-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-club-primary" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {playerStats.map((player) => (
-              <div key={player.id} className="group bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:border-[#CCFF00] transition-all duration-500 relative overflow-hidden">
+              <div key={player.id} className="group bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:border-club-primary transition-all duration-500 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                   <User size={80} />
                 </div>
                 
                 <div className="space-y-6 relative">
                   <div>
-                    <p className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">{player.equipo}</p>
+                    <p className="text-[10px] font-black text-club-primary uppercase tracking-widest mb-1">{player.equipo}</p>
                     <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight line-clamp-2">{player.nombre}</h3>
                   </div>
 
@@ -715,7 +715,7 @@ export default function Cartera() {
                     </div>
                     <div className="h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-[#CCFF00] transition-all duration-1000" 
+                        className="h-full bg-club-primary transition-all duration-1000" 
                         style={{ width: `${player.totalPaid + player.totalPending > 0 ? (player.totalPaid / (player.totalPaid + player.totalPending)) * 100 : 0}%` }}
                       />
                     </div>
@@ -726,7 +726,7 @@ export default function Cartera() {
                       const basePath = profile?.rol === 'cartera' ? '/finance-admin' : '/club/finance';
                       navigate(`${basePath}/${player.id}`);
                     }}
-                    className="w-full h-14 bg-gray-900 dark:bg-white text-white dark:text-black rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2 group-hover:bg-[#CCFF00] group-hover:text-black transition-all"
+                    className="w-full h-14 bg-gray-900 dark:bg-white text-white dark:text-black rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2 group-hover:bg-club-primary group-hover:text-black transition-all"
                   >
                     Ver Detalles <ArrowUpRight size={16} />
                   </Button>
@@ -740,7 +740,7 @@ export default function Cartera() {
       {activeTab === 'eventos' && (
         <div className="space-y-6">
            <div className="flex justify-end">
-              <Button onClick={() => initCreateEvent()} className="h-14 px-8 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-[10px] rounded-[24px]">Crear Evento / Producto</Button>
+              <Button onClick={() => initCreateEvent()} className="h-14 px-8 bg-club-primary text-black font-black uppercase italic tracking-widest text-[10px] rounded-[24px]">Crear Evento / Producto</Button>
            </div>
            
            {productos.length > 0 ? (
@@ -759,7 +759,7 @@ export default function Cartera() {
                       <div className="p-6 flex-1 flex flex-col">
                          <div className="flex justify-between items-start mb-2">
                            <h3 className="text-xl font-black italic uppercase leading-tight">{p.nombre}</h3>
-                           <p className="text-lg font-black text-[#CCFF00] tabular-nums">{formatCurrency(p.precio)}</p>
+                           <p className="text-lg font-black text-club-primary tabular-nums">{formatCurrency(p.precio)}</p>
                          </div>
                          <p className="text-xs text-gray-500 line-clamp-2 mt-2 flex-1">{p.descripcion}</p>
                          <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
@@ -768,7 +768,7 @@ export default function Cartera() {
                             </p>
                             <Button variant="ghost" onClick={() => openEditModal(p)} className="h-8 px-4 rounded-xl text-[10px] uppercase font-black tracking-widest group relative overflow-hidden">
                                 <span className="relative z-10 group-hover:text-black dark:group-hover:text-black">Editar</span>
-                                <div className="absolute inset-0 bg-[#CCFF00] -translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                <div className="absolute inset-0 bg-club-primary -translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                             </Button>
                          </div>
                       </div>
@@ -786,9 +786,9 @@ export default function Cartera() {
 
       {activeTab === 'validacion' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-[#CCFF00]/5 border border-[#CCFF00]/10 p-6 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-club-primary/5 border border-club-primary/10 p-6 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-[#CCFF00] text-black rounded-2xl">
+              <div className="p-3 bg-club-primary text-black rounded-2xl">
                 <Clock size={24} />
               </div>
               <div>
@@ -819,15 +819,15 @@ export default function Cartera() {
 
           {loadingPending ? (
             <div className="py-20 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00] mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-primary mx-auto"></div>
             </div>
           ) : pendingAthletes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pendingAthletes.map((athlete) => (
-                <div key={athlete.id} className="bg-white dark:bg-[#1e1f24] rounded-[40px] p-8 border border-gray-100 dark:border-white/5 shadow-sm hover:border-[#CCFF00] transition-all group">
+                <div key={athlete.id} className="bg-white dark:bg-[#1e1f24] rounded-[40px] p-8 border border-gray-100 dark:border-white/5 shadow-sm hover:border-club-primary transition-all group">
                   <div className="space-y-6">
                     <div className="flex justify-between items-start">
-                      <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-[#CCFF00] transition-all">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-club-primary transition-all">
                         {athlete.foto_url ? (
                           <img src={athlete.foto_url} className="w-full h-full object-cover" />
                         ) : (
@@ -838,7 +838,7 @@ export default function Cartera() {
                     </div>
 
                     <div>
-                      <p className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">{athlete.equipo?.nombre || 'Sin Equipo'}</p>
+                      <p className="text-[10px] font-black text-club-primary uppercase tracking-widest mb-1">{athlete.equipo?.nombre || 'Sin Equipo'}</p>
                       <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight line-clamp-1">{athlete.nombre_completo} {athlete.apellidos}</h3>
                       <p className="text-xs font-bold text-gray-400 mt-1">{athlete.tipo_documento?.toUpperCase()}: {athlete.numero_documento}</p>
                     </div>
@@ -846,7 +846,7 @@ export default function Cartera() {
                     <div className="pt-4 border-t border-gray-50 dark:border-white/5">
                       <Button 
                         onClick={() => setValidatingAthlete(athlete)}
-                        className="w-full h-14 bg-black text-[#CCFF00] rounded-2xl font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2"
+                        className="w-full h-14 bg-black text-club-primary rounded-2xl font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2"
                       >
                         Validar Documentos <FileText size={16} />
                       </Button>
@@ -871,19 +871,19 @@ export default function Cartera() {
                <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Concepto</p>
                   <p className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{approvingCharge.titulo}</p>
-                  <p className="text-xl font-black text-[#CCFF00] mt-1">{formatCurrency(approvingCharge.monto)}</p>
+                  <p className="text-xl font-black text-club-primary mt-1">{formatCurrency(approvingCharge.monto)}</p>
                </div>
 
                <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Subir Comprobante de Pago (Obligatorio)</label>
                   <div className="relative group">
                      {previewUrl ? (
-                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-[#CCFF00]">
+                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-club-primary">
                            <img src={previewUrl} className="w-full h-full object-cover" />
                            <button onClick={() => { setComprobanteFile(null); setPreviewUrl(null); }} className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full"><X size={16}/></button>
                         </div>
                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:border-[#CCFF00] transition-colors">
+                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:border-club-primary transition-colors">
                            <Upload size={32} className="text-gray-300 mb-2" />
                            <span className="text-[10px] font-black text-gray-400 uppercase">Seleccionar Imagen</span>
                            <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
@@ -895,7 +895,7 @@ export default function Cartera() {
                <div className="flex gap-3 pt-4">
                   <Button variant="ghost" className="flex-1 h-14 rounded-2xl font-black uppercase text-xs" onClick={() => setApprovingCharge(null)}>Cancelar</Button>
                   <Button 
-                    className="flex-[2] h-14 bg-[#CCFF00] text-black rounded-2xl font-black uppercase text-xs gap-2" 
+                    className="flex-[2] h-14 bg-club-primary text-black rounded-2xl font-black uppercase text-xs gap-2" 
                     disabled={!comprobanteFile || uploading}
                     isLoading={uploading}
                     onClick={processApproval}
@@ -929,7 +929,7 @@ export default function Cartera() {
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Descripción</label>
             <textarea
-              className="w-full bg-gray-50 dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00]"
+              className="w-full bg-gray-50 dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-club-primary"
               placeholder="Detalles sobre este cobro..."
               value={eventForm.descripcion}
               onChange={e => setEventForm({...eventForm, descripcion: e.target.value})}
@@ -960,7 +960,7 @@ export default function Cartera() {
                 <label key={eq.id} className="flex items-center gap-2 cursor-pointer">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 text-[#CCFF00] rounded focus:ring-[#CCFF00]"
+                    className="w-4 h-4 text-club-primary rounded focus:ring-club-primary"
                     checked={eventForm.equipos.includes(eq.id)}
                     onChange={(e) => {
                       if (e.target.checked) setEventForm({...eventForm, equipos: [...eventForm.equipos, eq.id]});
@@ -976,7 +976,7 @@ export default function Cartera() {
 
           <div className="space-y-3">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Banner o Imagen (Opcional)</label>
-            <div className="relative group w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-[#CCFF00] overflow-hidden">
+            <div className="relative group w-full aspect-video bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-club-primary overflow-hidden">
                {eventPreview ? (
                   <>
                     <img src={eventPreview} className="w-full h-full object-cover" />
@@ -984,7 +984,7 @@ export default function Cartera() {
                   </>
                ) : (
                   <>
-                     <Upload size={32} className="text-gray-300 mb-2 group-hover:text-[#CCFF00] transition-colors" />
+                     <Upload size={32} className="text-gray-300 mb-2 group-hover:text-club-primary transition-colors" />
                      <span className="text-[10px] font-black text-gray-400 uppercase">Subir Imagen</span>
                   </>
                )}
@@ -994,7 +994,7 @@ export default function Cartera() {
 
           <Button 
             type="submit"
-            className="w-full h-14 bg-[#CCFF00] text-black rounded-2xl font-black uppercase text-xs"
+            className="w-full h-14 bg-club-primary text-black rounded-2xl font-black uppercase text-xs"
             disabled={uploading}
             isLoading={uploading}
           >
@@ -1031,9 +1031,9 @@ export default function Cartera() {
                    { label: 'Certificado Salud', url: validatingAthlete.url_certificado_salud },
                    ...(validatingAthlete.viene_de_otro_club ? [{ label: 'Carta Traspaso', url: validatingAthlete.url_carta_traspaso }] : [])
                  ].map((doc, idx) => (
-                   <div key={idx} className="flex items-center justify-between p-5 rounded-3xl bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 group hover:border-[#CCFF00] transition-all">
+                   <div key={idx} className="flex items-center justify-between p-5 rounded-3xl bg-white dark:bg-[#1e1f24] border border-gray-100 dark:border-white/5 group hover:border-club-primary transition-all">
                      <div className="flex items-center gap-3">
-                       <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-xl group-hover:bg-[#CCFF00]/10 group-hover:text-[#CCFF00] transition-all">
+                       <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-xl group-hover:bg-club-primary/10 group-hover:text-club-primary transition-all">
                          <FileText size={20} />
                        </div>
                        <span className="text-xs font-black uppercase italic tracking-tight">{doc.label}</span>
@@ -1051,7 +1051,7 @@ export default function Cartera() {
                            href={doc.url} 
                            target="_blank" 
                            rel="noreferrer" 
-                           className="p-2 text-[#CCFF00] hover:scale-110 transition-transform"
+                           className="p-2 text-club-primary hover:scale-110 transition-transform"
                            title="Descargar"
                          >
                            <Download size={20} />
@@ -1071,7 +1071,7 @@ export default function Cartera() {
                   <Button 
                     onClick={() => handleApproveDocs(validatingAthlete)}
                     isLoading={processingValidation}
-                    className="h-16 bg-[#CCFF00] text-black rounded-3xl font-black uppercase italic tracking-widest text-[10px] gap-2 shadow-xl shadow-[#CCFF00]/10"
+                    className="h-16 bg-club-primary text-black rounded-3xl font-black uppercase italic tracking-widest text-[10px] gap-2 shadow-xl shadow-club-primary/10"
                   >
                     Aprobar y Activar <CheckCircle2 size={16} />
                   </Button>
@@ -1110,8 +1110,8 @@ export default function Cartera() {
       {/* MODAL ÉXITO CREACIÓN EVENTO */}
       <Modal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} title="">
          <div className="flex flex-col items-center justify-center p-8 text-center space-y-6">
-            <div className="w-24 h-24 bg-[#CCFF00]/10 rounded-full flex items-center justify-center">
-               <CheckCircle2 size={64} className="text-[#CCFF00]" />
+            <div className="w-24 h-24 bg-club-primary/10 rounded-full flex items-center justify-center">
+               <CheckCircle2 size={64} className="text-club-primary" />
             </div>
             <div className="space-y-2">
                <h3 className="text-2xl font-black italic uppercase text-gray-900 dark:text-white leading-tight">

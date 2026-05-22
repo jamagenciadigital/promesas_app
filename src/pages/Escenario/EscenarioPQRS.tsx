@@ -18,8 +18,8 @@ export default function EscenarioPQRS() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-3 bg-[#CCFF00]/10 rounded-2xl">
-          <MessageSquare className="w-6 h-6 text-[#CCFF00]" />
+        <div className="p-3 bg-club-primary/10 rounded-2xl">
+          <MessageSquare className="w-6 h-6 text-club-primary" />
         </div>
         <div>
           <h1 className="text-2xl font-black text-white uppercase italic tracking-tight">PQRS Escenario</h1>

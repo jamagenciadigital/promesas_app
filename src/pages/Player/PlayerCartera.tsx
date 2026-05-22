@@ -202,8 +202,8 @@ export default function PlayerCartera() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in pb-20">
       <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#CCFF00]/10 rounded-2xl">
-            <Wallet className="w-8 h-8 text-[#CCFF00]" />
+          <div className="p-3 bg-club-primary/10 rounded-2xl">
+            <Wallet className="w-8 h-8 text-club-primary" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">Mi Cartera</h1>
@@ -217,7 +217,7 @@ export default function PlayerCartera() {
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 font-outfit">Total Pendiente</p>
           <h2 className="text-5xl font-black text-white italic tracking-tighter tabular-nums">{formatCurrency(stats.pending, clubCurrency)}</h2>
         </div>
-        <div className="bg-[#CCFF00] p-8 rounded-[40px] flex items-center justify-between shadow-xl shadow-[#CCFF00]/10 overflow-hidden relative group">
+        <div className="bg-club-primary p-8 rounded-[40px] flex items-center justify-between shadow-xl shadow-club-primary/10 overflow-hidden relative group">
            <div className="relative z-10">
              <p className="text-[10px] font-black text-black/60 uppercase tracking-widest mb-2 font-outfit">Total Pagado</p>
              <h2 className="text-5xl font-black text-black italic tracking-tighter tabular-nums">{formatCurrency(stats.paid, clubCurrency)}</h2>
@@ -279,7 +279,7 @@ export default function PlayerCartera() {
                         {charge.estado !== 'pagado' && charge.estado !== 'anulado' && charge.estado !== 'por validar' && (
                             <button 
                               onClick={() => setApprovingCharge(charge)} 
-                              className="p-3 bg-[#CCFF00] text-black hover:bg-black hover:text-[#CCFF00] rounded-xl transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 border border-transparent hover:border-[#CCFF00]" 
+                              className="p-3 bg-club-primary text-black hover:bg-black hover:text-club-primary rounded-xl transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 border border-transparent hover:border-club-primary" 
                               title="Informar Pago"
                             >
                               <Upload size={18} /> Pagar
@@ -327,7 +327,7 @@ export default function PlayerCartera() {
                             href={approvingCharge.productos_eventos.link_pago} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="flex items-center justify-center gap-2 w-full h-14 bg-[#CCFF00] text-black font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
+                            className="flex items-center justify-center gap-2 w-full h-14 bg-club-primary text-black font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
                           >
                             <DollarSign size={18} /> Pagar en Línea Ahora
                           </a>
@@ -345,8 +345,8 @@ export default function PlayerCartera() {
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest font-outfit mb-1">Concepto</p>
                       <p className="text-lg font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight">{approvingCharge.titulo}</p>
                       <div className="flex items-center gap-2 mt-4">
-                         <DollarSign size={20} className="text-[#CCFF00]" />
-                         <p className="text-3xl font-black text-[#CCFF00] italic tabular-nums leading-none tracking-tighter">{formatCurrency(approvingCharge.monto, clubCurrency)}</p>
+                         <DollarSign size={20} className="text-club-primary" />
+                         <p className="text-3xl font-black text-club-primary italic tabular-nums leading-none tracking-tighter">{formatCurrency(approvingCharge.monto, clubCurrency)}</p>
                       </div>
                     </div>
                   </div>
@@ -402,12 +402,12 @@ export default function PlayerCartera() {
                   
                   <div className="relative group">
                      {previewUrl ? (
-                        <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-2 border-[#CCFF00] shadow-2xl">
+                        <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-2 border-club-primary shadow-2xl">
                            <img src={previewUrl} className="w-full h-full object-cover" />
                            <button onClick={() => { setComprobanteFile(null); setPreviewUrl(null); }} className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black transition-colors"><X size={18}/></button>
                         </div>
                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-[#111215] border-2 border-dashed border-gray-200 dark:border-white/10 rounded-3xl cursor-pointer hover:border-[#CCFF00] transition-all hover:bg-white/5">
+                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-50 dark:bg-[#111215] border-2 border-dashed border-gray-200 dark:border-white/10 rounded-3xl cursor-pointer hover:border-club-primary transition-all hover:bg-white/5">
                            <div className="p-4 bg-white/5 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                              <Upload size={32} className="text-gray-300" />
                            </div>
@@ -422,7 +422,7 @@ export default function PlayerCartera() {
                <div className="flex gap-4 pt-4">
                   <Button variant="ghost" className="flex-1 h-16 rounded-2xl font-black uppercase text-xs italic tracking-widest" onClick={() => setApprovingCharge(null)}>Cancelar</Button>
                   <Button 
-                    className="flex-[2] h-16 bg-[#CCFF00] text-black rounded-2xl font-black uppercase text-xs italic tracking-widest gap-3 shadow-xl shadow-[#CCFF00]/20 active:scale-95 transition-all" 
+                    className="flex-[2] h-16 bg-club-primary text-black rounded-2xl font-black uppercase text-xs italic tracking-widest gap-3 shadow-xl shadow-club-primary/20 active:scale-95 transition-all" 
                     disabled={!comprobanteFile || uploading}
                     isLoading={uploading}
                     onClick={processPayment}

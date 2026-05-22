@@ -232,11 +232,11 @@ export default function FriendlyMatches() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-black tracking-tighter text-gray-900 dark:text-white flex items-center gap-3 uppercase italic">
-            <Trophy className="text-[#CCFF00]" size={32} /> Gestión de Juegos
+            <Trophy className="text-club-primary" size={32} /> Gestión de Juegos
           </h1>
           <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest italic">Panel de control y estadísticas de encuentros deportivos.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-[#CCFF00] text-black hover:bg-[#aacc00] rounded-2xl font-black px-8 py-6 uppercase italic text-xs tracking-widest shadow-xl shadow-[#CCFF00]/10">
+        <Button onClick={() => setIsModalOpen(true)} className="bg-club-primary text-black hover:bg-[#aacc00] rounded-2xl font-black px-8 py-6 uppercase italic text-xs tracking-widest shadow-xl shadow-club-primary/10">
           <Plus size={20} className="mr-2" /> Nuevo Partido
         </Button>
       </header>
@@ -279,7 +279,7 @@ export default function FriendlyMatches() {
             </div>
           ) : (
             friendlies.map(match => (
-              <div key={match.id} className={`bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden ${match.estado === 'Played' ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-[#CCFF00]'}`}>
+              <div key={match.id} className={`bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden ${match.estado === 'Played' ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-club-primary'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="font-black text-gray-900 dark:text-white uppercase">
@@ -315,7 +315,7 @@ export default function FriendlyMatches() {
 
                 <div className="flex gap-3">
                    <Button 
-                    className="flex-1 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-[#CCFF00] hover:text-black hover:border-transparent transition-all font-bold text-xs"
+                    className="flex-1 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-club-primary hover:text-black hover:border-transparent transition-all font-bold text-xs"
                     onClick={() => {
                       const basePath = profile?.rol === 'entrenador' ? '/coach' : '/club';
                       navigate(`${basePath}/games/${match.id}/score/basketball`);
@@ -339,16 +339,16 @@ export default function FriendlyMatches() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div>
                   <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Ubicación / Cancha</label>
-                  <input className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00]" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="Cancha Principal" />
+                  <input className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-club-primary" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="Cancha Principal" />
                </div>
                <div className="grid grid-cols-2 gap-4">
                   <div>
                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Fecha</label>
-                     <input type="date" className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00]" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+                     <input type="date" className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-club-primary" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
                   </div>
                   <div>
                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Hora</label>
-                     <input type="time" className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00]" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} />
+                     <input type="time" className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-club-primary" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} />
                   </div>
                </div>
             </div>
@@ -356,7 +356,7 @@ export default function FriendlyMatches() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-100 dark:border-white/5">
                {/* Equipo Local */}
                <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
-                  <div className="flex items-center gap-2 mb-4 text-[#CCFF00]">
+                  <div className="flex items-center gap-2 mb-4 text-club-primary">
                      <Shield size={20} />
                      <div className="flex-1">
                         <select 
@@ -380,12 +380,12 @@ export default function FriendlyMatches() {
                   <div className="space-y-3">
                      {formData.teamA.players.map((p, i) => (
                         <div key={i} className="flex gap-2 items-center">
-                           <input className="w-16 h-10 bg-white dark:bg-[#16171b] rounded-lg px-2 text-center text-sm font-bold border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:border-[#CCFF00]" placeholder="00" value={p.number} onChange={e => handlePlayerChange('teamA', i, 'number', e.target.value)} />
-                           <input className="flex-1 h-10 bg-white dark:bg-[#16171b] rounded-lg px-3 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:border-[#CCFF00]" placeholder="Nombre Jugador" value={p.name} onChange={e => handlePlayerChange('teamA', i, 'name', e.target.value)} />
+                           <input className="w-16 h-10 bg-white dark:bg-[#16171b] rounded-lg px-2 text-center text-sm font-bold border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:border-club-primary" placeholder="00" value={p.number} onChange={e => handlePlayerChange('teamA', i, 'number', e.target.value)} />
+                           <input className="flex-1 h-10 bg-white dark:bg-[#16171b] rounded-lg px-3 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:border-club-primary" placeholder="Nombre Jugador" value={p.name} onChange={e => handlePlayerChange('teamA', i, 'name', e.target.value)} />
                            <button type="button" onClick={() => handleRemovePlayer('teamA', i)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 size={16} /></button>
                         </div>
                      ))}
-                     <button type="button" onClick={() => handleAddPlayer('teamA')} className="text-xs font-bold text-[#CCFF00] hover:text-[#aacc00] flex items-center gap-1 mt-2">
+                     <button type="button" onClick={() => handleAddPlayer('teamA')} className="text-xs font-bold text-club-primary hover:text-[#aacc00] flex items-center gap-1 mt-2">
                         <Plus size={14} /> Añadir Jugador
                      </button>
                   </div>
@@ -418,7 +418,7 @@ export default function FriendlyMatches() {
 
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-white/10">
                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-               <Button type="submit" isLoading={isSubmitting} className="bg-[#ccff00] text-black hover:bg-[#aacc00] px-8 py-3 rounded-xl font-bold">
+               <Button type="submit" isLoading={isSubmitting} className="bg-club-primary text-black hover:bg-[#aacc00] px-8 py-3 rounded-xl font-bold">
                   {isSubmitting ? 'Creando...' : <><Play size={18} className="mr-2" /> Crear Juego</>}
                </Button>
             </div>
@@ -428,12 +428,12 @@ export default function FriendlyMatches() {
       {toast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-10 duration-500">
            <div className={`flex items-center gap-3 px-6 py-4 rounded-3xl border shadow-2xl backdrop-blur-xl ${
-             toast.type === 'success' ? 'bg-black/90 border-[#CCFF00]/20 text-white' :
+             toast.type === 'success' ? 'bg-black/90 border-club-primary/20 text-white' :
              toast.type === 'error' ? 'bg-red-500/90 border-red-500/20 text-white' :
              'bg-blue-600/90 border-blue-400/20 text-white'
            }`}>
              <div className={`p-2 rounded-xl ${
-               toast.type === 'success' ? 'bg-[#CCFF00] text-black' : 'bg-white/20 text-white'
+               toast.type === 'success' ? 'bg-club-primary text-black' : 'bg-white/20 text-white'
              }`}>
                {toast.type === 'success' ? <Trophy size={18} /> : 
                 toast.type === 'error' ? <AlertTriangle size={18} /> : <Info size={18} />}

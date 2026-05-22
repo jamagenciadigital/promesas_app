@@ -287,8 +287,8 @@ export default function ClubList() {
           <p className="text-sm text-gray-400 mt-1">Control Maestro de Organizaciones</p>
         </div>
         <div className="flex items-center gap-2 bg-[#182332] px-4 py-2 rounded-full">
-          <Building2 size={14} className="text-[#CCFF00]" />
-          <span className="text-[11px] font-semibold text-[#CCFF00]">{clubs.length} Clubes</span>
+          <Building2 size={14} className="text-club-primary" />
+          <span className="text-[11px] font-semibold text-club-primary">{clubs.length} Clubes</span>
         </div>
       </div>
 
@@ -303,7 +303,7 @@ export default function ClubList() {
             placeholder="Buscar club..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
+            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm focus:ring-2 focus:ring-club-primary focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
           />
         </div>
       </div>
@@ -512,7 +512,7 @@ export default function ClubList() {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-700 ml-1">Deporte</label>
               <select
-                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900"
+                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent text-gray-900"
                 value={editForm.deporte_id}
                 onChange={(e) => setEditForm({ ...editForm, deporte_id: e.target.value })}
                 required
@@ -527,7 +527,7 @@ export default function ClubList() {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-700 ml-1">Plan de Suscripción</label>
               <select
-                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900"
+                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent text-gray-900"
                 value={editForm.plan_id}
                 onChange={(e) => setEditForm({ ...editForm, plan_id: e.target.value })}
               >

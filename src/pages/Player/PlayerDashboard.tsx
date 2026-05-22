@@ -155,7 +155,7 @@ export default function PlayerDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-club-primary"></div>
       </div>
     );
   }
@@ -228,18 +228,18 @@ export default function PlayerDashboard() {
             ¡Hola, {player?.nombre_completo}!
           </h1>
           <p className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-2 h-2 bg-[#CCFF00] rounded-full animate-pulse"></span>
+            <span className="w-2 h-2 bg-club-primary rounded-full animate-pulse"></span>
             Panel de Jugador • {player?.equipo_nombre || 'Club'}
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <NavLink to="/player/finance" className="flex-1">
-            <Button className="w-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest italic gap-2 transition-all hover:border-[#CCFF00]">
+            <Button className="w-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest italic gap-2 transition-all hover:border-club-primary">
               <Wallet size={16} /> Pagos
             </Button>
           </NavLink>
           <NavLink to="/player/calendar" className="flex-1">
-            <Button className="w-full bg-[#CCFF00] text-black h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest italic gap-2 shadow-xl shadow-[#CCFF00]/20 hover:scale-105 transition-all">
+            <Button className="w-full bg-club-primary text-black h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest italic gap-2 shadow-xl shadow-club-primary/20 hover:scale-105 transition-all">
               <CalendarIcon size={16} /> Calendario
             </Button>
           </NavLink>
@@ -257,13 +257,13 @@ export default function PlayerDashboard() {
             </div>
             <div className="relative space-y-6">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-[#CCFF00] text-black text-[10px] font-black uppercase tracking-widest rounded-full">Próxima Actividad</span>
+                <span className="px-3 py-1 bg-club-primary text-black text-[10px] font-black uppercase tracking-widest rounded-full">Próxima Actividad</span>
               </div>
               
               {nextEvents.length > 0 ? (
                 <div className="space-y-4">
                   {nextEvents.map((event, idx) => (
-                    <div key={idx} className={`flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap md:items-center justify-between gap-4 p-6 rounded-3xl transition-all border ${idx === 0 ? 'bg-white/10 border-[#CCFF00]/50' : 'bg-white/5 border-transparent'}`}>
+                    <div key={idx} className={`flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap md:items-center justify-between gap-4 p-6 rounded-3xl transition-all border ${idx === 0 ? 'bg-white/10 border-club-primary/50' : 'bg-white/5 border-transparent'}`}>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full ${event.tipo === 'entrenamiento' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'}`}>
@@ -277,13 +277,13 @@ export default function PlayerDashboard() {
                       
                       <div className="flex flex-wrap items-center gap-6">
                         <div className="flex items-center gap-3 text-gray-400">
-                          <Clock size={16} className="text-[#CCFF00]" />
+                          <Clock size={16} className="text-club-primary" />
                           <span className="font-bold uppercase tracking-widest text-[10px]">
                             {parseLocalDate(event.fecha).toLocaleDateString()} • {event.hora_inicio || '--:--'}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-400">
-                          <MapPin size={16} className="text-[#CCFF00]" />
+                          <MapPin size={16} className="text-club-primary" />
                           <span className="font-bold uppercase tracking-widest text-[10px] max-w-[150px] truncate">
                             {event.lugar || 'Sede Principal'}
                           </span>
@@ -305,13 +305,13 @@ export default function PlayerDashboard() {
           <div className="bg-white dark:bg-[#16171b] rounded-[40px] border border-gray-100 dark:border-white/5 p-8 space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Evolución en Juego</h3>
-              <div className="px-3 py-1 bg-[#CCFF00]/10 text-[#CCFF00] text-[10px] font-black uppercase tracking-widest rounded-full">Últimos 10 Partidos</div>
+              <div className="px-3 py-1 bg-club-primary/10 text-club-primary text-[10px] font-black uppercase tracking-widest rounded-full">Últimos 10 Partidos</div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {gameStats.length > 0 ? (
                 gameStats.map((game, idx) => (
-                  <div key={idx} className="p-6 bg-gray-50 dark:bg-white/5 rounded-[32px] border border-transparent hover:border-[#CCFF00]/20 transition-all group">
+                  <div key={idx} className="p-6 bg-gray-50 dark:bg-white/5 rounded-[32px] border border-transparent hover:border-club-primary/20 transition-all group">
                     <div className="flex justify-between items-start mb-4">
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{new Date(game.juegos_amistosos?.fecha).toLocaleDateString()}</p>
@@ -320,7 +320,7 @@ export default function PlayerDashboard() {
                         </h4>
                       </div>
                       <div className="text-right">
-                         <div className="text-lg font-black text-[#CCFF00] italic leading-none">{game.pts}</div>
+                         <div className="text-lg font-black text-club-primary italic leading-none">{game.pts}</div>
                          <p className="text-[8px] font-bold text-gray-500 uppercase">Puntos</p>
                       </div>
                     </div>
@@ -354,7 +354,7 @@ export default function PlayerDashboard() {
           <div className="bg-white dark:bg-[#16171b] rounded-[40px] border border-gray-100 dark:border-white/5 p-8 space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Asistencia a Entrenamientos</h3>
-              <TrendingUp className="text-[#CCFF00]" />
+              <TrendingUp className="text-club-primary" />
             </div>
             <div className="space-y-4">
               {attendance.length > 0 ? (
@@ -383,7 +383,7 @@ export default function PlayerDashboard() {
           </div>
         {/* Right Column: Wallet Summary */}
         <div className="space-y-8">
-          <div className="bg-[#CCFF00] rounded-[40px] p-8 flex flex-col justify-between h-auto shadow-xl shadow-[#CCFF00]/10 min-h-[300px]">
+          <div className="bg-club-primary rounded-[40px] p-8 flex flex-col justify-between h-auto shadow-xl shadow-club-primary/10 min-h-[300px]">
              <div className="space-y-4">
                <div className="w-12 h-12 bg-black/5 flex items-center justify-center rounded-2xl">
                  <Wallet className="w-6 h-6 text-black" />
@@ -407,10 +407,10 @@ export default function PlayerDashboard() {
             <div className="space-y-4">
               {pendingCharges.length > 0 ? (
                 pendingCharges.slice(0, 3).map((charge, idx) => (
-                  <div key={idx} className="p-4 border border-gray-100 dark:border-white/10 rounded-2xl space-y-2 hover:border-[#CCFF00] transition-all">
+                  <div key={idx} className="p-4 border border-gray-100 dark:border-white/10 rounded-2xl space-y-2 hover:border-club-primary transition-all">
                     <div className="flex justify-between items-start">
                       <p className="text-[10px] font-black text-gray-900 dark:text-white uppercase italic line-clamp-1">{charge.titulo}</p>
-                      <span className="text-[10px] font-black text-[#CCFF00] italic">${charge.monto.toLocaleString()}</span>
+                      <span className="text-[10px] font-black text-club-primary italic">${charge.monto.toLocaleString()}</span>
                     </div>
                     <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Vence: {parseLocalDate(charge.fecha_vencimiento).toLocaleDateString()}</p>
                   </div>

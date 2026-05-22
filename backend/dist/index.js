@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -42,9 +9,12 @@ const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const pg_1 = require("pg");
 const adapter_pg_1 = require("@prisma/adapter-pg");
 const prisma_1 = require("../generated/prisma");
+const email_service_1 = require("./services/email.service");
 console.log("DATABASE_URL in backend:", process.env.DATABASE_URL);
 const pool = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new adapter_pg_1.PrismaPg(pool);
@@ -57,6 +27,143 @@ app.use((0, cors_1.default)({
     methods: '*',
     allowedHeaders: '*'
 }));
+// Local file storage (replaces Supabase Storage)
+const UPLOADS_DIR = path_1.default.resolve(__dirname, '..', 'uploads');
+if (!fs_1.default.existsSync(UPLOADS_DIR))
+    fs_1.default.mkdirSync(UPLOADS_DIR, { recursive: true });
+function safePath(bucket, filePath) {
+    const clean = path_1.default.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+    const full = path_1.default.resolve(UPLOADS_DIR, bucket, clean);
+    const base = path_1.default.resolve(UPLOADS_DIR, bucket);
+    if (!full.startsWith(base))
+        return null;
+    return full;
+}
+/** Extract file body from multipart/form-data or return raw body */
+function extractFileBody(contentType, body) {
+    if (!contentType || !contentType.includes('multipart/form-data'))
+        return body;
+    const boundaryMatch = contentType.match(/boundary=([^;\s]+)/);
+    if (!boundaryMatch)
+        return body;
+    const boundaryStr = `--${boundaryMatch[1]}`;
+    const boundaryBuf = Buffer.from(boundaryStr);
+    const crlf = Buffer.from('\r\n');
+    const doubleCrlf = Buffer.from('\r\n\r\n');
+    let pos = 0;
+    let bestPart = Buffer.alloc(0);
+    while (pos < body.length) {
+        const boundaryStart = body.indexOf(boundaryBuf, pos);
+        if (boundaryStart === -1)
+            break;
+        const afterBoundary = boundaryStart + boundaryBuf.length;
+        // Check if this is the closing boundary (ends with --)
+        if (afterBoundary + 1 < body.length && body[afterBoundary] === 45 && body[afterBoundary + 1] === 45)
+            break;
+        let eol = body.indexOf(Buffer.from('\n'), afterBoundary);
+        if (eol === -1)
+            break;
+        const partStart = eol + 1;
+        let headersEnd = body.indexOf(doubleCrlf, partStart);
+        if (headersEnd === -1)
+            break;
+        const dataStart = headersEnd + 4;
+        const nextBoundary = body.indexOf(boundaryBuf, dataStart);
+        if (nextBoundary === -1)
+            break;
+        let dataEnd = nextBoundary;
+        if (dataEnd >= 2 && body[dataEnd - 2] === 13 && body[dataEnd - 1] === 10)
+            dataEnd -= 2;
+        if (dataEnd >= 1 && body[dataEnd - 1] === 10)
+            dataEnd -= 1;
+        const part = body.subarray(dataStart, dataEnd);
+        if (part.length > bestPart.length) {
+            bestPart = part;
+        }
+        pos = nextBoundary;
+    }
+    return bestPart.length > 0 ? bestPart : body;
+}
+app.all(/\/storage\/v1\/.*/, async (req, res) => {
+    const relativePath = req.path.replace(/^\/storage\/v1\//, '');
+    const parts = relativePath.split('/');
+    const method = req.method.toUpperCase();
+    console.log(`[local storage] ${method} ${req.path}`);
+    // Collect body
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    await new Promise(resolve => req.on('end', resolve));
+    const rawBody = chunks.length > 0 ? Buffer.concat(chunks) : Buffer.alloc(0);
+    const fileBody = extractFileBody(req.headers['content-type'], rawBody);
+    try {
+        // POST /storage/v1/object/list/:bucket — list objects
+        if (parts[0] === 'object' && parts[1] === 'list' && method === 'POST') {
+            const bucket = parts[2];
+            const dir = path_1.default.resolve(UPLOADS_DIR, bucket);
+            if (!fs_1.default.existsSync(dir))
+                return res.json([]);
+            const files = fs_1.default.readdirSync(dir, { recursive: true }).filter(f => fs_1.default.statSync(path_1.default.join(dir, f.toString())).isFile());
+            const result = files.map((f) => {
+                const stat = fs_1.default.statSync(path_1.default.join(dir, f.toString()));
+                return {
+                    name: f.toString(),
+                    id: crypto_1.default.randomUUID(),
+                    updated_at: stat.mtime.toISOString(),
+                    created_at: stat.birthtime.toISOString(),
+                    last_accessed_at: stat.atime.toISOString(),
+                    metadata: { size: stat.size, mimetype: 'application/octet-stream' },
+                };
+            });
+            return res.json(result);
+        }
+        // GET /storage/v1/object/public/:bucket/:path — serve public file
+        if (parts[0] === 'object' && parts[1] === 'public' && (method === 'GET' || method === 'HEAD')) {
+            const bucket = parts[2];
+            const fileRelPath = parts.slice(3).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full || !fs_1.default.existsSync(full))
+                return res.status(404).json({ error: 'File not found' });
+            return res.sendFile(full);
+        }
+        // GET /storage/v1/bucket/:id — bucket info
+        if (parts[0] === 'bucket' && method === 'GET') {
+            const bucketId = parts[1];
+            const dir = path_1.default.resolve(UPLOADS_DIR, bucketId);
+            if (!fs_1.default.existsSync(dir))
+                return res.status(404).json({ error: 'Bucket not found' });
+            return res.json({ id: bucketId, name: bucketId, public: true });
+        }
+        // POST or PUT /storage/v1/object/:bucket/:path — upload file
+        if (parts[0] === 'object' && !parts[1]?.startsWith('public') && !parts[1]?.startsWith('list') && (method === 'POST' || method === 'PUT')) {
+            const bucket = parts[1];
+            const fileRelPath = parts.slice(2).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full)
+                return res.status(403).json({ error: 'Invalid path' });
+            const dir = path_1.default.dirname(full);
+            if (!fs_1.default.existsSync(dir))
+                fs_1.default.mkdirSync(dir, { recursive: true });
+            fs_1.default.writeFileSync(full, fileBody);
+            const fileId = crypto_1.default.randomUUID();
+            return res.status(200).json({ Key: `${bucket}/${fileRelPath}`, Id: fileId });
+        }
+        // DELETE /storage/v1/object/:bucket/:path — delete file
+        if (parts[0] === 'object' && method === 'DELETE') {
+            const bucket = parts[1];
+            const fileRelPath = parts.slice(2).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full || !fs_1.default.existsSync(full))
+                return res.status(404).json({ error: 'File not found' });
+            fs_1.default.unlinkSync(full);
+            return res.status(200).json({ message: 'Deleted' });
+        }
+        return res.status(404).json({ error: 'Not found', path: req.path });
+    }
+    catch (err) {
+        console.error('[local storage] error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 app.use(express_1.default.json());
 // Log incoming requests
 app.use((req, res, next) => {
@@ -428,11 +535,15 @@ app.post('/auth/v1/signup', async (req, res) => {
         created_at, updated_at, email_confirmed_at, confirmed_at, role, aud
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `, userId, email, hashedPassword, JSON.stringify(userMetadata), JSON.stringify({ provider: 'email', providers: ['email'] }), now, now, now, now, 'authenticated', 'authenticated');
-        await prisma.$executeRawUnsafe(`
-      INSERT INTO public.perfiles (
-        id, email, nombre, rol, club_id, telefono, created_at
-      ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7)
-    `, userId, email, userMetadata.nombre || userMetadata.nombre_completo || '', userMetadata.rol || 'entrenador', userMetadata.club_id || null, userMetadata.telefono || '', now);
+        // Insert profile (skip if already exists — Supabase trigger may have created it)
+        const existingProfile = await prisma.$queryRawUnsafe('SELECT id FROM public.perfiles WHERE id = $1 LIMIT 1', userId);
+        if (existingProfile.length === 0) {
+            await prisma.$executeRawUnsafe(`
+        INSERT INTO public.perfiles (
+          id, email, nombre, rol, club_id, telefono, deportista_id, estado, created_at
+        ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7, $8, $9)
+      `, userId, email, userMetadata.nombre || userMetadata.nombre_completo || '', userMetadata.rol || 'entrenador', userMetadata.club_id || null, userMetadata.telefono || '', userMetadata.deportista_id || null, userMetadata.estado || 'activo', now);
+        }
         const access_token = jsonwebtoken_1.default.sign({ sub: userId, email, role: 'authenticated', aud: 'authenticated' }, JWT_SECRET, { expiresIn: '7d' });
         const refresh_token = crypto_1.default.randomUUID();
         await prisma.$executeRawUnsafe(`
@@ -456,22 +567,20 @@ app.post('/auth/v1/signup', async (req, res) => {
         };
         // Enviar correo de bienvenida/registro
         const clubId = userMetadata.club_id || null;
-        Promise.resolve().then(() => __importStar(require('./services/email.service'))).then(({ sendEmail }) => {
-            let clubNombre = 'Nuestra Plataforma';
-            if (clubId) {
-                prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId)
-                    .then(res => {
-                    if (res.length > 0)
-                        clubNombre = res[0].nombre;
-                    sendEmail(prisma, email, 'registro', {
-                        nombre: userMetadata.nombre || userMetadata.nombre_completo || 'Usuario',
-                        email: email,
-                        club: clubNombre
-                    }, clubId || undefined);
-                })
-                    .catch(e => console.error("Error fetching club info for email", e));
+        if (clubId) {
+            try {
+                const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+                const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Nuestra Plataforma';
+                await (0, email_service_1.sendEmail)(prisma, email, 'registro', {
+                    nombre: userMetadata.nombre || userMetadata.nombre_completo || 'Usuario',
+                    email: email,
+                    club: clubNombre
+                }, clubId);
             }
-        });
+            catch (e) {
+                console.error("Error enviando correo de bienvenida:", e);
+            }
+        }
         return res.status(200).json({
             access_token,
             refresh_token,
@@ -647,13 +756,22 @@ app.post('/auth/v1/recover', async (req, res) => {
             const nombre = meta.nombre || meta.nombre_completo || 'Usuario';
             const clubId = meta.club_id || null;
             const resetLink = `https://fichaje.pro/reset-password?email=${encodeURIComponent(email)}`;
-            Promise.resolve().then(() => __importStar(require('./services/email.service'))).then(({ sendEmail }) => {
-                sendEmail(prisma, email, 'recuperacion', {
+            try {
+                let clubNombre = 'Club';
+                if (clubId) {
+                    const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+                    if (clubRes.length > 0)
+                        clubNombre = clubRes[0].nombre;
+                }
+                await (0, email_service_1.sendEmail)(prisma, email, 'recuperacion', {
                     nombre: nombre,
                     link_recuperacion: resetLink,
-                    club: 'Club'
+                    club: clubNombre
                 }, clubId || undefined);
-            });
+            }
+            catch (e) {
+                console.error("Error enviando correo de recuperación:", e);
+            }
         }
         // Siempre retornamos 200 aunque el correo no exista, por seguridad
         return res.status(200).json({ message: 'If the email exists, a recovery link was sent.' });
@@ -828,8 +946,7 @@ app.post('/api/notifications/send', async (req, res) => {
         return res.status(400).json({ error: 'Faltan campos requeridos: to, tipo, club_id' });
     }
     try {
-        const { sendNotificationEmail } = await Promise.resolve().then(() => __importStar(require('./services/email.service')));
-        const result = await sendNotificationEmail(prisma, to, tipo, variables || {}, club_id);
+        const result = await (0, email_service_1.sendNotificationEmail)(prisma, to, tipo, variables || {}, club_id);
         if (result) {
             return res.status(200).json({ success: true, message: 'Notificación enviada' });
         }
@@ -839,6 +956,32 @@ app.post('/api/notifications/send', async (req, res) => {
     }
     catch (error) {
         console.error('Error sending notification:', error);
+        return res.status(500).json({ error: error.message || 'Error interno' });
+    }
+});
+// SEND WELCOME EMAIL (registration template) — called after user creation from Club panel
+app.post('/api/notifications/welcome', async (req, res) => {
+    const { to, nombre, club_id } = req.body;
+    if (!to || !nombre || !club_id) {
+        return res.status(400).json({ error: 'Faltan campos requeridos: to, nombre, club_id' });
+    }
+    try {
+        const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', club_id);
+        const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Club';
+        const result = await (0, email_service_1.sendEmail)(prisma, to, 'registro', {
+            nombre,
+            email: to,
+            club: clubNombre
+        }, club_id);
+        if (result) {
+            return res.status(200).json({ success: true, message: 'Correo de bienvenida enviado' });
+        }
+        else {
+            return res.status(400).json({ success: false, message: 'No se pudo enviar el correo de bienvenida' });
+        }
+    }
+    catch (error) {
+        console.error('Error sending welcome email:', error);
         return res.status(500).json({ error: error.message || 'Error interno' });
     }
 });

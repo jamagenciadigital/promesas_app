@@ -83,7 +83,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <div className="relative group">
-          <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center transition-all group-hover:border-[#CCFF00]/50">
+          <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center transition-all group-hover:border-club-primary/50">
             {value ? (
               <img src={value} alt="Preview" className="w-full h-full object-cover" />
             ) : (
@@ -92,7 +92,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             
             {uploading && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <Loader2 className="text-[#CCFF00] animate-spin" size={24} />
+                <Loader2 className="text-club-primary animate-spin" size={24} />
               </div>
             )}
             
@@ -130,7 +130,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             type="button"
             variant="ghost"
             onClick={() => document.getElementById(`file-upload-${bucket}`)?.click()}
-            className="text-[10px] font-black uppercase italic tracking-widest p-0 h-auto hover:text-[#CCFF00]"
+            className="text-[10px] font-black uppercase italic tracking-widest p-0 h-auto hover:text-club-primary"
             disabled={uploading}
           >
             {value ? 'Cambiar Imagen' : 'Seleccionar Archivo'}

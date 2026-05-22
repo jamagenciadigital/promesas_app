@@ -156,8 +156,8 @@ export default function ClubDashboard() {
       label: 'Mensualidad Plan', 
       value: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(plan?.precio || 0), 
       icon: Wallet, 
-      color: 'text-[#CCFF00]', 
-      bg: 'bg-[#CCFF00]/10' 
+      color: 'text-club-primary', 
+      bg: 'bg-club-primary/10' 
     },
     { label: t('dash.active_teams'), value: plan ? `${stats.teams} / ${plan.limite_equipos === -1 ? '∞' : plan.limite_equipos}` : stats.teams, icon: Trophy, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: t('dash.total_players'), value: plan ? `${stats.players} / ${plan.limite_jugadores === -1 ? '∞' : plan.limite_jugadores}` : stats.players, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -210,7 +210,7 @@ export default function ClubDashboard() {
           <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic leading-none">{t('nav.dashboard')}</h1>
           <p className="text-sm text-gray-500 font-medium mt-2">Gestión administrativa y deportiva en tiempo real.</p>
         </div>
-        <Badge className="bg-[#CCFF00]/10 text-[#CCFF00] border-[#CCFF00]/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-widest">
+        <Badge className="bg-club-primary/10 text-club-primary border-club-primary/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-widest">
           Plan: {plan?.nombre || 'Legacy/Ilimitado'}
         </Badge>
       </div>
@@ -249,14 +249,14 @@ export default function ClubDashboard() {
       {/* Checklist de Configuración Sutil */}
       {!isSetupComplete && (
         <div className="bg-white dark:bg-[#1e293b]/20 border border-gray-100 dark:border-white/5 rounded-[40px] p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#CCFF00]/5 blur-[60px] rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-club-primary/5 blur-[60px] rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10 space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-[#CCFF00] rounded-full"></div>
+                <div className="w-1.5 h-6 bg-club-primary rounded-full"></div>
                 <h3 className="font-black text-gray-900 dark:text-white uppercase italic tracking-tight text-lg">Configuración del Club</h3>
               </div>
-              <span className="text-[10px] font-black text-[#CCFF00] uppercase italic bg-[#CCFF00]/10 px-3 py-1 rounded-full">
+              <span className="text-[10px] font-black text-club-primary uppercase italic bg-club-primary/10 px-3 py-1 rounded-full">
                 {completedSteps}/{setupSteps.length} Pasos
               </span>
             </div>
@@ -270,7 +270,7 @@ export default function ClubDashboard() {
                     "p-4 rounded-[24px] border transition-all cursor-pointer flex items-center gap-3",
                     step.completed 
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 opacity-60" 
-                      : "bg-gray-50 dark:bg-white/5 border-transparent hover:border-[#CCFF00]/40 text-gray-400"
+                      : "bg-gray-50 dark:bg-white/5 border-transparent hover:border-club-primary/40 text-gray-400"
                   )}
                 >
                   <div className={cn(
@@ -322,13 +322,13 @@ export default function ClubDashboard() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <div className="w-1.5 h-8 bg-[#CCFF00] rounded-full"></div>
+             <div className="w-1.5 h-8 bg-club-primary rounded-full"></div>
              <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tight">{t('nav.teams')}</h2>
           </div>
           <Button 
             variant="ghost" 
             onClick={() => navigate('/club/teams')}
-            className="text-xs font-black uppercase italic tracking-widest text-gray-400 hover:text-[#CCFF00]"
+            className="text-xs font-black uppercase italic tracking-widest text-gray-400 hover:text-club-primary"
           >
             Ver todos <ExternalLink size={14} className="ml-2" />
           </Button>
@@ -346,9 +346,9 @@ export default function ClubDashboard() {
               <div 
                 key={team.id} 
                 onClick={() => navigate(`/club/teams/${team.codigo}`)}
-                className="group relative bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[48px] p-8 hover:border-[#CCFF00] transition-all cursor-pointer shadow-sm hover:shadow-2xl overflow-hidden"
+                className="group relative bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[48px] p-8 hover:border-club-primary transition-all cursor-pointer shadow-sm hover:shadow-2xl overflow-hidden"
               >
-                <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:scale-110 transition-transform duration-700 text-[#CCFF00]">
+                <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:scale-110 transition-transform duration-700 text-club-primary">
                   <Shield size={200} />
                 </div>
 
@@ -356,23 +356,23 @@ export default function ClubDashboard() {
                    <div className="flex justify-between items-start">
                       <div className="space-y-1">
                          <div className="flex items-center gap-2">
-                           <Badge className="bg-[#CCFF00] text-black border-none text-[8px] font-black uppercase italic px-2">
+                           <Badge className="bg-club-primary text-black border-none text-[8px] font-black uppercase italic px-2">
                              {team.categoria?.valor || 'SUB'}
                            </Badge>
                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{team.codigo}</span>
                          </div>
-                         <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic leading-none group-hover:text-[#CCFF00] transition-colors">
+                         <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic leading-none group-hover:text-club-primary transition-colors">
                            {team.nombre}
                          </h3>
                       </div>
-                      <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl text-gray-400 group-hover:bg-[#CCFF00] group-hover:text-black transition-all">
+                      <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl text-gray-400 group-hover:bg-club-primary group-hover:text-black transition-all">
                         <Users size={20} />
                       </div>
                    </div>
 
                    <div className="flex flex-wrap gap-3">
                       <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-2xl border border-gray-100 dark:border-white/10">
-                        <Clock size={14} className="text-[#CCFF00]" />
+                        <Clock size={14} className="text-club-primary" />
                         <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 uppercase">{team.hora_inicio || '--:--'}</span>
                       </div>
                       <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-2xl border border-gray-100 dark:border-white/10">
@@ -400,17 +400,17 @@ export default function ClubDashboard() {
                             </div>
                         )}
                         {team.deportistas?.length > 3 && (
-                            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1e293b] bg-[#CCFF00] flex items-center justify-center text-[10px] font-black text-black italic">
+                            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1e293b] bg-club-primary flex items-center justify-center text-[10px] font-black text-black italic">
                             +{team.deportistas.length - 3}
                             </div>
                         )}
                         {team.deportistas?.length <= 3 && team.deportistas?.length > 0 && (
-                             <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1e293b] bg-[#CCFF00] flex items-center justify-center text-[10px] font-black text-black italic">
+                             <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1e293b] bg-club-primary flex items-center justify-center text-[10px] font-black text-black italic">
                              {team.deportistas.length}
                              </div>
                         )}
                       </div>
-                      <span className="text-[10px] font-black uppercase italic text-[#CCFF00] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] font-black uppercase italic text-club-primary opacity-0 group-hover:opacity-100 transition-opacity">
                         Gestionar Equipo &gt;
                       </span>
                    </div>
@@ -423,18 +423,18 @@ export default function ClubDashboard() {
 
       {/* CTA Section */}
       <div className="bg-black rounded-[48px] p-10 md:p-16 relative overflow-hidden shadow-2xl">
-         <div className="absolute top-0 right-0 w-96 h-96 bg-[#CCFF00]/10 blur-[120px] -mr-48 -mt-48 rounded-full"></div>
+         <div className="absolute top-0 right-0 w-96 h-96 bg-club-primary/10 blur-[120px] -mr-48 -mt-48 rounded-full"></div>
          <div className="relative z-10 flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap items-center justify-between gap-10">
             <div className="space-y-4 max-w-xl text-center md:text-left">
                <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase leading-none tracking-tighter">
-                 Potencia tu <span className="text-[#CCFF00]">Gestión Deportiva</span>
+                 Potencia tu <span className="text-club-primary">Gestión Deportiva</span>
                </h2>
                <p className="text-gray-400 text-lg font-medium">
                  Organiza entrenamientos, controla asistencias y gestiona tus deportistas desde una sola plataforma.
                </p>
                {!isViewOnly && (
                  <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
-                    <Button onClick={() => navigate('/club/teams')} className="bg-[#CCFF00] text-black h-14 px-10 rounded-2xl font-black uppercase italic tracking-widest text-xs">
+                    <Button onClick={() => navigate('/club/teams')} className="bg-club-primary text-black h-14 px-10 rounded-2xl font-black uppercase italic tracking-widest text-xs">
                       Crear Nuevo Equipo
                     </Button>
                      <Button onClick={() => navigate('/club/settings')} className="bg-transparent border border-white/20 text-white hover:bg-white/5 h-14 px-10 rounded-2xl font-black uppercase italic tracking-widest text-xs">
@@ -444,9 +444,9 @@ export default function ClubDashboard() {
                )}
             </div>
             <div className="hidden lg:block shrink-0">
-               <div className="w-64 h-64 rounded-[48px] border-4 border-[#CCFF00]/20 flex items-center justify-center relative">
-                  <div className="absolute inset-4 rounded-[32px] border-4 border-[#CCFF00]/40 animate-pulse"></div>
-                  <Trophy size={80} className="text-[#CCFF00]" />
+               <div className="w-64 h-64 rounded-[48px] border-4 border-club-primary/20 flex items-center justify-center relative">
+                  <div className="absolute inset-4 rounded-[32px] border-4 border-club-primary/40 animate-pulse"></div>
+                  <Trophy size={80} className="text-club-primary" />
                </div>
             </div>
          </div>
@@ -460,8 +460,8 @@ export default function ClubDashboard() {
       >
         {selectedLocation && (
           <div className="space-y-6">
-            <div className="flex items-center gap-4 p-6 bg-[#CCFF00]/5 dark:bg-[#CCFF00]/10 rounded-3xl border border-[#CCFF00]/10">
-               <div className="p-4 bg-gray-900 dark:bg-[#CCFF00] text-white dark:text-gray-900 rounded-2xl shadow-lg">
+            <div className="flex items-center gap-4 p-6 bg-club-primary/5 dark:bg-club-primary/10 rounded-3xl border border-club-primary/10">
+               <div className="p-4 bg-gray-900 dark:bg-club-primary text-white dark:text-gray-900 rounded-2xl shadow-lg">
                  <MapPin size={24} />
                </div>
                <div>

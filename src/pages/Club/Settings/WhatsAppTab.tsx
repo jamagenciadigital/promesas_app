@@ -133,7 +133,7 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_bienvenida"
               checked={formData.whatsapp_notif_bienvenida}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
+              className="w-5 h-5 rounded border-gray-300 text-club-primary focus:ring-club-primary bg-white"
             />
           </div>
         </label>
@@ -153,7 +153,7 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_cargos"
               checked={formData.whatsapp_notif_cargos}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
+              className="w-5 h-5 rounded border-gray-300 text-club-primary focus:ring-club-primary bg-white"
             />
           </div>
         </label>
@@ -173,7 +173,7 @@ export default function WhatsAppTab() {
               name="whatsapp_notif_recordatorios"
               checked={formData.whatsapp_notif_recordatorios}
               onChange={handleCheckboxChange}
-              className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00] bg-white"
+              className="w-5 h-5 rounded border-gray-300 text-club-primary focus:ring-club-primary bg-white"
             />
           </div>
         </label>

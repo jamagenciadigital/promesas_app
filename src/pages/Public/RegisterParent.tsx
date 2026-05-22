@@ -195,8 +195,8 @@ export default function RegisterParent() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background elements */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-[#CCFF00]"></div>
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#CCFF00]/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-club-primary"></div>
+      <div className="absolute -top-24 -right-24 w-96 h-96 bg-club-primary/5 rounded-full blur-3xl"></div>
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
 
       <div className="w-full max-w-xl bg-white rounded-[48px] shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-700">
@@ -204,7 +204,7 @@ export default function RegisterParent() {
         {/* Progress Bar */}
         {typeof step === 'number' && (
           <div className="flex bg-gray-100 h-1.5 w-full">
-            <div className={`h-full bg-[#CCFF00] transition-all duration-500 ${step === 0 ? 'w-1/3' : step === 1 ? 'w-2/3' : 'w-full'}`}></div>
+            <div className={`h-full bg-club-primary transition-all duration-500 ${step === 0 ? 'w-1/3' : step === 1 ? 'w-2/3' : 'w-full'}`}></div>
           </div>
         )}
 
@@ -212,7 +212,7 @@ export default function RegisterParent() {
           {/* Header */}
           <div className="text-center space-y-4">
              <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto shadow-xl transform -rotate-6">
-                <Users className="text-[#CCFF00] w-8 h-8" />
+                <Users className="text-club-primary w-8 h-8" />
              </div>
              <div>
                <h1 className="text-3xl font-black text-gray-900 uppercase italic tracking-tighter leading-none">Acceso Familiar</h1>
@@ -233,7 +233,7 @@ export default function RegisterParent() {
                   />
                   {error && <p className="text-red-500 text-[10px] font-black uppercase text-center italic">{error}</p>}
                </div>
-               <Button onClick={nextStep} isLoading={validatingCode} className="w-full h-16 bg-black text-[#CCFF00] rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2">
+               <Button onClick={nextStep} isLoading={validatingCode} className="w-full h-16 bg-black text-club-primary rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2">
                  Validar Equipo <ChevronRight size={20} />
                </Button>
             </div>
@@ -244,7 +244,7 @@ export default function RegisterParent() {
                <div className="flex items-center gap-4 mb-2">
                   <button onClick={prevStep} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ArrowLeft size={20} /></button>
                   <div className="flex-1">
-                    <p className="text-[8px] font-black text-[#CCFF00] uppercase tracking-widest">Equipo Encontrado</p>
+                    <p className="text-[8px] font-black text-club-primary uppercase tracking-widest">Equipo Encontrado</p>
                     <h3 className="text-lg font-black text-gray-900 uppercase italic leading-none">{teamInfo?.nombre}</h3>
                   </div>
                </div>
@@ -254,7 +254,7 @@ export default function RegisterParent() {
                   <input 
                     type="text" 
                     placeholder="Busca por nombre o documento..." 
-                    className="w-full h-14 pl-12 pr-4 bg-gray-50 rounded-2xl border border-transparent focus:border-[#CCFF00] outline-none transition-all text-sm"
+                    className="w-full h-14 pl-12 pr-4 bg-gray-50 rounded-2xl border border-transparent focus:border-club-primary outline-none transition-all text-sm"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                   />
@@ -265,7 +265,7 @@ export default function RegisterParent() {
                     <button 
                       key={p.id}
                       onClick={() => setSelectedPlayer(p)}
-                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${selectedPlayer?.id === p.id ? 'bg-black border-black text-[#CCFF00]' : 'bg-white border-gray-100 text-gray-900 hover:border-[#CCFF00]'}`}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${selectedPlayer?.id === p.id ? 'bg-black border-black text-club-primary' : 'bg-white border-gray-100 text-gray-900 hover:border-club-primary'}`}
                     >
                       <div className="text-left leading-tight">
                         <p className="text-xs font-black uppercase italic">{p.nombre_completo} {p.apellidos}</p>
@@ -278,7 +278,7 @@ export default function RegisterParent() {
 
                {error && <p className="text-red-500 text-[10px] font-black uppercase text-center italic">{error}</p>}
 
-               <Button onClick={nextStep} className="w-full h-16 bg-[#CCFF00] text-black rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2">
+               <Button onClick={nextStep} className="w-full h-16 bg-club-primary text-black rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2">
                  Confirmar Selección <ChevronRight size={20} />
                </Button>
             </div>
@@ -308,7 +308,7 @@ export default function RegisterParent() {
 
                   {error && <p className="text-red-500 text-[10px] font-black uppercase text-center italic">{error}</p>}
 
-                  <Button type="submit" isLoading={loading} className="w-full h-16 bg-black text-[#CCFF00] rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2 mt-4">
+                  <Button type="submit" isLoading={loading} className="w-full h-16 bg-black text-club-primary rounded-2xl font-black uppercase italic tracking-widest shadow-xl flex items-center justify-center gap-2 mt-4">
                     Crear mi Cuenta <Shield size={20} />
                   </Button>
                </form>
@@ -317,7 +317,7 @@ export default function RegisterParent() {
 
           {step === 'success' && (
             <div className="text-center space-y-8 animate-in zoom-in-95 duration-700">
-               <div className="w-24 h-24 bg-[#CCFF00] rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-[#CCFF00]/40">
+               <div className="w-24 h-24 bg-club-primary rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-club-primary/40">
                   <CheckCircle2 size={48} className="text-black" />
                </div>
                <div className="space-y-2">
@@ -327,7 +327,7 @@ export default function RegisterParent() {
                <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
                   <p className="text-xs text-gray-500 font-medium italic">Ahora puedes iniciar sesión con tu correo y contraseña para acceder al portal del club.</p>
                </div>
-               <Button onClick={() => window.location.href = '/login'} className="w-full h-16 bg-black text-[#CCFF00] rounded-2xl font-black uppercase italic tracking-widest shadow-xl">
+               <Button onClick={() => window.location.href = '/login'} className="w-full h-16 bg-black text-club-primary rounded-2xl font-black uppercase italic tracking-widest shadow-xl">
                  Ir al Login
                </Button>
             </div>

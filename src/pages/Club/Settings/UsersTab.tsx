@@ -359,7 +359,7 @@ export default function UsersTab() {
           placeholder="Buscar por nombre o email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
+          className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-10 pr-4 text-sm focus:ring-2 focus:ring-club-primary focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
         />
       </div>
 
@@ -464,7 +464,7 @@ export default function UsersTab() {
                   required
                   value={userForm.nombre}
                   onChange={(e) => setUserForm({ ...userForm, nombre: e.target.value })}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                 />
               </div>
 
@@ -477,7 +477,7 @@ export default function UsersTab() {
                   disabled={isEditMode}
                   value={userForm.email}
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
                 />
               </div>
 
@@ -491,7 +491,7 @@ export default function UsersTab() {
                       required
                       value={userForm.password}
                       onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
@@ -502,7 +502,7 @@ export default function UsersTab() {
                       required
                       value={userForm.confirmPassword}
                       onChange={(e) => setUserForm({ ...userForm, confirmPassword: e.target.value })}
-                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                      className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -518,7 +518,7 @@ export default function UsersTab() {
                       onClick={() => setUserForm({ ...userForm, rol: role.value })}
                       className={`p-4 rounded-xl border-2 text-left transition-all ${
                         userForm.rol === role.value
-                          ? 'bg-[#CCFF00]/5 border-[#CCFF00] shadow-sm'
+                          ? 'bg-club-primary/5 border-club-primary shadow-sm'
                           : 'bg-white border-gray-100 hover:border-gray-200'
                       }`}
                     >
@@ -526,7 +526,7 @@ export default function UsersTab() {
                         <span className={`text-sm font-semibold ${userForm.rol === role.value ? 'text-gray-900' : 'text-gray-700'}`}>
                           {role.label}
                         </span>
-                        {userForm.rol === role.value && <ShieldCheck className="w-4 h-4 text-[#CCFF00]" />}
+                        {userForm.rol === role.value && <ShieldCheck className="w-4 h-4 text-club-primary" />}
                       </div>
                       <p className="text-[10px] font-medium leading-relaxed text-gray-400">
                         {role.description}
@@ -543,7 +543,7 @@ export default function UsersTab() {
                     required
                     value={userForm.deportista_id}
                     onChange={(e) => setUserForm({ ...userForm, deportista_id: e.target.value })}
-                    className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
+                    className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent text-gray-900 appearance-none cursor-pointer"
                   >
                     <option value="">Selecciona un deportista...</option>
                     {deportistas.map((d) => (

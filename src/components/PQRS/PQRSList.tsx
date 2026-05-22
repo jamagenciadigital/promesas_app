@@ -100,7 +100,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
             placeholder="Buscar por código, descripción o nombre..."
             value={filter.search}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white outline-none focus:border-[#CCFF00]/40 transition-all font-medium"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white outline-none focus:border-club-primary/40 transition-all font-medium"
           />
         </div>
         <div className="flex gap-2">
@@ -136,7 +136,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
             <button
               key={item.id}
               onClick={() => onSelect(item)}
-              className="w-full text-left group bg-white/5 hover:bg-white/10 border border-white/5 hover:border-[#CCFF00]/20 p-5 rounded-[32px] transition-all flex items-center justify-between gap-4"
+              className="w-full text-left group bg-white/5 hover:bg-white/10 border border-white/5 hover:border-club-primary/20 p-5 rounded-[32px] transition-all flex items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className={`p-3 rounded-2xl bg-black border border-white/10 ${TIPO_COLORS[item.tipo]}`}>
@@ -149,7 +149,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
                       {ESTADO_BADGES[item.estado].label}
                     </Badge>
                   </div>
-                  <h4 className="text-sm font-bold text-white truncate group-hover:text-[#CCFF00] transition-colors uppercase italic">
+                  <h4 className="text-sm font-bold text-white truncate group-hover:text-club-primary transition-colors uppercase italic">
                     {item.tipo}: {item.descripcion}
                   </h4>
                   <div className="flex items-center gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
@@ -164,7 +164,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
                   </div>
                 </div>
               </div>
-              <ChevronRight className="text-gray-600 group-hover:text-[#CCFF00] group-hover:translate-x-1 transition-all" />
+              <ChevronRight className="text-gray-600 group-hover:text-club-primary group-hover:translate-x-1 transition-all" />
             </button>
           ))
         ) : (

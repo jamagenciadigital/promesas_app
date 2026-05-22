@@ -19,6 +19,7 @@ const PLACEHOLDER_VARS = [
   { var: '{{club}}', desc: 'Nombre del club' },
   { var: '{{fecha}}', desc: 'Fecha del evento' },
   { var: '{{monto}}', desc: 'Monto (para pagos/cartera)' },
+  { var: '{{enlace_login}}', desc: 'Tu enlace de login personalizado' },
 ];
 
 const APP_EMAIL_CONFIG = {
@@ -342,7 +343,8 @@ export default function NotificacionesTab() {
       .replace(/\{\{nombre\}\}/g, 'Juan Pérez')
       .replace(/\{\{club\}\}/g, profile?.club_id || 'Club')
       .replace(/\{\{fecha\}\}/g, new Date().toLocaleDateString('es-CO'))
-      .replace(/\{\{monto\}\}/g, '$50,000');
+      .replace(/\{\{monto\}\}/g, '$50,000')
+      .replace(/\{\{enlace_login\}\}/g, `<a href="${window.location.origin}/login?club=${profile?.club_id || ''}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: bold;">${window.location.origin}/login?club=${profile?.club_id || 'ID_CLUB'}</a>`);
     if (!html.includes('<')) {
       html = html.replace(/\n/g, '<br>');
     }
@@ -404,7 +406,7 @@ export default function NotificacionesTab() {
                 type="password"
                 value={emailConfig.resend_api_key}
                 onChange={e => setEmailConfig({ ...emailConfig, resend_api_key: e.target.value })}
-                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                 placeholder={APP_EMAIL_CONFIG.resend_api_key ? "re_5whx...VqHzGWw (Por defecto)" : "re_..."}
               />
             </div>
@@ -414,7 +416,7 @@ export default function NotificacionesTab() {
                 type="email"
                 value={emailConfig.resend_from_email}
                 onChange={e => setEmailConfig({ ...emailConfig, resend_from_email: e.target.value })}
-                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                 placeholder={APP_EMAIL_CONFIG.resend_from_email ? `${APP_EMAIL_CONFIG.resend_from_email} (Por defecto)` : "notificaciones@tudominio.com"}
               />
             </div>
@@ -431,7 +433,7 @@ export default function NotificacionesTab() {
                   type="text"
                   value={emailConfig.template_id_registro}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_registro: e.target.value })}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all font-mono text-xs"
                   placeholder={APP_EMAIL_CONFIG.template_id_registro ? `${APP_EMAIL_CONFIG.template_id_registro} (Por defecto)` : "re_..."}
                 />
               </div>
@@ -443,7 +445,7 @@ export default function NotificacionesTab() {
                   type="text"
                   value={emailConfig.template_id_recuperacion}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_recuperacion: e.target.value })}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all font-mono text-xs"
                   placeholder={APP_EMAIL_CONFIG.template_id_recuperacion ? `${APP_EMAIL_CONFIG.template_id_recuperacion} (Por defecto)` : "re_..."}
                 />
               </div>
@@ -455,7 +457,7 @@ export default function NotificacionesTab() {
                   type="text"
                   value={emailConfig.template_id_notificaciones}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_notificaciones: e.target.value })}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all font-mono text-xs"
                   placeholder={APP_EMAIL_CONFIG.template_id_notificaciones ? `${APP_EMAIL_CONFIG.template_id_notificaciones} (Por defecto)` : "re_..."}
                 />
               </div>
@@ -593,14 +595,14 @@ export default function NotificacionesTab() {
                         type="text"
                         value={editForm.asunto}
                         onChange={e => setEditForm({ ...editForm, asunto: e.target.value })}
-                        className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                        className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                         placeholder="Ej: Notificación de pago - {{club}}"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1.5">Cuerpo del correo</label>
-                      <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#CCFF00]">
+                      <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-club-primary">
                         <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-gray-200">
                           <button type="button" onClick={() => wrapTag('<strong>', '</strong>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Negrita"><Bold size={15} /></button>
                           <button type="button" onClick={() => wrapTag('<em>', '</em>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Cursiva"><Italic size={15} /></button>

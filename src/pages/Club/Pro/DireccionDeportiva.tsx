@@ -100,12 +100,12 @@ export default function DireccionDeportiva() {
             Dirección Deportiva
           </h1>
           <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mt-4 flex items-center gap-2">
-            <Shield className="w-3 h-3 text-[#CCFF00]" />
+            <Shield className="w-3 h-3 text-club-primary" />
             Panel de Alto Rendimiento y Control de Calidad
           </p>
         </div>
         <div className="flex gap-3">
-          <Button className="bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-[10px] px-6 rounded-xl hover:bg-[#b0db00] transition-colors">
+          <Button className="bg-club-primary text-black font-black uppercase italic tracking-widest text-[10px] px-6 rounded-xl hover:bg-[#b0db00] transition-colors">
             Generar Reporte Mensual
           </Button>
         </div>
@@ -114,7 +114,7 @@ export default function DireccionDeportiva() {
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Eficacia Asistencia', value: `${stats.avgAttendance}%`, icon: Activity, color: 'text-[#CCFF00]', bg: 'bg-[#CCFF00]/10', detail: 'Promedio global mensual' },
+          { label: 'Eficacia Asistencia', value: `${stats.avgAttendance}%`, icon: Activity, color: 'text-club-primary', bg: 'bg-club-primary/10', detail: 'Promedio global mensual' },
           { label: 'Deportistas Activos', value: stats.totalPlayers, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', detail: 'Total deportistas vinculados' },
           { label: 'Equipos en Marcha', value: stats.totalTeams, icon: Trophy, color: 'text-emerald-500', bg: 'bg-emerald-500/10', detail: 'Procesos deportivos activos' },
           { label: 'Próximos Eventos', value: stats.upcomingEvents, icon: Calendar, color: 'text-amber-500', bg: 'bg-amber-500/10', detail: 'Partidos y torneos agendados' }
@@ -142,7 +142,7 @@ export default function DireccionDeportiva() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tight flex items-center gap-3">
-              <Star className="text-[#CCFF00] fill-[#CCFF00]" size={24} />
+              <Star className="text-club-primary fill-club-primary" size={24} />
               Radar de Talento (Highlights)
             </h3>
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Top 5 Rendimiento</span>
@@ -183,7 +183,7 @@ export default function DireccionDeportiva() {
                       <td className="px-8 py-6">
                          <div className="flex items-center justify-center gap-1">
                             {[1,2,3,4,5].map(star => (
-                              <Star key={star} size={10} className={cn(star <= 4 ? "text-[#CCFF00] fill-[#CCFF00]" : "text-gray-200 dark:text-gray-800")} />
+                              <Star key={star} size={10} className={cn(star <= 4 ? "text-club-primary fill-club-primary" : "text-gray-200 dark:text-gray-800")} />
                             ))}
                          </div>
                       </td>
@@ -235,11 +235,11 @@ export default function DireccionDeportiva() {
 
            <div className="bg-[#16171b] border border-[#26282e] p-8 rounded-[40px] relative overflow-hidden mt-8">
               <div className="absolute top-0 right-0 p-4">
-                 <Activity className="text-[#CCFF00]/20 animate-pulse" size={32} />
+                 <Activity className="text-club-primary/20 animate-pulse" size={32} />
               </div>
               <h4 className="text-white font-black uppercase italic tracking-tight mb-2">Resumen Semanal</h4>
               <p className="text-gray-500 text-xs leading-relaxed font-bold">
-                 Los procesos de entrenamiento han aumentado un <span className="text-[#CCFF00]">12%</span> respecto a la semana anterior. La asistencia se mantiene estable.
+                 Los procesos de entrenamiento han aumentado un <span className="text-club-primary">12%</span> respecto a la semana anterior. La asistencia se mantiene estable.
               </p>
            </div>
         </div>

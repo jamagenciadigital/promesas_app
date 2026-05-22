@@ -165,7 +165,7 @@ export default function RegionalTab() {
               name="zona_horaria"
               value={formData.zona_horaria}
               onChange={handleChange}
-              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all appearance-none"
+              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all appearance-none"
             >
               {TIMEZONES.map(tz => (
                 <option key={tz} value={tz}>{tz}</option>
@@ -182,7 +182,7 @@ export default function RegionalTab() {
               name="moneda"
               value={formData.moneda}
               onChange={handleChange}
-              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all appearance-none"
+              className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all appearance-none"
             >
               {CURRENCIES.map(curr => (
                 <option key={curr} value={curr}>{curr}</option>

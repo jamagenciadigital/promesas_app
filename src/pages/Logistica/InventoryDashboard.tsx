@@ -203,7 +203,7 @@ export default function InventoryDashboard() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="flex items-center gap-4 md:gap-6">
-          <div className="w-14 h-14 md:w-16 md:h-16 bg-[#CCFF00] rounded-[20px] md:rounded-[24px] flex items-center justify-center shadow-lg shadow-[#CCFF00]/20 rotate-3 transition-transform group-hover:rotate-0">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-club-primary rounded-[20px] md:rounded-[24px] flex items-center justify-center shadow-lg shadow-club-primary/20 rotate-3 transition-transform group-hover:rotate-0">
             <Box className="text-black w-6 h-6 md:w-8 md:h-8" />
           </div>
           <div>
@@ -217,14 +217,14 @@ export default function InventoryDashboard() {
             <select 
               value={selectedScenarioId || ''} 
               onChange={(e) => setSelectedScenarioId(e.target.value)}
-              className="w-full sm:w-auto h-14 px-6 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase italic tracking-widest text-white outline-none focus:border-[#CCFF00]/40 transition-all"
+              className="w-full sm:w-auto h-14 px-6 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase italic tracking-widest text-white outline-none focus:border-club-primary/40 transition-all"
             >
               {scenarios.map(s => <option key={s.id} value={s.id} className="bg-[#111]">{s.nombre}</option>)}
             </select>
           )}
           <Button 
             onClick={() => handleOpenModal()}
-            className="w-full sm:w-auto h-14 px-8 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#CCFF00]/10"
+            className="w-full sm:w-auto h-14 px-8 bg-club-primary text-black font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-club-primary/10"
           >
             <Plus className="w-4 h-4 mr-2" /> Nuevo Elemento
           </Button>
@@ -252,19 +252,19 @@ export default function InventoryDashboard() {
       {/* Filters & Search */}
       <div className="flex flex-col md:flex-row gap-4 bg-white/5 p-3 md:p-4 rounded-[32px] border border-white/5">
         <div className="relative flex-1 group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#CCFF00] transition-colors" size={20} />
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-club-primary transition-colors" size={20} />
           <input 
             type="text"
             placeholder="Buscar por nombre o descripción..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-14 md:h-16 bg-black/40 border border-transparent focus:border-[#CCFF00]/20 rounded-[20px] md:rounded-[24px] pl-16 pr-6 text-sm text-white outline-none transition-all placeholder:text-gray-600"
+            className="w-full h-14 md:h-16 bg-black/40 border border-transparent focus:border-club-primary/20 rounded-[20px] md:rounded-[24px] pl-16 pr-6 text-sm text-white outline-none transition-all placeholder:text-gray-600"
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
           <button 
             onClick={() => setCategoryFilter('all')}
-            className={`h-14 md:h-16 px-6 md:px-8 rounded-[20px] md:rounded-[24px] text-[9px] md:text-[10px] font-black uppercase italic tracking-widest transition-all whitespace-nowrap ${categoryFilter === 'all' ? 'bg-[#CCFF00] text-black' : 'bg-black/40 text-gray-500 hover:text-white border border-white/5'}`}
+            className={`h-14 md:h-16 px-6 md:px-8 rounded-[20px] md:rounded-[24px] text-[9px] md:text-[10px] font-black uppercase italic tracking-widest transition-all whitespace-nowrap ${categoryFilter === 'all' ? 'bg-club-primary text-black' : 'bg-black/40 text-gray-500 hover:text-white border border-white/5'}`}
           >
             Todos
           </button>
@@ -272,7 +272,7 @@ export default function InventoryDashboard() {
             <button 
               key={cat.id}
               onClick={() => setCategoryFilter(cat.id)}
-              className={`h-14 md:h-16 px-6 md:px-8 rounded-[20px] md:rounded-[24px] text-[9px] md:text-[10px] font-black uppercase italic tracking-widest transition-all whitespace-nowrap flex items-center gap-3 ${categoryFilter === cat.id ? 'bg-[#CCFF00] text-black' : 'bg-black/40 text-gray-500 hover:text-white border border-white/5'}`}
+              className={`h-14 md:h-16 px-6 md:px-8 rounded-[20px] md:rounded-[24px] text-[9px] md:text-[10px] font-black uppercase italic tracking-widest transition-all whitespace-nowrap flex items-center gap-3 ${categoryFilter === cat.id ? 'bg-club-primary text-black' : 'bg-black/40 text-gray-500 hover:text-white border border-white/5'}`}
             >
               <span>{cat.icon}</span>
               {cat.label}
@@ -299,19 +299,19 @@ export default function InventoryDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {filteredItems.map((item) => (
-            <div key={item.id} className="group bg-white/5 border border-white/5 rounded-[40px] md:rounded-[48px] overflow-hidden hover:border-[#CCFF00]/30 transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-1">
+            <div key={item.id} className="group bg-white/5 border border-white/5 rounded-[40px] md:rounded-[48px] overflow-hidden hover:border-club-primary/30 transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-1">
               <div className="p-6 md:p-8 space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
                     <Badge className={`${ESTADO_LABELS[item.estado].bg} ${ESTADO_LABELS[item.estado].color} border-none uppercase text-[8px] font-black italic px-3 py-1`}>
                       {ESTADO_LABELS[item.estado].label}
                     </Badge>
-                    <h3 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-[#CCFF00] transition-colors">
+                    <h3 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-club-primary transition-colors">
                       {item.nombre}
                     </h3>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleOpenModal(item)} className="p-2.5 bg-black/60 rounded-xl md:rounded-2xl text-gray-400 hover:text-[#CCFF00] transition-colors"><Edit2 size={14} /></button>
+                    <button onClick={() => handleOpenModal(item)} className="p-2.5 bg-black/60 rounded-xl md:rounded-2xl text-gray-400 hover:text-club-primary transition-colors"><Edit2 size={14} /></button>
                     <button onClick={() => handleDelete(item.id)} className="p-2.5 bg-black/60 rounded-xl md:rounded-2xl text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                   </div>
                 </div>
@@ -325,9 +325,9 @@ export default function InventoryDashboard() {
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Total</p>
                     <p className="text-xl md:text-2xl font-black text-white italic">{item.cantidad_total}</p>
                   </div>
-                  <div className={`p-4 rounded-2xl md:rounded-3xl border space-y-1 text-center ${item.cantidad_disponible <= 2 ? 'bg-red-500/10 border-red-500/20' : 'bg-[#CCFF00]/10 border-[#CCFF00]/20'}`}>
+                  <div className={`p-4 rounded-2xl md:rounded-3xl border space-y-1 text-center ${item.cantidad_disponible <= 2 ? 'bg-red-500/10 border-red-500/20' : 'bg-club-primary/10 border-club-primary/20'}`}>
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">En Stock</p>
-                    <p className={`text-xl md:text-2xl font-black italic ${item.cantidad_disponible <= 2 ? 'text-red-500' : 'text-[#CCFF00]'}`}>
+                    <p className={`text-xl md:text-2xl font-black italic ${item.cantidad_disponible <= 2 ? 'text-red-500' : 'text-club-primary'}`}>
                       {item.cantidad_disponible}
                     </p>
                   </div>
@@ -365,7 +365,7 @@ export default function InventoryDashboard() {
               <select 
                 value={formData.categoria}
                 onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                className="w-full h-14 md:h-16 px-6 bg-black/40 rounded-2xl text-sm font-bold text-white outline-none border border-transparent focus:border-[#CCFF00]/40 transition-all appearance-none"
+                className="w-full h-14 md:h-16 px-6 bg-black/40 rounded-2xl text-sm font-bold text-white outline-none border border-transparent focus:border-club-primary/40 transition-all appearance-none"
               >
                 {CATEGORIES.map(cat => <option key={cat.id} value={cat.id} className="bg-[#111]">{cat.icon} {cat.label}</option>)}
               </select>
@@ -400,7 +400,7 @@ export default function InventoryDashboard() {
                     onClick={() => setFormData({ ...formData, estado: e })}
                     className={`py-3 px-1 md:px-2 rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all border-2 ${
                       formData.estado === e 
-                        ? 'bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]' 
+                        ? 'bg-club-primary/10 border-club-primary text-club-primary' 
                         : 'bg-black/40 border-transparent text-gray-500 hover:border-white/10'
                     }`}
                   >
@@ -416,7 +416,7 @@ export default function InventoryDashboard() {
                 value={formData.descripcion}
                 onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                 placeholder="Detalles adicionales, marca, ubicación específica..."
-                className="w-full bg-black/40 border border-transparent focus:border-[#CCFF00]/20 rounded-2xl p-4 md:p-6 text-sm text-white outline-none min-h-[100px] resize-none transition-all"
+                className="w-full bg-black/40 border border-transparent focus:border-club-primary/20 rounded-2xl p-4 md:p-6 text-sm text-white outline-none min-h-[100px] resize-none transition-all"
               />
             </div>
           </div>
@@ -433,7 +433,7 @@ export default function InventoryDashboard() {
             <Button 
               type="submit"
               isLoading={saving}
-              className="flex-[2] h-14 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-[#CCFF00]/10"
+              className="flex-[2] h-14 bg-club-primary text-black font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-club-primary/10"
             >
               {editingItem ? 'Guardar Cambios' : 'Confirmar Ingreso'}
             </Button>

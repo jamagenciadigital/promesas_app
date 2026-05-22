@@ -251,8 +251,8 @@ export default function ClubAdmins() {
           <p className="text-sm text-gray-400 mt-1">Control de Personal y Rango de Autorización</p>
         </div>
         <div className="flex items-center gap-2 bg-[#182332] px-4 py-2 rounded-full">
-          <Users size={14} className="text-[#CCFF00]" />
-          <span className="text-[11px] font-semibold text-[#CCFF00]">{admins.length} Usuarios</span>
+          <Users size={14} className="text-club-primary" />
+          <span className="text-[11px] font-semibold text-club-primary">{admins.length} Usuarios</span>
         </div>
       </div>
 
@@ -267,7 +267,7 @@ export default function ClubAdmins() {
             placeholder="Buscar usuario..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
+            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm focus:ring-2 focus:ring-club-primary focus:border-transparent outline-none text-gray-900 placeholder-gray-400 transition-all"
           />
         </div>
         <div className="relative min-w-[200px]">
@@ -277,7 +277,7 @@ export default function ClubAdmins() {
           <select
             value={selectedClub}
             onChange={(e) => setSelectedClub(e.target.value)}
-            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm font-medium focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none text-gray-900 appearance-none cursor-pointer"
+            className="w-full h-11 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-sm font-medium focus:ring-2 focus:ring-club-primary focus:border-transparent outline-none text-gray-900 appearance-none cursor-pointer"
           >
             <option value="all">Todos los clubes</option>
             <option value="central">Sistema Central</option>
@@ -405,7 +405,7 @@ export default function ClubAdmins() {
                   required
                   value={newUser.nombre}
                   onChange={e => setNewUser({...newUser, nombre: e.target.value})}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                   placeholder="Nombre del usuario"
                 />
               </div>
@@ -417,7 +417,7 @@ export default function ClubAdmins() {
                   disabled={isEditMode}
                   value={newUser.email}
                   onChange={e => setNewUser({...newUser, email: e.target.value})}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-400"
                   placeholder="email@dominio.com"
                 />
               </div>
@@ -434,7 +434,7 @@ export default function ClubAdmins() {
                   required
                   value={newUser.password}
                   onChange={e => setNewUser({...newUser, password: e.target.value})}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -449,7 +449,7 @@ export default function ClubAdmins() {
                 <select
                   value={newUser.club_id}
                   onChange={e => setNewUser({...newUser, club_id: e.target.value})}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent text-gray-900 appearance-none cursor-pointer"
                 >
                   <option value="">Sistema Central</option>
                   {clubs.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -461,7 +461,7 @@ export default function ClubAdmins() {
                 <select
                   value={newUser.rol}
                   onChange={e => setNewUser({...newUser, rol: e.target.value})}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent text-gray-900 appearance-none cursor-pointer"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent text-gray-900 appearance-none cursor-pointer"
                 >
                   {ROLES_DISPONIBLES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
                 </select>

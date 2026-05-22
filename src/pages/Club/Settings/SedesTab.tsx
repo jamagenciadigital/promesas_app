@@ -224,7 +224,7 @@ export default function SedesTab() {
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1.5">Dirección Exacta</label>
             <textarea
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all min-h-[100px]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-club-primary focus:border-transparent transition-all min-h-[100px]"
               rows={3}
               placeholder="Ej. Calle 123 # 45-67, Ciudad, País"
               value={formData.direccion}

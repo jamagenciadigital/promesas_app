@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { ClubTheme, Club } from '../../../types';
-import { Palette, RefreshCw, CheckCircle2, AlertCircle, Save, Undo2, Layout, Sparkles, LogIn, MousePointerClick } from 'lucide-react';
+import { Palette, RefreshCw, CheckCircle2, AlertCircle, Save, Undo2, Layout, Sparkles, LogIn, MousePointerClick, Copy, ExternalLink } from 'lucide-react';
 
 const DEFAULT_THEME: ClubTheme = {
   login_bg: '#000000',
@@ -474,7 +474,7 @@ export default function PersonalizacionTab() {
               <div className="flex items-center gap-2 border-b border-gray-50 pb-2">
                 <span className="text-xs font-black text-gray-900 uppercase tracking-wider">4. Pantalla de Acceso (Login)</span>
               </div>
-
+ 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Login BG */}
                 <div>
@@ -494,6 +494,45 @@ export default function PersonalizacionTab() {
                     />
                   </div>
                   <p className="text-[10px] text-gray-500 mt-1">Este color rellenará la sección izquierda de la pantalla de autenticación.</p>
+                </div>
+              </div>
+
+              {/* Share Login Link Widget */}
+              <div className="border-t border-gray-100 pt-4 mt-2 space-y-3">
+                <div>
+                  <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1">Tu Enlace de Login Personalizado</label>
+                  <p className="text-[10px] text-gray-500 mb-2">Comparte este enlace específico para que tu comunidad de deportistas, entrenadores y administradores inicien sesión con los colores y escudo de tu club.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/login?club=${profile?.club_id}`}
+                    className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-xs text-gray-600 font-mono focus:outline-none select-all"
+                  />
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/login?club=${profile?.club_id}`);
+                        setSuccessMsg('¡Enlace de login copiado al portapapeles!');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => setSuccessMsg(null), 4000);
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Copiar
+                    </button>
+                    <a
+                      href={`/login?club=${profile?.club_id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-[#182332] hover:bg-[#202f43] text-white rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Ver Portal
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
