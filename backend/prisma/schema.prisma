@@ -592,7 +592,7 @@ model clubes {
   estado                       String?             @default("activo")
   logo_url                     String?
   color_principal              String?             @default("#E53E13")
-  theme                        Json?               @default("{}") @db.Jsonb
+  theme                        Json?               @default("{}") @db.Json
   descripcion                  String?
   zona_horaria                 String?             @default("Colombia (UTC-5)")
   moneda                       String?             @default("COP - Peso Colombiano")

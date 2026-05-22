@@ -84,7 +84,7 @@ async function sendEmail(prisma, to, type, variables, club_id) {
         const fromFormatted = from_email.includes('<')
             ? from_email
             : clubName + ' <' + from_email + '>';
-        const frontendUrl = process.env.FRONTEND_URL || 'https://fichaje.com.co';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
         const loginLink = `${frontendUrl}/login?club=${club_id}`;
         const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -162,7 +162,7 @@ async function sendNotificationEmail(prisma, to, tipo, variables, club_id) {
             console.log(`Usando plantilla por defecto para '${tipo}' en el club ${club_id}.`);
         }
         // 3. Replace variables in body and subject
-        const frontendUrl = process.env.FRONTEND_URL || 'https://fichaje.com.co';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
         const loginLink = `${frontendUrl}/login?club=${club_id}`;
         const mergedVars = {
             ...variables,

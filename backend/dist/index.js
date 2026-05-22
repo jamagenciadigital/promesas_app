@@ -823,6 +823,7 @@ app.all('/rest/v1/:table', async (req, res) => {
     const method = req.method.toLowerCase();
     const actionMap = {
         get: 'select',
+        head: 'select',
         post: 'insert',
         patch: 'update',
         delete: 'delete'
@@ -927,6 +928,9 @@ app.all('/rest/v1/:table', async (req, res) => {
         const result = await executeQuery(table, action, bodyArgs, filters);
         if (result.count !== null) {
             res.setHeader('Content-Range', `0-${Array.isArray(result.data) ? result.data.length : 1}/${result.count}`);
+        }
+        if (method === 'head') {
+            return res.status(200).end();
         }
         const statusCode = action === 'insert' ? 201 : 200;
         return res.status(statusCode).json(result.data);

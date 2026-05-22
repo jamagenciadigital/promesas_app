@@ -925,6 +925,7 @@ app.all('/rest/v1/:table', async (req, res) => {
   
   const actionMap: Record<string, string> = {
     get: 'select',
+    head: 'select',
     post: 'insert',
     patch: 'update',
     delete: 'delete'
@@ -1029,6 +1030,10 @@ app.all('/rest/v1/:table', async (req, res) => {
 
     if (result.count !== null) {
       res.setHeader('Content-Range', `0-${Array.isArray(result.data) ? result.data.length : 1}/${result.count}`);
+    }
+
+    if (method === 'head') {
+      return res.status(200).end();
     }
 
     const statusCode = action === 'insert' ? 201 : 200;
