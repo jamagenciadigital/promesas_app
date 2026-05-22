@@ -354,7 +354,7 @@ export default function Equipos() {
           <Button 
             onClick={() => handleOpenModal()} 
             disabled={atTeamLimit}
-            className={`${atTeamLimit ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 shadow-lg shadow-black/5 hover:scale-105 active:scale-95'} font-bold px-8 py-3 rounded-2xl flex items-center gap-2 border-0 transition-all`}
+            className={`${atTeamLimit ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'theme-btn-primary shadow-lg hover:scale-105 active:scale-95'} font-black uppercase italic tracking-widest text-[10px] px-8 py-3.5 rounded-2xl flex items-center gap-2 border-0 transition-all`}
             title={atTeamLimit ? `Límite de equipos alcanzado (${planLimits?.equipos})` : 'Crear nuevo equipo'}
           >
             <Plus className="w-5 h-5" />
@@ -753,7 +753,7 @@ export default function Equipos() {
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest">
                   Cancelar
                 </Button>
-                <Button type="submit" isLoading={saving} className="flex-1 bg-gray-900 dark:bg-club-primary dark:text-gray-900 h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl shadow-club-primary/10">
+                <Button type="submit" isLoading={saving} className="flex-1 theme-btn-primary h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all">
                   {editingEquipo ? 'Guardar Cambios' : 'Crear Equipo'}
                 </Button>
               </div>
