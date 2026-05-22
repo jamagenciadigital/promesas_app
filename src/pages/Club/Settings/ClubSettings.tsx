@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Globe, MessageCircle, Bell, CreditCard, ShieldCheck, Users, FormInput, Info } from 'lucide-react';
+import { Settings, Globe, MessageCircle, Bell, CreditCard, ShieldCheck, Users, FormInput, Info, Palette } from 'lucide-react';
 import GeneralInfoTab from './GeneralInfoTab';
 import RegionalTab from './RegionalTab';
 import WhatsAppTab from './WhatsAppTab';
@@ -8,15 +8,17 @@ import PaymentsTab from './PaymentsTab';
 import SubscriptionTab from './SubscriptionTab';
 import UsersTab from './UsersTab';
 import NotificacionesTab from './NotificacionesTab';
+import PersonalizacionTab from './PersonalizacionTab';
 import { MapPin, CreditCard as CardIcon } from 'lucide-react';
 
-type Tab = 'general' | 'regional' | 'whatsapp' | 'notifications' | 'payments' | 'subscription' | 'users' | 'sedes';
+type Tab = 'general' | 'regional' | 'whatsapp' | 'notifications' | 'payments' | 'subscription' | 'users' | 'sedes' | 'personalizacion';
 
 export default function ClubSettings() {
   const [activeTab, setActiveTab] = useState<Tab>('general');
 
   const tabs = [
     { id: 'general', label: 'Información General', icon: Info },
+    { id: 'personalizacion', label: 'Personalización Visual', icon: Palette },
     { id: 'regional', label: 'Configuración Regional', icon: Globe },
     { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
     { id: 'notifications', label: 'Notificaciones App', icon: Bell },
@@ -60,6 +62,7 @@ export default function ClubSettings() {
         {/* Contenido Principal */}
         <div className="flex-1 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm min-h-[500px]">
           {activeTab === 'general' && <GeneralInfoTab />}
+          {activeTab === 'personalizacion' && <PersonalizacionTab />}
           {activeTab === 'regional' && <RegionalTab />}
           {activeTab === 'whatsapp' && <WhatsAppTab />}
           {activeTab === 'sedes' && <SedesTab />}
@@ -67,7 +70,7 @@ export default function ClubSettings() {
           {activeTab === 'subscription' && <SubscriptionTab />}
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'notifications' && <NotificacionesTab />}
-          {(activeTab !== 'general' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users' && activeTab !== 'notifications') && (
+          {(activeTab !== 'general' && activeTab !== 'personalizacion' && activeTab !== 'regional' && activeTab !== 'whatsapp' && activeTab !== 'sedes' && activeTab !== 'payments' && activeTab !== 'subscription' && activeTab !== 'users' && activeTab !== 'notifications') && (
             <div className="p-12 flex flex-col items-center justify-center text-center h-full text-gray-500">
               <Settings className="w-12 h-12 mb-4 text-gray-300" />
               <h3 className="text-xl font-medium text-gray-900 mb-2">Próximamente</h3>

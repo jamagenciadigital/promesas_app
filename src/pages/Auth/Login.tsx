@@ -108,7 +108,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+    <div 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden transition-colors duration-500"
+      style={{ backgroundColor: 'var(--club-login-bg)' }}
+    >
       
       
       <div className="relative z-10 w-full max-w-[400px] px-4">
@@ -168,7 +171,7 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={loading} 
-              className="w-full bg-[#182332] text-white hover:text-[#CCFF00] font-black py-5 rounded-2xl transition-all hover:bg-[#202f43] hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#182332]/10 uppercase tracking-widest text-[11px] italic"
+              className="w-full theme-btn-primary hover:text-[#CCFF00] font-black py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg uppercase tracking-widest text-[11px] italic"
             >
               {loading ? 'Validando...' : 'Acceder al Sistema'}
             </button>

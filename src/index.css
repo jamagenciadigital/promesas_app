@@ -25,3 +25,44 @@
 .modal-form.space-y-4 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 0 !important;
 }
+
+/* Variables de tema predeterminadas */
+:root {
+  --club-primary-color: #bd0f10;
+  --club-sidebar-bg: #bd0f10;
+  --club-sidebar-text: rgba(255, 255, 255, 0.8);
+  --club-sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+  --club-sidebar-active-bg: #ffffff;
+  --club-sidebar-active-text: #bd0f10;
+  --club-button-bg: #182332;
+  --club-button-text: #ffffff;
+  --club-button-hover: #202f43;
+  --club-login-bg: #000000;
+}
+
+/* Clases de utilidad para el tema dinámico */
+.theme-sidebar {
+  background-color: var(--club-sidebar-bg) !important;
+  color: var(--club-sidebar-text) !important;
+}
+.theme-sidebar-item {
+  color: var(--club-sidebar-text) !important;
+}
+.theme-sidebar-item:hover {
+  background-color: var(--club-sidebar-hover-bg) !important;
+  color: #ffffff !important;
+}
+.theme-sidebar-item-active {
+  background-color: var(--club-sidebar-active-bg) !important;
+  color: var(--club-sidebar-active-text) !important;
+  font-weight: 600;
+}
+
+.theme-btn-primary {
+  background-color: var(--club-button-bg) !important;
+  color: var(--club-button-text) !important;
+}
+.theme-btn-primary:hover {
+  background-color: var(--club-button-hover) !important;
+}
+

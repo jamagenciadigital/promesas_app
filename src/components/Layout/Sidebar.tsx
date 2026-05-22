@@ -198,7 +198,7 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
 
   const sidebarClasses = cn(
     "flex flex-col text-white transition-all duration-300 relative",
-    virtualRole === 'superadmin' ? 'bg-[#1a1a1a]' : 'bg-[#bd0f10]',
+    virtualRole === 'superadmin' ? 'bg-[#1a1a1a]' : 'theme-sidebar',
     isMobile 
       ? cn(
           "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl",
@@ -214,6 +214,7 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="absolute -right-3 top-6 bg-white border border-gray-200 text-[#bd0f10] rounded-full p-1 shadow-md hover:text-[#182332] z-50 transition-all"
+          style={virtualRole !== 'superadmin' ? { color: 'var(--club-sidebar-bg)' } : undefined}
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -251,8 +252,8 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                   className={cn(
                     "group flex items-center justify-between py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
                     item.submenu?.some((sub: any) => location.pathname.startsWith(sub.path))
-                      ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                      ? (virtualRole === 'superadmin' ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold" : "theme-sidebar-item-active shadow-lg shadow-black/10")
+                      : (virtualRole === 'superadmin' ? "text-white/80 hover:bg-white/10 hover:text-white" : "theme-sidebar-item")
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >
@@ -278,8 +279,8 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                           cn(
                             "py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
                             isActive
-                              ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
-                              : "text-white/80 hover:bg-white/10 hover:text-white"
+                              ? (virtualRole === 'superadmin' ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold" : "theme-sidebar-item-active shadow-lg shadow-black/10")
+                              : (virtualRole === 'superadmin' ? "text-white/80 hover:bg-white/10 hover:text-white" : "theme-sidebar-item")
                           )
                         }
                       >
@@ -299,8 +300,8 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                   cn(
                     "group flex items-center py-2.5 font-medium rounded-xl transition-all px-3 text-sm",
                     isActive
-                      ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                      ? (virtualRole === 'superadmin' ? "bg-white text-[#bd0f10] shadow-lg shadow-black/10 font-semibold" : "theme-sidebar-item-active shadow-lg shadow-black/10")
+                      : (virtualRole === 'superadmin' ? "text-white/80 hover:bg-white/10 hover:text-white" : "theme-sidebar-item")
                   )
                 }
                 title={isCollapsed ? item.name : undefined}
@@ -319,7 +320,8 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
       <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-4" : "")}>
         {!isCollapsed && (
           <div className="flex items-center mb-4 px-2">
-            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#bd0f10] font-bold text-sm mr-3 flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#bd0f10] font-bold text-sm mr-3 flex-shrink-0"
+                 style={virtualRole !== 'superadmin' ? { color: 'var(--club-sidebar-bg)' } : undefined}>
               {profile?.nombre?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
