@@ -21,6 +21,42 @@ const PLACEHOLDER_VARS = [
   { var: '{{monto}}', desc: 'Monto (para pagos/cartera)' },
 ];
 
+const APP_EMAIL_CONFIG = {
+  resend_api_key: 're_5whxtgXY_9j8nza3AcRscadgvfVqHzGWw',
+  resend_from_email: 'replay-to@fichaje.com.co',
+  template_id_registro: 'bienvenido-fichaje',
+  template_id_recuperacion: 'restaurar_fichaje',
+  template_id_notificaciones: 'bienvenido-fichaje',
+  activar_correos: true
+};
+
+const DEFAULT_TEMPLATES: Record<TipoNotificacionCorreo, { asunto: string; cuerpo: string }> = {
+  cartera: {
+    asunto: 'Recordatorio de Pago Pendiente - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Te recordamos que tienes una cuota o pago pendiente en <strong>{{club}}</strong> por un monto de <strong>{{monto}}</strong>.<br><br>Por favor, realiza el pago correspondiente lo antes posible para mantener tu cuenta al día.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  pagos: {
+    asunto: 'Confirmación de Pago Recibido - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Hemos recibido correctamente tu pago por un monto de <strong>{{monto}}</strong> en <strong>{{club}}</strong>.<br><br>Muchas gracias por tu compromiso y estar al día con tus aportes.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  agenda: {
+    asunto: 'Novedades en tu Agenda - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Te notificamos que hay novedades o actualizaciones en tu agenda en <strong>{{club}}</strong> para la fecha <strong>{{fecha}}</strong>.<br><br>Por favor, ingresa a la plataforma para revisar los detalles.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  entrenamientos: {
+    asunto: 'Actualización de Entrenamiento - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Se ha programado o modificado una sesión de entrenamiento para el día <strong>{{fecha}}</strong> en <strong>{{club}}</strong>.<br><br>¡Te esperamos en la cancha para seguir mejorando!<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  eventos: {
+    asunto: 'Nuevo Evento Programado - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Queremos invitarte al evento programado para el día <strong>{{fecha}}</strong> organizado por <strong>{{club}}</strong>.<br><br>¡Esperamos contar con tu valiosa presencia! Revisa los detalles en la aplicación.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  },
+  partidos: {
+    asunto: 'Convocatoria e Información de Partido - {{club}}',
+    cuerpo: 'Hola {{nombre}},<br><br>Te informamos que hay novedades y detalles sobre el próximo partido de <strong>{{club}}</strong> programado para la fecha <strong>{{fecha}}</strong>.<br><br>Revisa la aplicación para ver la convocatoria oficial y los detalles del encuentro.<br><br>Saludos,<br>El equipo de <strong>{{club}}</strong>'
+  }
+};
+
 export default function NotificacionesTab() {
   const { profile } = useAuth();
   const [plantillas, setPlantillas] = useState<PlantillaCorreo[]>([]);
@@ -89,6 +125,7 @@ export default function NotificacionesTab() {
   });
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [savingConfig, setSavingConfig] = useState(false);
+  const isUsingAppDefaults = !emailConfig.resend_api_key || !emailConfig.resend_from_email;
 
   useEffect(() => {
     if (profile?.club_id) {
@@ -180,9 +217,10 @@ export default function NotificacionesTab() {
 
   const openEditor = (tipo: TipoNotificacionCorreo) => {
     const existing = getPlantilla(tipo);
+    const def = DEFAULT_TEMPLATES[tipo] || { asunto: '', cuerpo: '' };
     setEditForm({
-      asunto: existing?.asunto || '',
-      cuerpo: existing?.cuerpo || ''
+      asunto: existing?.asunto || def.asunto,
+      cuerpo: existing?.cuerpo || def.cuerpo
     });
     setEditingTipo(tipo);
     setPreviewTipo(null);
@@ -231,14 +269,30 @@ export default function NotificacionesTab() {
     }
   };
 
-  const toggleActivo = async (plantilla: PlantillaCorreo) => {
+  const toggleActivo = async (tipo: TipoNotificacionCorreo, plantilla?: PlantillaCorreo) => {
     try {
-      const { error } = await supabase
-        .from('plantillas_correo')
-        .update({ activo: !plantilla.activo, updated_at: new Date().toISOString() })
-        .eq('id', plantilla.id);
+      if (plantilla) {
+        const { error } = await supabase
+          .from('plantillas_correo')
+          .update({ activo: !plantilla.activo, updated_at: new Date().toISOString() })
+          .eq('id', plantilla.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const def = DEFAULT_TEMPLATES[tipo];
+        const payload = {
+          club_id: profile?.club_id,
+          tipo,
+          asunto: def.asunto,
+          cuerpo: def.cuerpo,
+          activo: false
+        };
+        const { error } = await supabase
+          .from('plantillas_correo')
+          .insert(payload);
+
+        if (error) throw error;
+      }
       await fetchPlantillas();
     } catch (err: any) {
       console.error("Error toggling plantilla:", err);
@@ -330,6 +384,18 @@ export default function NotificacionesTab() {
           </div>
         </div>
 
+        {isUsingAppDefaults && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <Server className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-blue-800">Usando Configuración de Fichaje (Por defecto)</p>
+              <p className="text-xs text-blue-600 mt-0.5">
+                Tu club no ha configurado credenciales propias de Resend. El sistema utilizará la cuenta por defecto de Fichaje para enviar las notificaciones y los correos del sistema de manera automática.
+              </p>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSaveConfig} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -339,7 +405,7 @@ export default function NotificacionesTab() {
                 value={emailConfig.resend_api_key}
                 onChange={e => setEmailConfig({ ...emailConfig, resend_api_key: e.target.value })}
                 className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
-                placeholder="re_..."
+                placeholder={APP_EMAIL_CONFIG.resend_api_key ? "re_5whx...VqHzGWw (Por defecto)" : "re_..."}
               />
             </div>
             <div>
@@ -349,7 +415,7 @@ export default function NotificacionesTab() {
                 value={emailConfig.resend_from_email}
                 onChange={e => setEmailConfig({ ...emailConfig, resend_from_email: e.target.value })}
                 className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
-                placeholder="notificaciones@tudominio.com"
+                placeholder={APP_EMAIL_CONFIG.resend_from_email ? `${APP_EMAIL_CONFIG.resend_from_email} (Por defecto)` : "notificaciones@tudominio.com"}
               />
             </div>
           </div>
@@ -366,7 +432,7 @@ export default function NotificacionesTab() {
                   value={emailConfig.template_id_registro}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_registro: e.target.value })}
                   className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
-                  placeholder="re_..."
+                  placeholder={APP_EMAIL_CONFIG.template_id_registro ? `${APP_EMAIL_CONFIG.template_id_registro} (Por defecto)` : "re_..."}
                 />
               </div>
               <div>
@@ -378,7 +444,7 @@ export default function NotificacionesTab() {
                   value={emailConfig.template_id_recuperacion}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_recuperacion: e.target.value })}
                   className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
-                  placeholder="re_..."
+                  placeholder={APP_EMAIL_CONFIG.template_id_recuperacion ? `${APP_EMAIL_CONFIG.template_id_recuperacion} (Por defecto)` : "re_..."}
                 />
               </div>
               <div>
@@ -390,7 +456,7 @@ export default function NotificacionesTab() {
                   value={emailConfig.template_id_notificaciones}
                   onChange={e => setEmailConfig({ ...emailConfig, template_id_notificaciones: e.target.value })}
                   className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all font-mono text-xs"
-                  placeholder="re_..."
+                  placeholder={APP_EMAIL_CONFIG.template_id_notificaciones ? `${APP_EMAIL_CONFIG.template_id_notificaciones} (Por defecto)` : "re_..."}
                 />
               </div>
             </div>
@@ -401,15 +467,21 @@ export default function NotificacionesTab() {
               <div className="relative inline-flex items-center">
                 <input
                   type="checkbox"
-                  checked={emailConfig.activar_correos}
-                  onChange={e => setEmailConfig({ ...emailConfig, activar_correos: e.target.checked })}
+                  checked={isUsingAppDefaults ? true : emailConfig.activar_correos}
+                  disabled={isUsingAppDefaults}
+                  onChange={e => !isUsingAppDefaults && setEmailConfig({ ...emailConfig, activar_correos: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ${isUsingAppDefaults ? 'opacity-60 cursor-not-allowed' : ''}`}></div>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-700">Activar envío de correos</span>
-                <p className="text-xs text-gray-400">Los correos solo se enviarán si esta opción está activa</p>
+                <p className="text-xs text-gray-400">
+                  {isUsingAppDefaults 
+                    ? "Activo por defecto usando la cuenta del aplicativo Fichaje" 
+                    : "Los correos solo se enviarán si esta opción está activa"
+                  }
+                </p>
               </div>
             </label>
             <Button
@@ -439,33 +511,42 @@ export default function NotificacionesTab() {
           {TIPOS_NOTIFICACION.map(({ tipo, label, desc }) => {
             const plantilla = getPlantilla(tipo);
             const isEditing = editingTipo === tipo;
+            const fallbackTemplate = DEFAULT_TEMPLATES[tipo];
 
             return (
               <div key={tipo} className={`border rounded-2xl transition-all ${isEditing ? 'border-purple-300 bg-purple-50/30' : 'border-gray-200'}`}>
                 {!isEditing ? (
                   <div className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold ${plantilla?.activo !== false ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold ${(!plantilla || plantilla.activo !== false) ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
                         {label.charAt(0)}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{label}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{label}</h3>
+                          {!plantilla && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                              Predeterminada
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500">{desc}</p>
-                        {plantilla?.cuerpo && (
-                          <p className="text-xs text-gray-400 mt-1 line-clamp-1">{plantilla.cuerpo.substring(0, 80)}{plantilla.cuerpo.length > 80 ? '...' : ''}</p>
-                        )}
+                        <p className="text-xs text-gray-400 mt-1 line-clamp-1">
+                          {plantilla?.cuerpo 
+                            ? plantilla.cuerpo.replace(/<[^>]*>/g, '').substring(0, 80) + (plantilla.cuerpo.length > 80 ? '...' : '')
+                            : (fallbackTemplate?.cuerpo || '').replace(/<[^>]*>/g, '').substring(0, 80) + ((fallbackTemplate?.cuerpo || '').length > 80 ? '...' : '')
+                          }
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {plantilla && (
-                        <button
-                          onClick={() => setPreviewTipo(previewTipo === tipo ? null : tipo)}
-                          className="p-2 text-gray-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-all"
-                          title="Vista previa"
-                        >
-                          <Eye size={16} />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setPreviewTipo(previewTipo === tipo ? null : tipo)}
+                        className="p-2 text-gray-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-all"
+                        title="Vista previa"
+                      >
+                        <Eye size={16} />
+                      </button>
                       <button
                         onClick={() => openEditor(tipo)}
                         className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
@@ -473,34 +554,30 @@ export default function NotificacionesTab() {
                       >
                         <Edit3 size={16} />
                       </button>
-                      {plantilla?.cuerpo && (
-                        <button
-                          onClick={() => handleSendTest(tipo)}
-                          disabled={sendingTest === tipo}
-                          className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-40"
-                          title="Enviar correo de prueba"
-                        >
-                          {sendingTest === tipo ? (
-                            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                          ) : (
-                            <Mail size={16} />
-                          )}
-                        </button>
-                      )}
-                      {plantilla && (
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={plantilla.activo}
-                            onChange={() => toggleActivo(plantilla)}
-                            className="sr-only peer"
-                          />
-                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      )}
+                      <button
+                        onClick={() => handleSendTest(tipo)}
+                        disabled={sendingTest === tipo}
+                        className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-40"
+                        title="Enviar correo de prueba"
+                      >
+                        {sendingTest === tipo ? (
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <Mail size={16} />
+                        )}
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={plantilla ? plantilla.activo : true}
+                          onChange={() => toggleActivo(tipo, plantilla)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
                     </div>
                   </div>
                 ) : (
@@ -525,7 +602,7 @@ export default function NotificacionesTab() {
                       <label className="block text-xs font-semibold text-gray-700 mb-1.5">Cuerpo del correo</label>
                       <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#CCFF00]">
                         <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-gray-200">
-                          <button type="button" onClick={() => wrapTag('<strong>', '</strong>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Negrita"><Bold size= {15} /></button>
+                          <button type="button" onClick={() => wrapTag('<strong>', '</strong>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Negrita"><Bold size={15} /></button>
                           <button type="button" onClick={() => wrapTag('<em>', '</em>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Cursiva"><Italic size={15} /></button>
                           <button type="button" onClick={() => wrapTag('<u>', '</u>')} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-all" title="Subrayado"><Underline size={15} /></button>
                           <span className="w-px h-5 bg-gray-200 mx-1" />
@@ -581,13 +658,15 @@ export default function NotificacionesTab() {
                   </form>
                 )}
 
-                {previewTipo === tipo && plantilla?.cuerpo && (
+                {previewTipo === tipo && (
                   <div className="border-t border-gray-100 p-4 bg-gray-50/50">
                     <div className="max-w-lg mx-auto bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                       <div className="bg-gray-100 px-5 py-3 border-b border-gray-200">
-                        <p className="text-xs font-semibold text-gray-500">{plantilla.asunto || '(Sin asunto)'}</p>
+                        <p className="text-xs font-semibold text-gray-500">
+                          {plantilla?.asunto || fallbackTemplate?.asunto || '(Sin asunto)'}
+                        </p>
                       </div>
-                      <div className="p-5 text-sm text-gray-700 [&_a]:text-purple-600 [&_a]:underline [&_strong]:font-semibold" dangerouslySetInnerHTML={{ __html: previewCuerpo(plantilla.cuerpo) }} />
+                      <div className="p-5 text-sm text-gray-700 [&_a]:text-purple-600 [&_a]:underline [&_strong]:font-semibold" dangerouslySetInnerHTML={{ __html: previewCuerpo(plantilla?.cuerpo || fallbackTemplate?.cuerpo || '') }} />
                     </div>
                   </div>
                 )}
