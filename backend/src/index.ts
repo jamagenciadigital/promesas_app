@@ -617,6 +617,8 @@ app.post('/auth/v1/signup', async (req, res) => {
       last_sign_in_at: now,
       raw_app_meta_data: { provider: 'email', providers: ['email'] },
       raw_user_meta_data: userMetadata,
+      app_metadata: { provider: 'email', providers: ['email'] },
+      user_metadata: userMetadata,
       created_at: now,
       updated_at: now
     };
@@ -657,9 +659,8 @@ app.post('/auth/v1/signup', async (req, res) => {
   }
 });
 
-// AUTH LOGIN / TOKEN
 app.post('/auth/v1/token', async (req, res) => {
-  const grantType = req.query.grant_type;
+  const grantType = req.query.grant_type || req.body?.grant_type;
   
   if (grantType === 'password') {
     const { email, password } = req.body;
@@ -669,7 +670,7 @@ app.post('/auth/v1/token', async (req, res) => {
 
     try {
       const users = await prisma.$queryRawUnsafe<any[]>(
-        'SELECT * FROM auth.users WHERE email = $1 LIMIT 1',
+        'SELECT * FROM auth.users WHERE LOWER(email) = LOWER($1) LIMIT 1',
         email
       );
 
@@ -709,6 +710,8 @@ app.post('/auth/v1/token', async (req, res) => {
         last_sign_in_at: now,
         raw_app_meta_data: dbUser.raw_app_meta_data || {},
         raw_user_meta_data: dbUser.raw_user_meta_data || {},
+        app_metadata: dbUser.raw_app_meta_data || {},
+        user_metadata: dbUser.raw_user_meta_data || {},
         created_at: dbUser.created_at,
         updated_at: dbUser.updated_at
       };
@@ -817,6 +820,8 @@ app.get('/auth/v1/user', async (req, res) => {
       last_sign_in_at: dbUser.last_sign_in_at,
       raw_app_meta_data: dbUser.raw_app_meta_data,
       raw_user_meta_data: dbUser.raw_user_meta_data,
+      app_metadata: dbUser.raw_app_meta_data,
+      user_metadata: dbUser.raw_user_meta_data,
       created_at: dbUser.created_at,
       updated_at: dbUser.updated_at
     });
@@ -925,10 +930,13 @@ app.all('/rest/v1/:table', async (req, res) => {
   
   const actionMap: Record<string, string> = {
     get: 'select',
+    head: 'select',
     post: 'insert',
     patch: 'update',
     delete: 'delete'
   };
+  
+  const isHead = method === 'head';
   
   const action = actionMap[method];
   if (!action) {
@@ -1032,6 +1040,14 @@ app.all('/rest/v1/:table', async (req, res) => {
     }
 
     const statusCode = action === 'insert' ? 201 : 200;
+    if (isHead) {
+      return res.status(statusCode).end();
+    }
+
+    if (acceptHeader.includes('vnd.pgrst.object+json') && result.data === null) {
+      return res.status(404).json({ error: 'JSON object requested, but 0 rows were returned' });
+    }
+
     return res.status(statusCode).json(result.data);
   } catch (error: any) {
     console.error(`Error in /rest/v1/${table}:`, error);

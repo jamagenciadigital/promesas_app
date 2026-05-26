@@ -85,7 +85,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
               step={0.1}
               aria-labelledby="Zoom"
               onChange={(e) => onZoomChange(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 dark:bg-[#26282e] rounded-lg appearance-none cursor-pointer accent-[#CCFF00]"
+              className="w-full h-2 bg-gray-200 dark:bg-[#26282e] rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
             />
           </div>
 
@@ -101,7 +101,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             <Button 
               type="button" 
               onClick={handleCrop}
-              className="flex-1 bg-gray-900 dark:bg-[#CCFF00] dark:text-gray-900"
+              className="flex-1 bg-gray-900 dark:bg-[var(--primary)] dark:text-gray-900"
             >
               Aplicar Recorte
             </Button>

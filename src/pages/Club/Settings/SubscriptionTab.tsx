@@ -188,8 +188,8 @@ export default function SubscriptionTab() {
     <div className="p-[1.2rem] max-w-5xl mx-auto space-y-6 animate-in fade-in pb-24">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#CCFF00]/10 rounded-lg">
-            <ShieldCheck className="w-6 h-6 text-[#CCFF00]" />
+          <div className="p-2 bg-[var(--primary-10)] rounded-lg">
+            <ShieldCheck className="w-6 h-6 text-[var(--primary)]" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[#182332] tracking-tight">Suscripción y Planes</h2>
@@ -222,12 +222,12 @@ export default function SubscriptionTab() {
       {/* TU PLAN B2B (Administrativo) */}
       {b2bPlan && (
         <div className="bg-gradient-to-br from-[#182332] to-black text-white rounded-[32px] p-8 border border-white/5 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#CCFF00]/5 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-5)] blur-[80px] -mr-32 -mt-32 rounded-full"></div>
           
           <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
             <div className="space-y-4 flex-1">
               <div className="flex items-center gap-2">
-                <span className="bg-[#CCFF00]/10 text-[#CCFF00] text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-[#CCFF00]/20 italic">
+                <span className="bg-[var(--primary-10)] text-[var(--primary)] text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-[var(--primary-20)] italic">
                   Tu Plan Administrativo
                 </span>
               </div>
@@ -246,7 +246,7 @@ export default function SubscriptionTab() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Max Deportistas</p>
-                  <p className="text-xl font-bold text-[#CCFF00] italic">{b2bPlan.limite_jugadores === -1 ? 'Ilimitado' : b2bPlan.limite_jugadores}</p>
+                  <p className="text-xl font-bold text-[var(--primary)] italic">{b2bPlan.limite_jugadores === -1 ? 'Ilimitado' : b2bPlan.limite_jugadores}</p>
                 </div>
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function SubscriptionTab() {
             <div className="shrink-0 text-center xl:text-right border-t xl:border-t-0 xl:border-l border-white/10 pt-6 xl:pt-0 xl:pl-10">
               <p className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1.5">Inversión Mensual</p>
               <div className="flex items-end justify-center xl:justify-end gap-1.5">
-                <span className="text-4xl font-black text-[#CCFF00] italic leading-none">
+                <span className="text-4xl font-black text-[var(--primary)] italic leading-none">
                   {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(b2bPlan.precio)}
                 </span>
                 <span className="text-[10px] font-bold text-white/60 uppercase mb-1">/ mes</span>
@@ -278,10 +278,10 @@ export default function SubscriptionTab() {
           plans.map((plan) => (
             <div 
               key={plan.id}
-              className={`bg-white rounded-2xl border p-6 relative group hover:border-[#CCFF00] transition-all shadow-sm hover:shadow-lg ${plan.periodo === 'Único' ? 'border-[#CCFF00]/40 ring-1 ring-[#CCFF00]/10' : 'border-gray-100'}`}
+              className={`bg-white rounded-2xl border p-6 relative group hover:border-[var(--primary)] transition-all shadow-sm hover:shadow-lg ${plan.periodo === 'Único' ? 'border-[var(--primary-40)] ring-1 ring-[var(--primary-10)]' : 'border-gray-100'}`}
             >
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-2 rounded-lg ${plan.periodo === 'Único' ? 'bg-[#CCFF00]/10 text-[#CCFF00]' : 'bg-gray-50 text-gray-400'}`}>
+                <div className={`p-2 rounded-lg ${plan.periodo === 'Único' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'bg-gray-50 text-gray-400'}`}>
                   {plan.periodo === 'Único' ? <Wallet className="w-5 h-5" /> : <Package className="w-5 h-5" />}
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -303,7 +303,7 @@ export default function SubscriptionTab() {
               <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.nombre}</h3>
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-medium uppercase tracking-widest text-[10px]">
                 {plan.periodo === 'Único' ? (
-                   <span className="flex items-center gap-1.5 text-[#CCFF00] bg-[#CCFF00]/10 px-2 py-0.5 rounded-md">
+                   <span className="flex items-center gap-1.5 text-[var(--primary)] bg-[var(--primary-10)] px-2 py-0.5 rounded-md">
                      <ShieldCheck size={12} /> INSCRIPCIÓN (ÚNICO PAGO)
                    </span>
                 ) : (
@@ -359,12 +359,12 @@ export default function SubscriptionTab() {
                       onClick={() => setPlanForm({ ...planForm, periodo: p.value })}
                       className={`flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold border-2 transition-all ${
                         planForm.periodo === p.value
-                          ? 'bg-[#CCFF00]/10 border-[#CCFF00] text-gray-900'
+                          ? 'bg-[var(--primary-10)] border-[var(--primary)] text-gray-900'
                           : 'bg-gray-50 border-transparent text-gray-500 hover:border-gray-200'
                       }`}
                     >
                       <span>{p.label}</span>
-                      {p.value === 'Único' && <Wallet size={16} className="text-[#CCFF00]" />}
+                      {p.value === 'Único' && <Wallet size={16} className="text-[var(--primary)]" />}
                     </button>
                   ))}
                 </div>
@@ -394,7 +394,7 @@ export default function SubscriptionTab() {
                 <Button
                   type="submit"
                   isLoading={saving}
-                  className="flex-1 bg-black text-[#CCFF00] font-black uppercase tracking-widest text-xs h-12 rounded-xl"
+                  className="flex-1 bg-black text-[var(--primary)] font-black uppercase tracking-widest text-xs h-12 rounded-xl"
                 >
                   {editingPlan ? 'Actualizar' : 'Crear Plan'}
                 </Button>

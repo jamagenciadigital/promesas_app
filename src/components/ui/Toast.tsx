@@ -22,13 +22,13 @@ export function Toast({ message, type = 'success', onClose, duration = 4000 }: T
   };
 
   const styles = {
-    success: 'bg-black/90 border-[#CCFF00]/20 text-white',
+    success: 'bg-black/90 border-[var(--primary-20)] text-white',
     error: 'bg-red-500/90 border-red-500/20 text-white',
     info: 'bg-blue-600/90 border-blue-400/20 text-white'
   };
 
   const iconStyles = {
-    success: 'bg-[#CCFF00] text-black',
+    success: 'bg-[var(--primary)] text-black',
     error: 'bg-white/20 text-white',
     info: 'bg-white/20 text-white'
   };

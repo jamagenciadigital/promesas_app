@@ -256,7 +256,7 @@ export default function ClubNewReservation() {
   if (loading && step === 1 && !selectedTeam) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -269,7 +269,7 @@ export default function ClubNewReservation() {
               const basePath = profile?.rol === 'admin_equipo' ? '/coordinator' : 
                              profile?.rol === 'entrenador' ? '/coach' : '/club';
               navigate(`${basePath}/reservations`);
-          }} className="p-3 bg-gray-100 dark:bg-white/5 hover:bg-[#CCFF00] hover:text-black rounded-xl transition-all border border-transparent dark:border-white/10">
+          }} className="p-3 bg-gray-100 dark:bg-white/5 hover:bg-[var(--primary)] hover:text-black rounded-xl transition-all border border-transparent dark:border-white/10">
              <ArrowLeft size={20} />
           </button>
           <div>
@@ -293,7 +293,7 @@ export default function ClubNewReservation() {
       <div className="grid grid-cols-4 gap-4 mb-8">
           {STEPS.map((s) => (
               <div key={s.id} className="relative">
-                  <div className={`h-1.5 rounded-full transition-all duration-700 ${step >= s.id ? 'bg-black dark:bg-[#CCFF00]' : 'bg-gray-200 dark:bg-white/10'}`} />
+                  <div className={`h-1.5 rounded-full transition-all duration-700 ${step >= s.id ? 'bg-black dark:bg-[var(--primary)]' : 'bg-gray-200 dark:bg-white/10'}`} />
                   <div className="mt-3 hidden md:block">
                       <p className={`text-[9px] font-black uppercase tracking-widest ${step >= s.id ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>{s.title}</p>
                   </div>
@@ -311,7 +311,7 @@ export default function ClubNewReservation() {
                           <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">1. Equipo Responsable</h3>
                           <div className="space-y-4">
                               <select 
-                                  className="w-full h-16 pl-6 pr-12 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-black dark:focus:ring-[#CCFF00] appearance-none cursor-pointer border border-gray-200 dark:border-transparent"
+                                  className="w-full h-16 pl-6 pr-12 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-black dark:focus:ring-[var(--primary)] appearance-none cursor-pointer border border-gray-200 dark:border-transparent"
                                   value={selectedTeam?.id || ''}
                                   onChange={(e) => handleTeamChange(e.target.value)}
                               >
@@ -336,7 +336,7 @@ export default function ClubNewReservation() {
 
                               {selectedTeam && !loading && coachData && (
                                 <div className="bg-gray-50 dark:bg-black/40 p-6 rounded-3xl border border-gray-200 dark:border-white/5 relative mt-4 animate-in fade-in zoom-in-95">
-                                    <div className="absolute top-4 right-4"><Building2 className="w-5 h-5 text-[#CCFF00]" /></div>
+                                    <div className="absolute top-4 right-4"><Building2 className="w-5 h-5 text-[var(--primary)]" /></div>
                                     <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-gray-200 dark:border-white/5 pb-2">Datos del Responsable (Mánager/Coach)</p>
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-white/5 overflow-hidden flex items-center justify-center shrink-0">
@@ -362,12 +362,12 @@ export default function ClubNewReservation() {
                               </div>
                           ) : escenarios.length > 0 ? (
                               <div className="space-y-4">
-                                  <p className="text-[10px] font-bold text-gray-600 dark:text-gray-400 border-l-2 border-black dark:border-[#CCFF00] pl-3 italic leading-relaxed">
+                                  <p className="text-[10px] font-bold text-gray-600 dark:text-gray-400 border-l-2 border-black dark:border-[var(--primary)] pl-3 italic leading-relaxed">
                                       Mostrando escenarios compatibles con la disciplina.
                                   </p>
                                   <div className="relative">
                                       <select 
-                                          className="w-full h-16 pl-6 pr-12 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-black dark:focus:ring-[#CCFF00] appearance-none cursor-pointer border border-gray-200 dark:border-transparent"
+                                          className="w-full h-16 pl-6 pr-12 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-black dark:focus:ring-[var(--primary)] appearance-none cursor-pointer border border-gray-200 dark:border-transparent"
                                           value={selectedEscenario?.id || ''}
                                           onChange={(e) => handleEscenarioChange(e.target.value)}
                                       >
@@ -382,8 +382,8 @@ export default function ClubNewReservation() {
                                   </div>
                                   
                                   {selectedEscenario && (
-                                     <div className="p-4 bg-gray-100 dark:bg-[#CCFF00]/10 border border-gray-200 dark:border-[#CCFF00]/20 rounded-2xl flex items-center gap-4 animate-in fade-in zoom-in-95">
-                                         <div className="w-10 h-10 bg-white dark:bg-[#CCFF00] rounded-xl flex items-center justify-center shrink-0">
+                                     <div className="p-4 bg-gray-100 dark:bg-[var(--primary-10)] border border-gray-200 dark:border-[var(--primary-20)] rounded-2xl flex items-center gap-4 animate-in fade-in zoom-in-95">
+                                         <div className="w-10 h-10 bg-white dark:bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0">
                                             <MapPin size={20} className="text-black" />
                                          </div>
                                          <div>
@@ -406,7 +406,7 @@ export default function ClubNewReservation() {
                       <Button 
                           disabled={!step1Validation()}
                           onClick={() => setStep(2)}
-                          className={`bg-black ${step1Validation() ? 'dark:bg-[#CCFF00] dark:text-black hover:scale-[1.02]' : 'dark:bg-white/10 dark:text-gray-500 text-gray-400 opacity-50'} text-white font-black uppercase italic px-10 h-14 rounded-2xl shadow-xl transition-transform gap-3`}
+                          className={`bg-black ${step1Validation() ? 'dark:bg-[var(--primary)] dark:text-black hover:scale-[1.02]' : 'dark:bg-white/10 dark:text-gray-500 text-gray-400 opacity-50'} text-white font-black uppercase italic px-10 h-14 rounded-2xl shadow-xl transition-transform gap-3`}
                       >
                           Validar Disponibilidad <ChevronRight size={18} />
                       </Button>
@@ -420,15 +420,15 @@ export default function ClubNewReservation() {
                   <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap justify-between items-center bg-gray-50 dark:bg-black/40 p-6 rounded-3xl border border-gray-100 dark:border-white/5 gap-6">
                       <div className="text-center md:text-left">
                           <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">{selectedEscenario?.nombre}</h2>
-                          <p className="text-black dark:text-[#CCFF00] text-[10px] font-black uppercase tracking-widest mt-1">
+                          <p className="text-black dark:text-[var(--primary)] text-[10px] font-black uppercase tracking-widest mt-1">
                               Semana del {startOfWeek.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                           </p>
                       </div>
                       <div className="flex items-center gap-3">
-                           <button onClick={() => changeWeek(-1)} className="p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-black dark:hover:bg-[#CCFF00] hover:text-white dark:hover:text-black rounded-xl transition-all">
+                           <button onClick={() => changeWeek(-1)} className="p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-black dark:hover:bg-[var(--primary)] hover:text-white dark:hover:text-black rounded-xl transition-all">
                                <ChevronLeftIcon size={18} />
                            </button>
-                           <button onClick={() => changeWeek(1)} className="p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-black dark:hover:bg-[#CCFF00] hover:text-white dark:hover:text-black rounded-xl transition-all">
+                           <button onClick={() => changeWeek(1)} className="p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-black dark:hover:bg-[var(--primary)] hover:text-white dark:hover:text-black rounded-xl transition-all">
                                <ChevronRightIcon size={18} />
                            </button>
                       </div>
@@ -444,7 +444,7 @@ export default function ClubNewReservation() {
                           return (
                               <div key={idx} className="flex flex-col min-w-0">
                                   <div className={`text-center py-4 rounded-2xl border mb-3 shadow-sm ${
-                                      isToday ? 'bg-black dark:bg-[#CCFF00] border-black dark:border-[#CCFF00] text-white dark:text-black shadow-lg' : 'bg-white dark:bg-black/20 border-gray-100 dark:border-white/5 text-gray-900 dark:text-white'
+                                      isToday ? 'bg-black dark:bg-[var(--primary)] border-black dark:border-[var(--primary)] text-white dark:text-black shadow-lg' : 'bg-white dark:bg-black/20 border-gray-100 dark:border-white/5 text-gray-900 dark:text-white'
                                   }`}>
                                       <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{dayName}</p>
                                       <p className="text-2xl font-black italic tracking-tighter leading-none">{date.getDate()}</p>
@@ -468,12 +468,12 @@ export default function ClubNewReservation() {
                                                   }}
                                                   className={`relative p-3 rounded-xl border transition-all text-left overflow-hidden ${
                                                       occupied ? 'bg-gray-100 dark:bg-white/5 border-transparent opacity-40 cursor-not-allowed' :
-                                                      isSelected ? 'bg-black dark:bg-[#CCFF00] border-black dark:border-[#CCFF00] text-white dark:text-black shadow-md scale-105 z-10' :
-                                                      'bg-white dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-600 dark:text-gray-400 hover:border-black dark:hover:border-[#CCFF00]/50 hover:bg-gray-50 dark:hover:bg-[#CCFF00]/5'
+                                                      isSelected ? 'bg-black dark:bg-[var(--primary)] border-black dark:border-[var(--primary)] text-white dark:text-black shadow-md scale-105 z-10' :
+                                                      'bg-white dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-600 dark:text-gray-400 hover:border-black dark:hover:border-[var(--primary-50)] hover:bg-gray-50 dark:hover:bg-[var(--primary-5)]'
                                                   }`}
                                               >
                                                   <div className="flex items-center gap-2 mb-1">
-                                                      <Clock size={12} className={isSelected ? 'text-[#CCFF00] dark:text-black' : 'text-gray-400'} />
+                                                      <Clock size={12} className={isSelected ? 'text-[var(--primary)] dark:text-black' : 'text-gray-400'} />
                                                       <p className="text-[11px] font-black uppercase tracking-wide">{h.hora_inicio.substring(0,5)}</p>
                                                   </div>
                                                   {!occupied && <p className={`text-[9px] font-bold tracking-wider ${isSelected ? 'text-gray-300 dark:text-gray-800' : 'text-gray-400'}`}>
@@ -500,7 +500,7 @@ export default function ClubNewReservation() {
                               <span className="text-2xl font-black italic">{selectedSlots.length}</span>
                               <span className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Bloques</span>
                               <span className="text-2xl text-gray-300 mx-2 font-thin leading-none">/</span>
-                              <span className="text-3xl font-black text-black dark:text-[#CCFF00] italic">
+                              <span className="text-3xl font-black text-black dark:text-[var(--primary)] italic">
                                   ${selectedSlots.reduce((a,c) => a+c.precio, 0).toLocaleString()}
                               </span>
                           </div>
@@ -509,7 +509,7 @@ export default function ClubNewReservation() {
                           <button onClick={() => setStep(1)} className="px-6 h-14 rounded-2xl border border-gray-200 dark:border-white/10 font-black text-[10px] uppercase hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 transition-all flex items-center">
                               Retroceder
                           </button>
-                          <Button disabled={selectedSlots.length === 0} onClick={() => setStep(3)} className="bg-black dark:bg-[#CCFF00] text-white dark:text-black font-black uppercase italic px-10 h-14 rounded-2xl shadow-xl flex-1 md:flex-none">
+                          <Button disabled={selectedSlots.length === 0} onClick={() => setStep(3)} className="bg-black dark:bg-[var(--primary)] text-white dark:text-black font-black uppercase italic px-10 h-14 rounded-2xl shadow-xl flex-1 md:flex-none">
                               Proceder al Pago
                           </Button>
                       </div>
@@ -521,8 +521,8 @@ export default function ClubNewReservation() {
           {step === 3 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-right-10">
                   <div className="text-center">
-                      <div className="inline-block px-10 py-5 bg-gray-100 dark:bg-[#CCFF00]/10 border border-gray-200 dark:border-[#CCFF00]/20 rounded-3xl mb-4">
-                          <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-[#CCFF00] italic tracking-tighter">
+                      <div className="inline-block px-10 py-5 bg-gray-100 dark:bg-[var(--primary-10)] border border-gray-200 dark:border-[var(--primary-20)] rounded-3xl mb-4">
+                          <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-[var(--primary)] italic tracking-tighter">
                               ${selectedSlots.reduce((a,c) => a+c.precio, 0).toLocaleString()}
                           </h2>
                           <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">Costo para el Club</p>
@@ -533,7 +533,7 @@ export default function ClubNewReservation() {
                       {/* Instrucciones */}
                       <div className="md:col-span-3 bg-gray-50 dark:bg-black/40 p-8 rounded-[32px] border border-gray-100 dark:border-white/5 space-y-6">
                           <div className="flex items-center gap-4 border-b border-gray-200 dark:border-white/5 pb-6">
-                              <ShieldCheck size={32} className="text-black dark:text-[#CCFF00]" />
+                              <ShieldCheck size={32} className="text-black dark:text-[var(--primary)]" />
                               <div>
                                   <p className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest italic">Anexar Soporte Administrativo</p>
                                   <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase">Paga usando la info del escenario u omite anexando soporte oficial</p>
@@ -542,8 +542,8 @@ export default function ClubNewReservation() {
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {selectedEscenario?.link_pago ? (
-                                  <a href={selectedEscenario.link_pago} target="_blank" rel="noreferrer" className="flex flex-col gap-4 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-black dark:hover:border-[#CCFF00] transition-colors group">
-                                      <div className="w-12 h-12 bg-gray-50 dark:bg-black/50 rounded-2xl flex items-center justify-center group-hover:bg-black dark:group-hover:bg-[#CCFF00] group-hover:text-white dark:group-hover:text-black transition-colors">
+                                  <a href={selectedEscenario.link_pago} target="_blank" rel="noreferrer" className="flex flex-col gap-4 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-black dark:hover:border-[var(--primary)] transition-colors group">
+                                      <div className="w-12 h-12 bg-gray-50 dark:bg-black/50 rounded-2xl flex items-center justify-center group-hover:bg-black dark:group-hover:bg-[var(--primary)] group-hover:text-white dark:group-hover:text-black transition-colors">
                                           <LinkIcon size={24} className="text-gray-400 group-hover:text-inherit" />
                                       </div>
                                       <div>
@@ -592,7 +592,7 @@ export default function ClubNewReservation() {
                                   isLoading={submitting}
                                   disabled={!receiptUrl || submitting}
                                   onClick={handleReservationSubmit}
-                                  className="w-full bg-black dark:bg-[#CCFF00] text-white dark:text-black font-black uppercase italic h-16 rounded-[24px] shadow-xl text-sm gap-3 group"
+                                  className="w-full bg-black dark:bg-[var(--primary)] text-white dark:text-black font-black uppercase italic h-16 rounded-[24px] shadow-xl text-sm gap-3 group"
                               >
                                   Confirmar Operación <CheckCircle2 size={18} className="group-hover:scale-110 transition-transform" />
                               </Button>
@@ -620,7 +620,7 @@ export default function ClubNewReservation() {
                       const basePath = profile?.rol === 'admin_equipo' ? '/coordinator' : 
                                      profile?.rol === 'entrenador' ? '/coach' : '/club';
                       navigate(`${basePath}/reservations`);
-                  }} className="bg-black dark:bg-[#CCFF00] text-white dark:text-black hover:scale-[1.02] active:scale-95 font-black uppercase px-12 h-14 rounded-[24px] italic tracking-wider transition-all shadow-xl gap-2">
+                  }} className="bg-black dark:bg-[var(--primary)] text-white dark:text-black hover:scale-[1.02] active:scale-95 font-black uppercase px-12 h-14 rounded-[24px] italic tracking-wider transition-all shadow-xl gap-2">
                       <CalendarIcon size={16} /> Ver Reservas
                   </Button>
               </div>

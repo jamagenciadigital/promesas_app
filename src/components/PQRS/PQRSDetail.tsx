@@ -140,7 +140,7 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-white/40 uppercase tracking-widest italic">{pqrs.codigo}</span>
                 <h2 className="text-2xl font-black text-white uppercase italic tracking-tight flex items-center gap-3">
-                  <MessageSquare className="text-[#CCFF00]" />
+                  <MessageSquare className="text-[var(--primary)]" />
                   {TIPO_LABELS[pqrs.tipo]}
                 </h2>
               </div>
@@ -160,7 +160,7 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
                 rel="noreferrer"
                 className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group"
               >
-                <div className="p-2 bg-black rounded-xl text-gray-400 group-hover:text-[#CCFF00]">
+                <div className="p-2 bg-black rounded-xl text-gray-400 group-hover:text-[var(--primary)]">
                   <Paperclip size={18} />
                 </div>
                 <div className="flex-1">
@@ -173,10 +173,10 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
 
           {/* Respuesta del Destinatario */}
           {(pqrs.respuesta || isDestinatario) && (
-            <div className={`p-8 rounded-[40px] border-2 space-y-6 ${pqrs.respuesta && pqrs.estado !== 'en_revision' ? 'bg-white/5 border-transparent' : 'bg-[#CCFF00]/5 border-[#CCFF00]/20'}`}>
+            <div className={`p-8 rounded-[40px] border-2 space-y-6 ${pqrs.respuesta && pqrs.estado !== 'en_revision' ? 'bg-white/5 border-transparent' : 'bg-[var(--primary-5)] border-[var(--primary-20)]'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Send className="text-[#CCFF00]" size={20} />
+                  <Send className="text-[var(--primary)]" size={20} />
                   <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] italic">
                     {pqrs.estado === 'en_revision' && pqrs.respuesta ? 'Nueva Respuesta (Seguimiento)' : 'Respuesta del Encargado'}
                   </h3>
@@ -212,12 +212,12 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
                     value={respuesta}
                     onChange={(e) => setRespuesta(e.target.value)}
                     placeholder={pqrs.respuesta ? "Escribe una nueva respuesta para el seguimiento..." : "Escribe aquí tu respuesta oficial..."}
-                    className="w-full bg-black/40 border-2 border-transparent focus:border-[#CCFF00]/40 rounded-3xl p-6 text-sm text-white outline-none min-h-[150px] resize-none transition-all"
+                    className="w-full bg-black/40 border-2 border-transparent focus:border-[var(--primary-40)] rounded-3xl p-6 text-sm text-white outline-none min-h-[150px] resize-none transition-all"
                   />
                   <Button
                     onClick={handleResponder}
                     isLoading={loading}
-                    className="w-full h-14 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl"
+                    className="w-full h-14 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl"
                   >
                     {pqrs.respuesta ? 'Enviar Nueva Respuesta' : 'Enviar Respuesta Oficial'}
                   </Button>
@@ -228,7 +228,7 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
 
           {/* Feedback del Usuario */}
           {pqrs.estado === 'respondida' && isOwner && !pqrs.feedback_usuario && (
-            <div className="p-8 bg-black border-2 border-[#CCFF00]/20 rounded-[40px] space-y-6">
+            <div className="p-8 bg-black border-2 border-[var(--primary-20)] rounded-[40px] space-y-6">
               <div className="text-center space-y-2">
                 <h3 className="text-sm font-black text-white uppercase italic">¿Estás satisfecho con la respuesta?</h3>
                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Tu feedback ayuda a mejorar el servicio</p>
@@ -333,8 +333,8 @@ export default function PQRSDetail({ pqrs, onBack, onUpdate }: PQRSDetailProps) 
             </div>
           </div>
 
-          <div className="bg-[#CCFF00]/5 border border-[#CCFF00]/10 p-6 rounded-[32px] space-y-4">
-            <div className="flex items-center gap-2 text-[#CCFF00]">
+          <div className="bg-[var(--primary-5)] border border-[var(--primary-10)] p-6 rounded-[32px] space-y-4">
+            <div className="flex items-center gap-2 text-[var(--primary)]">
               <AlertCircle size={16} />
               <span className="text-[10px] font-black uppercase italic">Estado de Seguimiento</span>
             </div>

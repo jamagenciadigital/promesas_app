@@ -1,42 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Bell, Moon, Sun, Shield, LogOut, Sparkles, Globe, Check } from 'lucide-react';
+import { Menu, Shield, LogOut, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useDarkMode } from '../../hooks/useDarkMode';
 import { useLanguage } from '../../context/LanguageContext';
 import { Link } from 'react-router-dom';
 import NotificationPopover from '../Notifications/NotificationPopover';
-import { supabase } from '../../lib/supabase';
 
 interface HeaderProps {
   onMenuClick?: () => void;
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { profile, user, activeClubId, signOut } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { profile, user, signOut } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
-  const [clubInfo, setClubInfo] = useState<{ nombre: string; logo_url?: string } | null>(null);
-
-  useEffect(() => {
-    if (activeClubId) {
-      supabase
-        .from('clubes')
-        .select('nombre, logo_url')
-        .eq('id', activeClubId)
-        .single()
-        .then(({ data, error }) => {
-          if (!error && data) {
-            setClubInfo(data);
-          }
-        });
-    } else {
-      setClubInfo(null);
-    }
-  }, [activeClubId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,19 +79,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <Menu className="h-6 w-6" />
         </button>
         <div className="ml-4 md:ml-0 flex-1 flex items-center gap-3">
-          {profile?.rol !== 'superadmin' && clubInfo?.logo_url && (
-            <img 
-              src={getDirectImageUrl(clubInfo.logo_url)} 
-              alt={clubInfo.nombre} 
-              className="w-8 h-8 md:w-10 md:h-10 rounded-xl object-contain bg-gray-50 border border-gray-100 p-1"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          )}
-          {profile?.rol !== 'superadmin' && clubInfo && (
-            <h1 className="text-sm md:text-base font-bold text-[#182332] uppercase tracking-wide line-clamp-1">
-              {clubInfo.nombre}
-            </h1>
-          )}
+          <img src="/assets/LogoHorizontal.png" alt="Fichaje" className="h-7 object-contain"
+               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         </div>
       </div>
 

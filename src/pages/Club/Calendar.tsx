@@ -802,7 +802,7 @@ export default function Calendar() {
                {t('common.cancel')}
              </Button>
              <Button 
-                className="bg-[#CCFF00] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest px-8 shadow-lg shadow-[#CCFF00]/20"
+                className="bg-[var(--primary)] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest px-8 shadow-lg shadow-[var(--primary-20)]"
                 onClick={handleSaveAttendance}
                 isLoading={saving}
              >
@@ -815,7 +815,7 @@ export default function Calendar() {
           {/* Panel Lateral: Información de la Sesión */}
           <div className="xl:col-span-1 space-y-6">
             <div className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-8 space-y-6">
-              <div className="bg-[#CCFF00]/5 p-6 rounded-3xl border border-[#CCFF00]/10 space-y-4">
+              <div className="bg-[var(--primary-5)] p-6 rounded-3xl border border-[var(--primary-10)] space-y-4">
                 <div>
                   <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase italic leading-tight">
                     {planningForEvent?.titulo || selectedEvent?.titulo}
@@ -829,12 +829,12 @@ export default function Calendar() {
                 </div>
 
                 {planningForEvent && planningForEvent.objetivos?.length > 0 && (
-                  <div className="pt-4 border-t border-[#CCFF00]/10">
-                    <p className="text-[10px] font-black text-[#CCFF00] uppercase mb-3 italic tracking-widest">Objetivos de la Sesión</p>
+                  <div className="pt-4 border-t border-[var(--primary-10)]">
+                    <p className="text-[10px] font-black text-[var(--primary)] uppercase mb-3 italic tracking-widest">Objetivos de la Sesión</p>
                     <div className="flex flex-col gap-2">
                       {planningForEvent.objetivos.map((obj: any, i: number) => (
                         <div key={i} className="bg-white/50 dark:bg-black/20 p-3 rounded-2xl border border-white/5 flex items-start gap-3">
-                          <div className="w-5 h-5 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-[10px] font-bold flex-shrink-0">
+                          <div className="w-5 h-5 rounded-full bg-[var(--primary)] flex items-center justify-center text-black text-[10px] font-bold flex-shrink-0">
                             {i + 1}
                           </div>
                           <span className="text-xs font-bold text-gray-700 dark:text-gray-200">{obj.text}</span>
@@ -881,17 +881,17 @@ export default function Calendar() {
                   <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-3xl border border-transparent">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 italic">Promedio Gral.</p>
                     <div className="flex items-center gap-3">
-                      <p className="text-3xl font-black text-[#CCFF00]">
+                      <p className="text-3xl font-black text-[var(--primary)]">
                         {attendanceData.filter(a => ['presente', 'tarde'].includes(a.estado)).length > 0
                           ? Math.round(attendanceData.filter(a => ['presente', 'tarde'].includes(a.estado)).reduce((acc, curr) => acc + (curr.puntaje_total || 0), 0) / attendanceData.filter(a => ['presente', 'tarde'].includes(a.estado)).length)
                           : 0}%
                       </p>
-                      <Trophy size={20} className="text-[#CCFF00] opacity-50" />
+                      <Trophy size={20} className="text-[var(--primary)] opacity-50" />
                     </div>
                   </div>
                   
                   {attendanceData.filter(a => a.estado === 'presente' && (a.puntaje_total || 0) > 0).length > 0 && (
-                    <div className="bg-[#CCFF00] p-4 rounded-3xl border border-transparent shadow-lg shadow-[#CCFF00]/10">
+                    <div className="bg-[var(--primary)] p-4 rounded-3xl border border-transparent shadow-lg shadow-[var(--primary-10)]">
                       <p className="text-[9px] font-black text-black/60 uppercase tracking-widest mb-1 italic">MVP de la Sesión</p>
                       <p className="text-lg font-black text-black uppercase italic truncate">
                         {attendanceData
@@ -912,7 +912,7 @@ export default function Calendar() {
                 <div className="space-y-2">
                   {[
                     { v: 5, l: 'Excelente', c: 'text-emerald-500' },
-                    { v: 4, l: 'Muy Bueno', c: 'text-[#CCFF00]' },
+                    { v: 4, l: 'Muy Bueno', c: 'text-[var(--primary)]' },
                     { v: 3, l: 'Bueno', c: 'text-amber-400' },
                     { v: 2, l: 'Regular', c: 'text-orange-400' },
                     { v: 1, l: 'Insuficiente', c: 'text-red-400' }
@@ -930,7 +930,7 @@ export default function Calendar() {
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 italic">Comentarios del Entrenador</p>
                 <textarea 
                   placeholder="Escribe un resumen general de cómo transcurrió la sesión..."
-                  className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-3xl p-5 text-xs font-medium focus:ring-2 focus:ring-[#CCFF00] dark:text-white min-h-[120px] transition-all"
+                  className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-3xl p-5 text-xs font-medium focus:ring-2 focus:ring-[var(--primary)] dark:text-white min-h-[120px] transition-all"
                   value={planningForEvent?.notas_generales || ''}
                   onChange={async (e) => {
                     const newNotes = e.target.value;
@@ -946,11 +946,11 @@ export default function Calendar() {
           <div className="xl:col-span-2 space-y-4">
             {loadingAttendance ? (
               <div className="flex flex-col items-center justify-center py-24 gap-4 bg-white dark:bg-[#1e293b]/40 rounded-[40px] border border-gray-100 dark:border-white/5">
-                <Loader2 className="w-10 h-10 animate-spin text-[#CCFF00]" />
+                <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Cargando nómina de deportistas...</p>
               </div>
             ) : attendanceData.map((record, idx) => (
-              <div key={record.deportista_id} className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-6 lg:p-8 space-y-6 transition-all hover:border-[#CCFF00]/30 group">
+              <div key={record.deportista_id} className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-6 lg:p-8 space-y-6 transition-all hover:border-[var(--primary-30)] group">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 flex items-center justify-center text-gray-400">
@@ -1008,11 +1008,11 @@ export default function Calendar() {
                       <div className="flex items-center gap-4">
                         <div className="h-2 w-32 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-[#CCFF00] transition-all duration-700" 
+                            className="h-full bg-[var(--primary)] transition-all duration-700" 
                             style={{ width: `${record.puntaje_total}%` }}
                           />
                         </div>
-                        <span className="text-xl font-black text-[#CCFF00] italic">{record.puntaje_total}%</span>
+                        <span className="text-xl font-black text-[var(--primary)] italic">{record.puntaje_total}%</span>
                       </div>
                     </div>
 
@@ -1025,7 +1025,7 @@ export default function Calendar() {
                           <div key={objIdx} className="space-y-3">
                             <div className="flex justify-between items-center px-1">
                               <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase italic tracking-tight">{obj.text}</span>
-                              <span className="text-xs font-black text-[#CCFF00]">{currentScore}/5</span>
+                              <span className="text-xs font-black text-[var(--primary)]">{currentScore}/5</span>
                             </div>
                             <div className="flex gap-2">
                               {[1, 2, 3, 4, 5].map(score => (
@@ -1047,7 +1047,7 @@ export default function Calendar() {
                                   className={cn(
                                     "flex-1 h-12 rounded-2xl text-xs font-black transition-all border-2",
                                     currentScore === score 
-                                      ? "bg-[#CCFF00] border-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/10" 
+                                      ? "bg-[var(--primary)] border-[var(--primary)] text-black shadow-lg shadow-[var(--primary-10)]" 
                                       : "bg-white dark:bg-white/5 border-transparent text-gray-400 hover:border-gray-200 dark:hover:border-white/10"
                                   )}
                                 >
@@ -1066,7 +1066,7 @@ export default function Calendar() {
                   <input 
                     type="text"
                     placeholder="Escribe una observación opcional para el deportista..."
-                    className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-2xl px-6 h-14 text-xs font-medium focus:ring-2 focus:ring-[#CCFF00] dark:text-white transition-all"
+                    className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-2xl px-6 h-14 text-xs font-medium focus:ring-2 focus:ring-[var(--primary)] dark:text-white transition-all"
                     value={record.notas}
                     onChange={(e) => {
                       const newData = [...attendanceData];
@@ -1088,14 +1088,14 @@ export default function Calendar() {
               "flex items-center justify-center w-16 h-16 rounded-[24px] shadow-2xl transition-all duration-300 border-2",
               isListening 
                 ? "bg-red-500 border-red-400 shadow-red-500/50 scale-110 animate-pulse" 
-                : "bg-black dark:bg-white border-[#CCFF00] dark:border-black hover:scale-105"
+                : "bg-black dark:bg-white border-[var(--primary)] dark:border-black hover:scale-105"
             )}
             title="Asistente IA"
           >
             {isListening ? (
               <Mic size={28} className="text-white animate-bounce" />
             ) : (
-              <Bot size={28} className="text-[#CCFF00] dark:text-black" />
+              <Bot size={28} className="text-[var(--primary)] dark:text-black" />
             )}
           </button>
           {isListening && (
@@ -1126,7 +1126,7 @@ export default function Calendar() {
            </Button>
            <Button 
             onClick={() => setShowTrainingModal(true)}
-            className="bg-[#CCFF00] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
+            className="bg-[var(--primary)] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
            >
              <PlusCircle size={16} /> {t('calendar.generate_trainings')}
            </Button>
@@ -1151,7 +1151,7 @@ export default function Calendar() {
                       onClick={() => setSelectedTeam('')}
                       className={cn(
                         "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                        selectedTeam === '' ? "bg-[#CCFF00]/10 border-[#CCFF00] text-black dark:text-[#CCFF00]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
+                        selectedTeam === '' ? "bg-[var(--primary-10)] border-[var(--primary)] text-black dark:text-[var(--primary)]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
                       )}
                     >
                       <Users size={16} /> {t('calendar.all_teams')}
@@ -1162,7 +1162,7 @@ export default function Calendar() {
                         onClick={() => setSelectedTeam(team.id)}
                         className={cn(
                           "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                          selectedTeam === team.id ? "bg-[#CCFF00]/10 border-[#CCFF00] text-black dark:text-[#CCFF00]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
+                          selectedTeam === team.id ? "bg-[var(--primary-10)] border-[var(--primary)] text-black dark:text-[var(--primary)]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
                         )}
                       >
                         <Shield size={16} /> {team.nombre}
@@ -1189,7 +1189,7 @@ export default function Calendar() {
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tight">
-                       {months[currentDate.getMonth()]} <span className="text-[#CCFF00]">{currentDate.getFullYear()}</span>
+                       {months[currentDate.getMonth()]} <span className="text-[var(--primary)]">{currentDate.getFullYear()}</span>
                     </h2>
                     <div className="flex items-center gap-1">
                        <button 
@@ -1247,16 +1247,16 @@ export default function Calendar() {
                         key={idx} 
                         onClick={() => dayEvents.length > 0 && setSelectedEvent(dayEvents[0])}
                         className={cn(
-                          "min-h-[120px] p-4 rounded-3xl border transition-all hover:border-[#CCFF00]/50 group cursor-pointer",
+                          "min-h-[120px] p-4 rounded-3xl border transition-all hover:border-[var(--primary-50)] group cursor-pointer",
                           isCurrentMonth ? "bg-white dark:bg-[#1e293b]/20 border-gray-50 dark:border-white/5" : "bg-gray-50/50 dark:bg-black/5 border-transparent opacity-30",
-                          isToday && "ring-2 ring-[#CCFF00] border-[#CCFF00]"
+                          isToday && "ring-2 ring-[var(--primary)] border-[var(--primary)]"
                         )}
                       >
                          <div className="flex justify-between items-start mb-2">
-                            <span className={cn("text-xs font-black italic", isToday ? "text-[#CCFF00]" : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white")}>
+                            <span className={cn("text-xs font-black italic", isToday ? "text-[var(--primary)]" : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white")}>
                                {day.getDate()}
                             </span>
-                            {isToday && <div className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse"></div>}
+                            {isToday && <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse"></div>}
                          </div>
 
                          <div className="space-y-1">
@@ -1329,7 +1329,7 @@ export default function Calendar() {
                 <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl space-y-2">
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('common.time')}</p>
                    <div className="flex items-center gap-2 text-gray-900 dark:text-white font-black italic">
-                      <Clock size={16} className="text-[#CCFF00]" />
+                      <Clock size={16} className="text-[var(--primary)]" />
                       {selectedEvent.hora_inicio} - {selectedEvent.hora_fin}
                    </div>
                 </div>
@@ -1340,14 +1340,14 @@ export default function Calendar() {
                    <div className="flex items-center gap-2 text-gray-900 dark:text-white font-black italic">
                       {selectedEvent.invitados || selectedEvent.tipo === 'entrenamiento' ? (
                         <>
-                          <Users size={16} className="text-[#CCFF00]" />
-                          <Badge className="bg-[#CCFF00] text-black border-none text-[8px]">
+                          <Users size={16} className="text-[var(--primary)]" />
+                          <Badge className="bg-[var(--primary)] text-black border-none text-[8px]">
                             {attendanceData.length} {t('calendar.players')}
                           </Badge>
                         </>
                       ) : (
                         <>
-                          <MapPin size={16} className="text-[#CCFF00]" />
+                          <MapPin size={16} className="text-[var(--primary)]" />
                           {selectedEvent.lugar || t('calendar.official_venue')}
                         </>
                       )}
@@ -1365,8 +1365,8 @@ export default function Calendar() {
              )}
 
              {selectedEvent.isJuego ? (
-               <div className="bg-[#CCFF00]/5 rounded-[32px] p-8 border border-[#CCFF00]/10 space-y-6 my-6">
-                 <h4 className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest italic">Jugadores Registrados</h4>
+               <div className="bg-[var(--primary-5)] rounded-[32px] p-8 border border-[var(--primary-10)] space-y-6 my-6">
+                 <h4 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest italic">Jugadores Registrados</h4>
                  <div className="space-y-2">
                    {gamePlayers.length === 0 ? (
                       <p className="text-xs text-gray-400 italic">No hay jugadores registrados para este juego.</p>
@@ -1374,14 +1374,14 @@ export default function Calendar() {
                       gamePlayers.map(p => (
                         <div key={p.id} className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10 shadow-sm hover:bg-white/10 transition-colors">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-[10px] font-black shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-black text-[10px] font-black shrink-0">
                               {p.numero}
                             </div>
                             <span className="text-sm font-bold text-gray-900 dark:text-white truncate">{p.nombre}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="h-1.5 w-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-                             <span className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest italic">Convocado</span>
+                             <div className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+                             <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest italic">Convocado</span>
                           </div>
                         </div>
                       ))
@@ -1391,13 +1391,13 @@ export default function Calendar() {
              ) : (
                <>
                  {/* Resumen de Asistencia y Desempeño */}
-                 <div className="bg-[#CCFF00]/5 rounded-[32px] p-8 border border-[#CCFF00]/10 space-y-6 my-6">
-                   <div className="flex justify-between items-center border-b border-[#CCFF00]/10 pb-4">
-                     <h4 className="text-[10px] font-black text-[#CCFF00] uppercase tracking-widest italic">Resumen de la Sesión</h4>
+                 <div className="bg-[var(--primary-5)] rounded-[32px] p-8 border border-[var(--primary-10)] space-y-6 my-6">
+                   <div className="flex justify-between items-center border-b border-[var(--primary-10)] pb-4">
+                     <h4 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest italic">Resumen de la Sesión</h4>
                      {eventStats && (eventStats.promedio || 0) > 0 && (
                        <div className="flex items-center gap-2">
                          <span className="text-[10px] font-black text-gray-400 uppercase italic">Promedio:</span>
-                         <span className="text-sm font-black text-[#CCFF00]">{eventStats.promedio}%</span>
+                         <span className="text-sm font-black text-[var(--primary)]">{eventStats.promedio}%</span>
                        </div>
                      )}
                    </div>
@@ -1423,20 +1423,20 @@ export default function Calendar() {
 
                    {/* MVP en el Pop-up */}
                    {eventStats?.mvp && (
-                     <div className="pt-4 border-t border-[#CCFF00]/10 flex items-center justify-between">
+                     <div className="pt-4 border-t border-[var(--primary-10)] flex items-center justify-between">
                        <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-full bg-[#CCFF00] flex items-center justify-center text-black shadow-lg shadow-[#CCFF00]/20">
+                         <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-black shadow-lg shadow-[var(--primary-20)]">
                            <Trophy size={20} />
                          </div>
                          <div>
-                           <p className="text-[8px] font-black text-[#CCFF00] uppercase italic tracking-widest">MVP de la Sesión</p>
+                           <p className="text-[8px] font-black text-[var(--primary)] uppercase italic tracking-widest">MVP de la Sesión</p>
                            <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic truncate max-w-[120px]">
                              {eventStats.mvp.deportista.nombre_completo}
                            </p>
                          </div>
                        </div>
                        <div className="text-right">
-                         <p className="text-xl font-black text-[#CCFF00] italic leading-none">{eventStats.mvp.puntaje_total}%</p>
+                         <p className="text-xl font-black text-[var(--primary)] italic leading-none">{eventStats.mvp.puntaje_total}%</p>
                          <p className="text-[8px] font-bold text-gray-500 uppercase mt-1">Puntaje</p>
                        </div>
                      </div>
@@ -1445,7 +1445,7 @@ export default function Calendar() {
 
                  <div className="flex flex-col gap-3">
                     <Button 
-                       className="w-full bg-[#CCFF00] text-black rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2 h-14"
+                       className="w-full bg-[var(--primary)] text-black rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2 h-14"
                        onClick={handleOpenAttendance}
                     >
                        <CheckCircle2 size={16} /> {t('calendar.attendance_control')}
@@ -1485,7 +1485,7 @@ export default function Calendar() {
            <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título de la Sesión (Opcional)</label>
               <input 
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                 placeholder="Ej: Táctica Defensiva, Perfeccionamiento de Tiro..."
                 value={trainingForm.title}
                 onChange={(e) => setTrainingForm({...trainingForm, title: e.target.value})}
@@ -1502,7 +1502,7 @@ export default function Calendar() {
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.select_team')}</label>
               <select 
                 required
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                 value={trainingForm.teamId}
                 onChange={(e) => setTrainingForm({...trainingForm, teamId: e.target.value})}
               >
@@ -1517,7 +1517,7 @@ export default function Calendar() {
                  <input 
                   type="date" 
                   required
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   value={trainingForm.startDate}
                   onChange={(e) => setTrainingForm({...trainingForm, startDate: e.target.value})}
                  />
@@ -1527,7 +1527,7 @@ export default function Calendar() {
                  <input 
                   type="date" 
                   required
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   value={trainingForm.endDate}
                   onChange={(e) => setTrainingForm({...trainingForm, endDate: e.target.value})}
                  />
@@ -1537,7 +1537,7 @@ export default function Calendar() {
            <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.gen_observations')}</label>
               <textarea 
-                className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-3xl text-sm font-medium focus:ring-2 focus:ring-[#CCFF00] min-h-[100px] dark:text-white"
+                className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-3xl text-sm font-medium focus:ring-2 focus:ring-[var(--primary)] min-h-[100px] dark:text-white"
                 placeholder={t('calendar.gen_obs_placeholder')}
                 value={trainingForm.observation}
                 onChange={(e) => setTrainingForm({...trainingForm, observation: e.target.value})}
@@ -1548,7 +1548,7 @@ export default function Calendar() {
               <Button type="button" variant="ghost" onClick={() => setShowTrainingModal(false)} className="flex-1 h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest">
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-[#CCFF00] dark:text-black h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest gap-2">
+              <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-[var(--primary)] dark:text-black h-14 rounded-3xl text-[10px] font-black uppercase italic tracking-widest gap-2">
                 <Save size={16} /> {t('calendar.generate_sessions')}
               </Button>
            </div>
@@ -1566,7 +1566,7 @@ export default function Calendar() {
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.event_name')}</label>
               <input 
                 required
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                 placeholder={t('calendar.event_name_placeholder')}
                 value={eventForm.name}
                 onChange={(e) => setEventForm({...eventForm, name: e.target.value})}
@@ -1579,7 +1579,7 @@ export default function Calendar() {
                  <input 
                   type="date" 
                   required
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   value={eventForm.date}
                   onChange={(e) => setEventForm({...eventForm, date: e.target.value})}
                  />
@@ -1588,7 +1588,7 @@ export default function Calendar() {
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.location')}</label>
                  <input 
                   type="text" 
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   placeholder={t('calendar.location_placeholder')}
                   value={eventForm.location}
                   onChange={(e) => setEventForm({...eventForm, location: e.target.value})}
@@ -1602,7 +1602,7 @@ export default function Calendar() {
                  <input 
                   type="time" 
                   required
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   value={eventForm.startTime}
                   onChange={(e) => setEventForm({...eventForm, startTime: e.target.value})}
                  />
@@ -1612,7 +1612,7 @@ export default function Calendar() {
                  <input 
                   type="time" 
                   required
-                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                  className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                   value={eventForm.endTime}
                   onChange={(e) => setEventForm({...eventForm, endTime: e.target.value})}
                  />
@@ -1622,7 +1622,7 @@ export default function Calendar() {
            <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.description')}</label>
               <textarea 
-                className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-3xl text-sm font-medium focus:ring-2 focus:ring-[#CCFF00] min-h-[80px] dark:text-white"
+                className="w-full p-6 bg-gray-50 dark:bg-white/5 border-none rounded-3xl text-sm font-medium focus:ring-2 focus:ring-[var(--primary)] min-h-[80px] dark:text-white"
                 placeholder={t('calendar.description_placeholder')}
                 value={eventForm.description}
                 onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
@@ -1632,7 +1632,7 @@ export default function Calendar() {
            <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.assign_team_opt')}</label>
               <select 
-                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-[#CCFF00] dark:text-white"
+                className="w-full h-14 bg-gray-50 dark:bg-white/5 border-none rounded-2xl px-6 text-sm font-bold appearance-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                 value={eventForm.teamId}
                 onChange={(e) => setEventForm({...eventForm, teamId: e.target.value})}
               >
@@ -1646,12 +1646,12 @@ export default function Calendar() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex justify-between">
                    <span>{t('calendar.invite_specific_players')}</span>
-                   <span className="text-[#CCFF00] font-bold">{eventForm.invitedPlayerIds.length} {t('calendar.selected')}</span>
+                   <span className="text-[var(--primary)] font-bold">{eventForm.invitedPlayerIds.length} {t('calendar.selected')}</span>
                  </label>
-                 <div className="bg-gray-50 dark:bg-white/5 rounded-3xl p-4 max-h-[220px] overflow-y-auto space-y-2 border border-transparent focus-within:border-[#CCFF00]/30 transition-all">
+                 <div className="bg-gray-50 dark:bg-white/5 rounded-3xl p-4 max-h-[220px] overflow-y-auto space-y-2 border border-transparent focus-within:border-[var(--primary-30)] transition-all">
                    {fetchingPlayers ? (
                      <div className="flex items-center justify-center py-8">
-                       <Loader2 className="w-6 h-6 animate-spin text-[#CCFF00]" />
+                       <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
                        <span className="ml-3 text-xs text-gray-400 italic">{t('calendar.searching_athletes')}</span>
                      </div>
                    ) : teamPlayers.length === 0 ? (
@@ -1668,7 +1668,7 @@ export default function Calendar() {
                            className={cn(
                              "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border",
                              eventForm.invitedPlayerIds.includes(player.id)
-                               ? "bg-[#CCFF00]/10 border-[#CCFF00]/30"
+                               ? "bg-[var(--primary-10)] border-[var(--primary-30)]"
                                : "bg-white dark:bg-white/5 border-transparent hover:bg-gray-100 dark:hover:bg-white/10"
                            )}
                           >
@@ -1676,7 +1676,7 @@ export default function Calendar() {
                               {player.nombre_completo} {player.apellidos}
                             </span>
                             {eventForm.invitedPlayerIds.includes(player.id) && (
-                              <CheckCircle2 size={16} className="text-[#CCFF00]" />
+                              <CheckCircle2 size={16} className="text-[var(--primary)]" />
                             )}
                           </div>
                         ))}
@@ -1704,21 +1704,21 @@ export default function Calendar() {
         title={t('calendar.attendance_control')}
       >
         <div className="space-y-6">
-          <div className="bg-[#CCFF00]/5 p-5 rounded-3xl border border-[#CCFF00]/10 flex flex-col gap-2">
+          <div className="bg-[var(--primary-5)] p-5 rounded-3xl border border-[var(--primary-10)] flex flex-col gap-2">
              <div className="flex justify-between items-start">
                <div>
                  <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{selectedEvent?.titulo}</h4>
                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{selectedEvent?.fecha}</p>
                </div>
                {planningForEvent && (
-                 <span className="bg-[#CCFF00] text-black text-[8px] font-black px-2 py-1 rounded-full uppercase italic">Planificado</span>
+                 <span className="bg-[var(--primary)] text-black text-[8px] font-black px-2 py-1 rounded-full uppercase italic">Planificado</span>
                )}
              </div>
 
              {/* Objetivos Generales de la Sesión */}
              {planningForEvent && planningForEvent.objetivos?.length > 0 && (
-               <div className="mt-3 pt-3 border-t border-[#CCFF00]/10">
-                 <p className="text-[8px] font-black text-[#CCFF00] uppercase mb-2 italic">Objetivos de la Sesión:</p>
+               <div className="mt-3 pt-3 border-t border-[var(--primary-10)]">
+                 <p className="text-[8px] font-black text-[var(--primary)] uppercase mb-2 italic">Objetivos de la Sesión:</p>
                  <div className="flex flex-wrap gap-2">
                    {planningForEvent.objetivos.map((obj: any, i: number) => (
                      <span key={i} className="bg-black/20 dark:bg-white/5 text-[9px] font-bold text-gray-600 dark:text-gray-300 px-2 py-1 rounded-lg border border-white/5">
@@ -1748,7 +1748,7 @@ export default function Calendar() {
           <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {loadingAttendance ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
-                 <Loader2 className="w-8 h-8 animate-spin text-[#CCFF00]" />
+                 <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{t('calendar.loading_list')}</p>
               </div>
             ) : attendanceData.length === 0 ? (
@@ -1807,17 +1807,17 @@ export default function Calendar() {
 
                    {/* Evaluación por Jugador */}
                    {record.estado === 'presente' && planningForEvent && planningForEvent.objetivos?.length > 0 && (
-                     <div className="bg-gray-50 dark:bg-black/20 rounded-2xl p-4 space-y-4 animate-in slide-in-from-top-2 border border-[#CCFF00]/10">
+                     <div className="bg-gray-50 dark:bg-black/20 rounded-2xl p-4 space-y-4 animate-in slide-in-from-top-2 border border-[var(--primary-10)]">
                         <div className="flex items-center justify-between mb-2">
                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest italic">Desempeño Individual</p>
                            <div className="flex items-center gap-2">
                               <div className="h-1.5 w-24 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                                  <div 
-                                    className="h-full bg-[#CCFF00] transition-all duration-500" 
+                                    className="h-full bg-[var(--primary)] transition-all duration-500" 
                                     style={{ width: `${record.puntaje_total}%` }}
                                  />
                               </div>
-                              <span className="text-[10px] font-black text-[#CCFF00]">{record.puntaje_total}%</span>
+                              <span className="text-[10px] font-black text-[var(--primary)]">{record.puntaje_total}%</span>
                            </div>
                         </div>
 
@@ -1830,7 +1830,7 @@ export default function Calendar() {
                                <div key={objIdx} className="space-y-1">
                                   <div className="flex justify-between items-center">
                                      <span className="text-[9px] font-bold text-gray-500 dark:text-gray-300 truncate pr-4">{obj.text}</span>
-                                     <span className="text-[9px] font-black text-[#CCFF00]">{currentScore}/5</span>
+                                     <span className="text-[9px] font-black text-[var(--primary)]">{currentScore}/5</span>
                                   </div>
                                   <div className="flex gap-1.5">
                                      {[1, 2, 3, 4, 5].map(score => (
@@ -1853,7 +1853,7 @@ export default function Calendar() {
                                           className={cn(
                                             "flex-1 h-6 rounded-md text-[8px] font-black transition-all",
                                             currentScore === score 
-                                              ? "bg-[#CCFF00] text-black shadow-sm" 
+                                              ? "bg-[var(--primary)] text-black shadow-sm" 
                                               : "bg-white dark:bg-white/5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
                                           )}
                                        >
@@ -1873,7 +1873,7 @@ export default function Calendar() {
                     disabled={!['entrenador', 'admin_club', 'superadmin', 'admin'].includes(profile?.rol || '')}
                     placeholder={t('calendar.optional_note')}
                     className={cn(
-                        "w-full bg-gray-50 dark:bg-black/10 border-none rounded-xl px-4 h-10 text-[11px] font-medium focus:ring-1 focus:ring-[#CCFF00] dark:text-white",
+                        "w-full bg-gray-50 dark:bg-black/10 border-none rounded-xl px-4 h-10 text-[11px] font-medium focus:ring-1 focus:ring-[var(--primary)] dark:text-white",
                         !['entrenador', 'admin_club', 'superadmin', 'admin'].includes(profile?.rol || '') && "cursor-not-allowed italic"
                     )}
                     value={record.notas}
@@ -1894,7 +1894,7 @@ export default function Calendar() {
             </Button>
             {profile?.rol === 'entrenador' && (
                 <Button 
-                    className="flex-1 bg-black text-white dark:bg-[#CCFF00] dark:text-black rounded-2xl font-black uppercase italic text-[10px] tracking-widest h-12"
+                    className="flex-1 bg-black text-white dark:bg-[var(--primary)] dark:text-black rounded-2xl font-black uppercase italic text-[10px] tracking-widest h-12"
                     onClick={handleSaveAttendance}
                     isLoading={saving}
                 >

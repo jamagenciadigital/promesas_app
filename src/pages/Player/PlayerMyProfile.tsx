@@ -142,7 +142,7 @@ export default function PlayerMyProfile() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -171,13 +171,13 @@ export default function PlayerMyProfile() {
               setEditingPlayer({ ...player });
               setIsEditing(true);
             }}
-            className="bg-[#CCFF00] text-black border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12 hover:scale-105 transition-transform"
+            className="bg-[var(--primary)] text-black border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12 hover:scale-105 transition-transform"
           >
             <User size={16} /> Editar Ficha Técnica
           </Button>
           <Button 
             onClick={handlePrint}
-            className="bg-black dark:bg-white text-[#CCFF00] dark:text-black border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12 hover:scale-105 transition-transform"
+            className="bg-black dark:bg-white text-[var(--primary)] dark:text-black border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12 hover:scale-105 transition-transform"
           >
             <Printer size={16} /> Imprimir / PDF
           </Button>
@@ -187,12 +187,12 @@ export default function PlayerMyProfile() {
       <div id="ficha-deportista" className="space-y-8 print:m-0 print:p-4">
         {/* Cabecera Principal */}
         <div className="relative bg-black rounded-[48px] overflow-hidden shadow-2xl print:shadow-none print:rounded-[32px]">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#CCFF00]/10 blur-[120px] -mr-48 -mt-48 rounded-full"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary-10)] blur-[120px] -mr-48 -mt-48 rounded-full"></div>
           
           <div className="p-8 md:p-12 flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap items-center gap-10 relative z-10">
             {/* Foto de Perfil */}
             <div className="relative shrink-0">
-                <div className="w-48 h-48 md:w-56 md:h-56 rounded-[60px] border-[6px] border-[#CCFF00] overflow-hidden bg-gray-900 shadow-2xl print:shadow-none">
+                <div className="w-48 h-48 md:w-56 md:h-56 rounded-[60px] border-[6px] border-[var(--primary)] overflow-hidden bg-gray-900 shadow-2xl print:shadow-none">
                 {player.foto_url ? (
                     <img 
                     src={getDirectImageUrl(player.foto_url)} 
@@ -218,7 +218,7 @@ export default function PlayerMyProfile() {
             {/* Información Destacada */}
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <Badge className="bg-[#CCFF00] text-black border-none font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full print:bg-[#CCFF00] print:text-black">
+                <Badge className="bg-[var(--primary)] text-black border-none font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full print:bg-[var(--primary)] print:text-black">
                   Ficha Oficial: {player.genero || 'Deportista'}
                 </Badge>
                 <Badge variant="default" className="bg-transparent border border-white/20 text-white/60 font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full">
@@ -228,30 +228,30 @@ export default function PlayerMyProfile() {
               
               <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase leading-none tracking-tighter">
                 {player.nombre_completo}<br/>
-                <span className="text-[#CCFF00]">{player.apellidos || ''}</span>
+                <span className="text-[var(--primary)]">{player.apellidos || ''}</span>
               </h1>
 
               <div className="pt-4 space-y-4">
                  <div className="flex flex-wrap justify-center md:justify-start gap-3">
                     <div className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                       <Trophy className="text-[#CCFF00]" size={20} />
+                       <Trophy className="text-[var(--primary)]" size={20} />
                        <div className="text-left">
                           <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Equipo Principal</p>
                           <p className="text-sm font-black text-white uppercase italic">{player.equipo?.nombre || 'Sin equipo'}</p>
                        </div>
                     </div>
                     {player.dorsal && (
-                        <div className="flex items-center gap-3 px-6 py-3 bg-[#CCFF00]/10 border border-[#CCFF00]/20 rounded-2xl">
-                            <span className="text-3xl font-black text-[#CCFF00] italic leading-none">{player.dorsal}</span>
-                            <span className="text-[10px] font-black text-[#CCFF00] uppercase tracking-tighter leading-tight">Dorsal<br/>Oficial</span>
+                        <div className="flex items-center gap-3 px-6 py-3 bg-[var(--primary-10)] border border-[var(--primary-20)] rounded-2xl">
+                            <span className="text-3xl font-black text-[var(--primary)] italic leading-none">{player.dorsal}</span>
+                            <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-tighter leading-tight">Dorsal<br/>Oficial</span>
                         </div>
                     )}
                  </div>
 
                  <div className="flex flex-wrap justify-center md:justify-start gap-6 text-white/60 text-[10px] font-bold uppercase tracking-widest italic">
-                    <span className="flex items-center gap-2"><Calendar size={16} className="text-[#CCFF00]" /> {player.fecha_nacimiento}</span>
-                    <span className="flex items-center gap-2"><Shield size={16} className="text-[#CCFF00]" /> {player.eps}</span>
-                    <span className="flex items-center gap-2"><MapPin size={16} className="text-[#CCFF00]" /> {player.municipio || '---'}</span>
+                    <span className="flex items-center gap-2"><Calendar size={16} className="text-[var(--primary)]" /> {player.fecha_nacimiento}</span>
+                    <span className="flex items-center gap-2"><Shield size={16} className="text-[var(--primary)]" /> {player.eps}</span>
+                    <span className="flex items-center gap-2"><MapPin size={16} className="text-[var(--primary)]" /> {player.municipio || '---'}</span>
                  </div>
               </div>
             </div>
@@ -265,13 +265,13 @@ export default function PlayerMyProfile() {
           <div className="space-y-8">
             <section className="bg-black text-white p-8 rounded-[40px] shadow-sm space-y-6 print:bg-black print:text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                 <TrendingUp size={80} className="text-[#CCFF00]" />
+                 <TrendingUp size={80} className="text-[var(--primary)]" />
               </div>
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-white/10 pb-3">Perfil Deportivo</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-white/10 pb-3">Perfil Deportivo</h3>
               <div className="grid grid-cols-2 gap-y-6 gap-x-2 relative z-10">
                 <div>
                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Posición Principal</p>
-                  <p className="text-sm font-black text-[#CCFF00] uppercase italic leading-none">{player.posicion?.valor || '---'}</p>
+                  <p className="text-sm font-black text-[var(--primary)] uppercase italic leading-none">{player.posicion?.valor || '---'}</p>
                 </div>
                 <div>
                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Sangre / RH</p>
@@ -289,7 +289,7 @@ export default function PlayerMyProfile() {
             </section>
 
             <section className="bg-white dark:bg-[#16171b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:border-gray-200">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3">Identidad</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3">Identidad</h3>
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Documento</p>
@@ -305,7 +305,7 @@ export default function PlayerMyProfile() {
 
           {/* Columna 2: Familia y Emergencia */}
           <div className="space-y-8">
-            <section className="bg-[#CCFF00] p-8 rounded-[40px] shadow-sm space-y-6 relative overflow-hidden group print:bg-[#CCFF00]">
+            <section className="bg-[var(--primary)] p-8 rounded-[40px] shadow-sm space-y-6 relative overflow-hidden group print:bg-[var(--primary)]">
               <Baby size={120} className="absolute -bottom-8 -right-8 opacity-10 transform -rotate-12 transition-transform group-hover:scale-125 duration-700" />
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black italic border-b border-black/10 pb-3">Información del Tutor</h3>
               <div className="space-y-4 relative z-10">
@@ -339,7 +339,7 @@ export default function PlayerMyProfile() {
           <div className="space-y-8 print:col-span-2 print:grid print:grid-cols-2 print:gap-8 print:space-y-0">
             <section className="bg-gray-900 p-8 rounded-[40px] shadow-xl space-y-6 relative overflow-hidden print:bg-gray-900">
                <MapPin size={100} className="absolute -top-10 -right-10 opacity-10 text-white transform rotate-12" />
-               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-white/5 pb-3">Residencia</h3>
+               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-white/5 pb-3">Residencia</h3>
                <div className="space-y-4 relative z-10">
                  <div>
                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Dirección Registrada</p>
@@ -347,7 +347,7 @@ export default function PlayerMyProfile() {
                  </div>
                  <div className="flex flex-wrap gap-2">
                     <Badge className="bg-white/10 text-white border-none font-black italic">BARRIO: {player.barrio}</Badge>
-                    <Badge className="bg-[#CCFF00] text-black border-none font-black italic">{player.municipio}</Badge>
+                    <Badge className="bg-[var(--primary)] text-black border-none font-black italic">{player.municipio}</Badge>
                  </div>
                </div>
             </section>
@@ -361,13 +361,13 @@ export default function PlayerMyProfile() {
                    <>
                      {player.equipo2 && (
                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                          <Trophy size={18} className="text-[#CCFF00]" />
+                          <Trophy size={18} className="text-[var(--primary)]" />
                           <span className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{player.equipo2.nombre}</span>
                        </div>
                      )}
                      {player.equipo3 && (
                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                          <Trophy size={18} className="text-[#CCFF00]" />
+                          <Trophy size={18} className="text-[var(--primary)]" />
                           <span className="text-sm font-black text-gray-900 dark:text-white uppercase italic">{player.equipo3.nombre}</span>
                        </div>
                      )}
@@ -382,12 +382,12 @@ export default function PlayerMyProfile() {
         {asistencias.length > 0 && (
           <section className="bg-white dark:bg-[#16171b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:hidden">
             <div className="flex items-center gap-2 border-b border-gray-100 dark:border-white/5 pb-3">
-              <Activity className="w-4 h-4 text-[#CCFF00]" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic">Rendimiento y Desempeño</h3>
+              <Activity className="w-4 h-4 text-[var(--primary)]" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic">Rendimiento y Desempeño</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {asistencias.map((ast, idx) => (
-                <div key={idx} className="p-6 bg-gray-50 dark:bg-white/5 rounded-3xl border border-transparent hover:border-[#CCFF00]/20 transition-all space-y-4">
+                <div key={idx} className="p-6 bg-gray-50 dark:bg-white/5 rounded-3xl border border-transparent hover:border-[var(--primary-20)] transition-all space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1 pr-4">
                       <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{ast.evento?.tipo || 'Evento'}</span>
@@ -395,7 +395,7 @@ export default function PlayerMyProfile() {
                       <p className="text-[10px] font-bold text-gray-500 mt-1">{new Date(ast.evento?.fecha).toLocaleDateString()}</p>
                     </div>
                     <div className="p-3 bg-black dark:bg-[#111215] rounded-2xl flex flex-col items-center justify-center min-w-[60px] shadow-lg">
-                      <span className="text-xl font-black text-[#CCFF00] leading-none">{ast.puntaje_total}%</span>
+                      <span className="text-xl font-black text-[var(--primary)] leading-none">{ast.puntaje_total}%</span>
                     </div>
                   </div>
                   
@@ -404,7 +404,7 @@ export default function PlayerMyProfile() {
                       {ast.evaluaciones.map((ev: any, i: number) => (
                         <div key={i} className="flex justify-between items-center text-[10px] bg-white dark:bg-[#111215] px-3 py-2 rounded-xl">
                           <span className="font-bold text-gray-500 dark:text-gray-400 uppercase truncate pr-2 flex items-center gap-2">
-                             <Target size={10} className="text-[#CCFF00]" /> {ev.objetivo}
+                             <Target size={10} className="text-[var(--primary)]" /> {ev.objetivo}
                           </span>
                           <span className="font-black text-gray-900 dark:text-white">{ev.puntaje}/5</span>
                         </div>
@@ -413,7 +413,7 @@ export default function PlayerMyProfile() {
                   )}
 
                   {ast.notas && (
-                    <div className="p-4 bg-[#CCFF00]/5 border border-[#CCFF00]/10 rounded-2xl mt-2">
+                    <div className="p-4 bg-[var(--primary-5)] border border-[var(--primary-10)] rounded-2xl mt-2">
                       <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Observación</p>
                       <p className="text-xs text-gray-600 dark:text-gray-300 italic line-clamp-2">{ast.notas}</p>
                     </div>
@@ -426,7 +426,7 @@ export default function PlayerMyProfile() {
 
         {/* Expediente Digital */}
         <section className="bg-white dark:bg-[#16171b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:hidden">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3">Documentación</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3">Documentación</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
                 { label: 'Registro Civil', url: player.url_registro_civil },
@@ -435,15 +435,15 @@ export default function PlayerMyProfile() {
                 { label: 'Certificado Salud', url: player.url_certificado_salud },
                 ...(player.viene_de_otro_club ? [{ label: 'Carta Traspaso', url: player.url_carta_traspaso }] : [])
             ].map((doc, idx) => (
-                <div key={idx} className="flex items-center justify-between p-5 rounded-3xl bg-gray-50 dark:bg-white/5 group border border-transparent hover:border-[#CCFF00]/20 transition-all">
+                <div key={idx} className="flex items-center justify-between p-5 rounded-3xl bg-gray-50 dark:bg-white/5 group border border-transparent hover:border-[var(--primary-20)] transition-all">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-white dark:bg-[#111215] rounded-2xl">
-                       <FileText className="text-gray-400 group-hover:text-[#CCFF00] transition-colors" size={20} />
+                       <FileText className="text-gray-400 group-hover:text-[var(--primary)] transition-colors" size={20} />
                     </div>
                     <span className="text-xs font-black uppercase text-gray-600 dark:text-gray-400">{doc.label}</span>
                 </div>
                 {doc.url ? (
-                    <a href={doc.url} target="_blank" rel="noreferrer" className="p-3 bg-black dark:bg-white text-[#CCFF00] dark:text-black rounded-xl hover:scale-110 transition-transform shadow-lg"><Download size={18} /></a>
+                    <a href={doc.url} target="_blank" rel="noreferrer" className="p-3 bg-black dark:bg-white text-[var(--primary)] dark:text-black rounded-xl hover:scale-110 transition-transform shadow-lg"><Download size={18} /></a>
                 ) : (
                     <span className="text-[8px] font-black uppercase text-gray-300 italic">Pendiente</span>
                 )}
@@ -490,7 +490,7 @@ export default function PlayerMyProfile() {
             {/* Datos Personales */}
             <div className="space-y-4">
                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                 <User className="w-4 h-4 text-[#CCFF00]" />
+                 <User className="w-4 h-4 text-[var(--primary)]" />
                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Datos Personales</h4>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -516,7 +516,7 @@ export default function PlayerMyProfile() {
                   <div>
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Género</label>
                     <select 
-                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                       value={editingPlayer.genero || ''}
                       onChange={(e) => setEditingPlayer({...editingPlayer, genero: e.target.value})}
                     >
@@ -544,7 +544,7 @@ export default function PlayerMyProfile() {
                   <div>
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Tipo Documento</label>
                     <select 
-                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                       value={editingPlayer.tipo_documento || ''}
                       onChange={(e) => setEditingPlayer({...editingPlayer, tipo_documento: e.target.value})}
                     >
@@ -564,7 +564,7 @@ export default function PlayerMyProfile() {
                   <div>
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Factor RH</label>
                     <select 
-                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                      className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                       value={editingPlayer.rh || ''}
                       onChange={(e) => setEditingPlayer({...editingPlayer, rh: e.target.value})}
                     >
@@ -585,7 +585,7 @@ export default function PlayerMyProfile() {
             {/* Información del Tutor */}
             <div className="space-y-4">
                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                 <Shield className="w-4 h-4 text-[#CCFF00]" />
+                 <Shield className="w-4 h-4 text-[var(--primary)]" />
                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Información del Tutor</h4>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -619,7 +619,7 @@ export default function PlayerMyProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                     <MapPin className="w-4 h-4 text-[#CCFF00]" />
+                     <MapPin className="w-4 h-4 text-[var(--primary)]" />
                      <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Residencia</h4>
                    </div>
                    <Input label="Departamento" value={editingPlayer.departamento || ''} onChange={(e) => setEditingPlayer({...editingPlayer, departamento: e.target.value})} />
@@ -642,7 +642,7 @@ export default function PlayerMyProfile() {
             {/* Documentación Oficial */}
             <div className="space-y-4">
                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                 <FileText className="w-4 h-4 text-[#CCFF00]" />
+                 <FileText className="w-4 h-4 text-[var(--primary)]" />
                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Documentación Oficial</h4>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -715,7 +715,7 @@ export default function PlayerMyProfile() {
 
             <div className="pt-6 sticky bottom-0 bg-white dark:bg-[#1e293b] flex gap-3">
               <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} className="flex-1">Cancelar</Button>
-              <Button type="submit" isLoading={saving} className="flex-1 bg-[#CCFF00] text-black uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl">
+              <Button type="submit" isLoading={saving} className="flex-1 bg-[var(--primary)] text-black uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl">
                 Guardar Cambios
               </Button>
             </div>
@@ -727,10 +727,10 @@ export default function PlayerMyProfile() {
       {toast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-10 duration-500">
            <div className={`flex items-center gap-3 px-6 py-4 rounded-3xl border shadow-2xl backdrop-blur-xl ${
-             toast.type === 'success' ? 'bg-black/90 border-[#CCFF00]/20 text-white' : 'bg-red-500/90 border-red-500/20 text-white'
+             toast.type === 'success' ? 'bg-black/90 border-[var(--primary-20)] text-white' : 'bg-red-500/90 border-red-500/20 text-white'
            }`}>
              <div className={`p-2 rounded-xl ${
-               toast.type === 'success' ? 'bg-[#CCFF00] text-black' : 'bg-white/20 text-white'
+               toast.type === 'success' ? 'bg-[var(--primary)] text-black' : 'bg-white/20 text-white'
              }`}>
                <Shield size={18} />
              </div>

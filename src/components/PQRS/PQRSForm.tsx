@@ -79,8 +79,8 @@ export default function PQRSForm({ destinoTipo, destinoId, onSuccess, onCancel }
   if (success) {
     return (
       <div className="p-12 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in">
-        <div className="w-16 h-16 bg-[#CCFF00]/10 rounded-full flex items-center justify-center">
-          <CheckCircle2 className="w-10 h-10 text-[#CCFF00]" />
+        <div className="w-16 h-16 bg-[var(--primary-10)] rounded-full flex items-center justify-center">
+          <CheckCircle2 className="w-10 h-10 text-[var(--primary)]" />
         </div>
         <h3 className="text-xl font-black text-white uppercase italic">Solicitud Enviada</h3>
         <p className="text-sm text-gray-400">Tu PQRS ha sido registrado con éxito. Podrás hacerle seguimiento en tu panel.</p>
@@ -102,7 +102,7 @@ export default function PQRSForm({ destinoTipo, destinoId, onSuccess, onCancel }
               onClick={() => setFormData({ ...formData, tipo: t })}
               className={`py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
                 formData.tipo === t 
-                  ? 'bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]' 
+                  ? 'bg-[var(--primary-10)] border-[var(--primary)] text-[var(--primary)]' 
                   : 'bg-white/5 border-transparent text-gray-500 hover:border-white/10'
               }`}
             >
@@ -121,7 +121,7 @@ export default function PQRSForm({ destinoTipo, destinoId, onSuccess, onCancel }
           value={formData.descripcion}
           onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
           placeholder="Describe detalladamente tu petición, queja, reclamo o sugerencia..."
-          className="w-full bg-white/5 border-2 border-transparent focus:border-[#CCFF00]/20 rounded-2xl p-6 text-sm text-white outline-none min-h-[150px] resize-none transition-all placeholder:text-white/10"
+          className="w-full bg-white/5 border-2 border-transparent focus:border-[var(--primary-20)] rounded-2xl p-6 text-sm text-white outline-none min-h-[150px] resize-none transition-all placeholder:text-white/10"
         />
       </div>
 
@@ -155,7 +155,7 @@ export default function PQRSForm({ destinoTipo, destinoId, onSuccess, onCancel }
         <Button
           type="submit"
           isLoading={loading}
-          className="flex-1 h-14 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-[1.02] transition-transform shadow-lg shadow-[#CCFF00]/10"
+          className="flex-1 h-14 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-[1.02] transition-transform shadow-lg shadow-[var(--primary-10)]"
         >
           <Send className="w-4 h-4 mr-2" />
           Enviar Solicitud

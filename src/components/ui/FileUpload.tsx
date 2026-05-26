@@ -77,7 +77,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           </label>
         )}
         {value && (
-          <a href={value} target="_blank" rel="noreferrer" className="text-[9px] font-black text-[#CCFF00] uppercase underline italic">
+          <a href={value} target="_blank" rel="noreferrer" className="text-[9px] font-black text-[var(--primary)] uppercase underline italic">
             Ver Actual
           </a>
         )}
@@ -128,7 +128,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               type="button"
               variant="ghost"
               onClick={() => document.getElementById(fileInputId)?.click()}
-              className="h-10 px-4 rounded-xl bg-black dark:bg-white text-[#CCFF00] dark:text-black font-black uppercase text-[9px] tracking-widest italic hover:scale-105 transition-transform"
+              className="h-10 px-4 rounded-xl bg-black dark:bg-white text-[var(--primary)] dark:text-black font-black uppercase text-[9px] tracking-widest italic hover:scale-105 transition-transform"
               disabled={uploading}
             >
               {value ? 'Cambiar' : (error ? 'Reintentar' : 'Subir')}

@@ -141,7 +141,7 @@ export default function PaymentsTab() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default function PaymentsTab() {
           </div>
           
           <div className="space-y-3">
-            <div className={`relative w-full bg-gray-50 border-2 border-dashed ${qrFile ? 'border-[#CCFF00] bg-[#CCFF00]/5' : 'border-gray-200 hover:border-gray-300'} rounded-2xl p-8 flex flex-col items-center justify-center min-h-[220px] transition-all group overflow-hidden`}>
+            <div className={`relative w-full bg-gray-50 border-2 border-dashed ${qrFile ? 'border-[var(--primary)] bg-[var(--primary-5)]' : 'border-gray-200 hover:border-gray-300'} rounded-2xl p-8 flex flex-col items-center justify-center min-h-[220px] transition-all group overflow-hidden`}>
                <input 
                  type="file" 
                  accept="image/*" 
@@ -205,13 +205,13 @@ export default function PaymentsTab() {
                   />
                   <div className="flex flex-col items-center">
                     <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">{previewUrl ? 'Imagen seleccionada para subir' : 'QR Actual'}</p>
-                    {previewUrl && <p className="text-[9px] font-black text-[#CCFF00] mt-1 bg-black px-2 py-0.5 rounded-full uppercase tracking-widest">Listo para guardar</p>}
+                    {previewUrl && <p className="text-[9px] font-black text-[var(--primary)] mt-1 bg-black px-2 py-0.5 rounded-full uppercase tracking-widest">Listo para guardar</p>}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center text-center space-y-3 relative z-0">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                     <Upload className="w-5 h-5 text-gray-400 group-hover:text-[#CCFF00] transition-colors" />
+                     <Upload className="w-5 h-5 text-gray-400 group-hover:text-[var(--primary)] transition-colors" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">Haz clic aquí para subir tu QR</p>
@@ -249,7 +249,7 @@ export default function PaymentsTab() {
           
           <div className="space-y-2">
             <textarea
-              className="w-full bg-white border border-gray-300 rounded-2xl px-5 py-4 text-base text-gray-900 focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent outline-none transition-all placeholder-gray-400 min-h-[140px] shadow-sm"
+              className="w-full bg-white border border-gray-300 rounded-2xl px-5 py-4 text-base text-gray-900 focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all placeholder-gray-400 min-h-[140px] shadow-sm"
               placeholder="Ejemplo: Número de cuenta: 123124132 Bancolombia Ahorros Titular: Club Deportivo Favor enviar comprobante al WhatsApp"
               value={formData.pago_instrucciones}
               onChange={(e) => setFormData({ ...formData, pago_instrucciones: e.target.value })}

@@ -64,8 +64,8 @@ export default function CoachPQRS() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#CCFF00]/10 rounded-2xl">
-            <MessageSquare className="w-6 h-6 text-[#CCFF00]" />
+          <div className="p-3 bg-[var(--primary-10)] rounded-2xl">
+            <MessageSquare className="w-6 h-6 text-[var(--primary)]" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-white uppercase italic tracking-tight">PQRS a Escenarios</h1>
@@ -76,7 +76,7 @@ export default function CoachPQRS() {
         {view === 'list' && (
           <Button 
             onClick={() => setView('create')}
-            className="bg-[#CCFF00] text-black font-black px-6 h-12 rounded-2xl flex items-center gap-2 border-0 shadow-lg"
+            className="bg-[var(--primary)] text-black font-black px-6 h-12 rounded-2xl flex items-center gap-2 border-0 shadow-lg"
           >
             <Plus className="w-4 h-4" />
             Nueva Solicitud
@@ -96,7 +96,7 @@ export default function CoachPQRS() {
           
           <div className="bg-white/5 border border-white/5 p-8 rounded-[40px] space-y-6">
             <div className="flex items-center gap-3">
-              <MapPin className="text-[#CCFF00]" size={24} />
+              <MapPin className="text-[var(--primary)]" size={24} />
               <h3 className="text-lg font-black text-white uppercase italic">Seleccionar Escenario</h3>
             </div>
             
@@ -108,9 +108,9 @@ export default function CoachPQRS() {
                   <button
                     key={esc.id}
                     onClick={() => handleCreate(esc.id, esc.nombre)}
-                    className="text-left p-6 bg-black/40 hover:bg-[#CCFF00]/10 border border-white/5 hover:border-[#CCFF00]/40 rounded-3xl transition-all group"
+                    className="text-left p-6 bg-black/40 hover:bg-[var(--primary-10)] border border-white/5 hover:border-[var(--primary-40)] rounded-3xl transition-all group"
                   >
-                    <p className="text-sm font-black text-white uppercase italic group-hover:text-[#CCFF00] transition-colors">{esc.nombre}</p>
+                    <p className="text-sm font-black text-white uppercase italic group-hover:text-[var(--primary)] transition-colors">{esc.nombre}</p>
                     <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{esc.deporte || 'Deporte no especificado'}</p>
                   </button>
                 ))

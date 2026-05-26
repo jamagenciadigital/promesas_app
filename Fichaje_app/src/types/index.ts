@@ -16,11 +16,24 @@ export interface UserProfile {
   foto_url?: string;
 }
 
+export interface ClubTheme {
+  sidebar_bg?: string;
+  sidebar_text?: string;
+  sidebar_hover_bg?: string;
+  sidebar_active_bg?: string;
+  sidebar_active_text?: string;
+  button_bg?: string;
+  button_text?: string;
+  button_hover?: string;
+  login_bg?: string;
+}
+
 export interface Club {
   id: string;
   nombre: string;
   logo_url?: string;
   color_principal?: string;
+  theme?: ClubTheme;
   descripcion?: string;
   zona_horaria?: string;
   moneda?: string;

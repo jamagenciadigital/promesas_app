@@ -423,7 +423,7 @@ export default function TeamDashboard() {
           }}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
         >
-          <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-full group-hover:bg-[#CCFF00]/10 group-hover:text-[#CCFF00]">
+          <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-full group-hover:bg-[var(--primary-10)] group-hover:text-[var(--primary)]">
             <ArrowLeft size={16} />
           </div>
           <span className="text-xs font-black uppercase tracking-widest italic">Volver a Equipos</span>
@@ -461,7 +461,7 @@ export default function TeamDashboard() {
             {/* Badges row */}
             <div className="flex flex-wrap items-center gap-4">
               {team.nivel_habilidad === 'Elite' && (
-                <div className="bg-black text-[#CCFF00] px-5 py-2.5 rounded-full font-black text-sm uppercase shadow-2xl border-2 border-[#CCFF00]">
+                <div className="bg-black text-[var(--primary)] px-5 py-2.5 rounded-full font-black text-sm uppercase shadow-2xl border-2 border-[var(--primary)]">
                   ELITE ROSTER
                 </div>
               )}
@@ -470,7 +470,7 @@ export default function TeamDashboard() {
                 <span className="text-sm font-bold uppercase">{team.categoria?.valor || 'Categoría'}</span>
               </div>
 
-              <div className="flex items-center gap-2 bg-[#CCFF00] text-gray-900 px-5 py-2.5 rounded-full font-black text-sm uppercase shadow-lg shadow-[#CCFF00]/20">
+              <div className="flex items-center gap-2 bg-[var(--primary)] text-gray-900 px-5 py-2.5 rounded-full font-black text-sm uppercase shadow-lg shadow-[var(--primary-20)]">
                 <CheckCircle2 className="w-5 h-5" />
                 <span>{team.nivel_habilidad || 'Nivel'}</span>
               </div>
@@ -493,8 +493,8 @@ export default function TeamDashboard() {
             {/* Schedule Summary */}
             <div className="flex items-center gap-6 text-sm font-medium">
               <div className="flex items-center gap-3 bg-black/10 px-5 py-3 rounded-2xl backdrop-blur-sm">
-                <Clock className="w-5 h-5 text-[#CCFF00]" />
-                <span className="text-base font-bold italic">{team.hora_inicio || '--:--'} - {team.hora_fin || '--:--'}</span>
+                <Clock className="w-5 h-5 text-[var(--primary)]" />
+                <span className="text-base font-bold italic">{team.hora_inicio?.split('T')[1]?.split(':').slice(0,2).join(':') || '--:--'} - {team.hora_fin?.split('T')[1]?.split(':').slice(0,2).join(':') || '--:--'}</span>
               </div>
               {team.dias_entrenamiento?.length > 0 && (
                 <div className="hidden lg:flex flex-wrap gap-2">
@@ -527,7 +527,7 @@ export default function TeamDashboard() {
               }}
               className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-[11px] uppercase italic tracking-wider transition-all whitespace-nowrap ${
                 activeTab === tab.id 
-                  ? 'bg-[#CCFF00] text-gray-900 shadow-xl shadow-[#CCFF00]/10' 
+                  ? 'bg-[var(--primary)] text-gray-900 shadow-xl shadow-[var(--primary-10)]' 
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -567,7 +567,7 @@ export default function TeamDashboard() {
                 placeholder="Buscar deportista..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-[24px] text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white shadow-sm"
+                className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-[24px] text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all dark:text-white shadow-sm"
               />
             </div>
             {canEdit && (
@@ -575,7 +575,7 @@ export default function TeamDashboard() {
                 <Button 
                   variant="outline"
                   onClick={() => team?.id && fetchPlayers(team.id)}
-                  className="bg-white dark:bg-[#1e293b]/50 p-4 rounded-[24px] border border-gray-200 dark:border-[#334155] hover:border-[#CCFF00] transition-all"
+                  className="bg-white dark:bg-[#1e293b]/50 p-4 rounded-[24px] border border-gray-200 dark:border-[#334155] hover:border-[var(--primary)] transition-all"
                   title="Actualizar Plantel"
                 >
                   <RefreshCw className={`w-4 h-4 ${loadingPlayers ? 'animate-spin' : ''}`} />
@@ -590,7 +590,7 @@ export default function TeamDashboard() {
                         window.location.href = `/registro-deportista?code=${team.codigo}`;
                       }
                     }}
-                    className="bg-gray-900 dark:bg-[#CCFF00] dark:text-gray-900 px-8 py-4 rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center gap-2"
+                    className="bg-gray-900 dark:bg-[var(--primary)] dark:text-gray-900 px-8 py-4 rounded-[24px] font-black uppercase text-[10px] tracking-widest italic flex items-center gap-2"
                   >
                     <Users className="w-4 h-4" />
                     Inscribir Jugador
@@ -602,7 +602,7 @@ export default function TeamDashboard() {
 
           {loadingPlayers ? (
             <div className="py-20 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00] mx-auto px-10"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto px-10"></div>
               <p className="text-gray-500 mt-4 font-bold uppercase text-[10px] tracking-[0.2em]">Sincronizando Plantel...</p>
             </div>
           ) : players.length === 0 ? (
@@ -617,12 +617,12 @@ export default function TeamDashboard() {
                 p.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) || 
                 p.numero_documento.includes(searchTerm)
               ).map((player) => (
-                <div key={player.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[#CCFF00] transition-all duration-300 relative">
+                <div key={player.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[var(--primary)] transition-all duration-300 relative">
                   <div className="p-8 space-y-6">
                     <div className="flex justify-between items-start">
                       <div 
                         onClick={() => navigate(`/${profile?.rol === 'admin_club' ? 'club' : 'coordinator'}/players/${player.id}`)}
-                        className="h-16 w-16 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-[#CCFF00] transition-all cursor-pointer"
+                        className="h-16 w-16 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-[var(--primary)] transition-all cursor-pointer"
                       >
                         {player.foto_url ? (
                           <img 
@@ -644,7 +644,7 @@ export default function TeamDashboard() {
                             else if (profile?.rol === 'direccion_deportiva') pathPrefix = 'sports-dir';
                             navigate(`/${pathPrefix}/players/${player.id}`);
                           }}
-                          className="p-3 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-2xl hover:bg-[#CCFF00] hover:text-black transition-all"
+                          className="p-3 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-2xl hover:bg-[var(--primary)] hover:text-black transition-all"
                           title="Ver Ficha"
                         >
                           <Eye size={18} />
@@ -722,7 +722,7 @@ export default function TeamDashboard() {
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tight">
-                       {months[currentDate.getMonth()]} <span className="text-[#CCFF00]">{currentDate.getFullYear()}</span>
+                       {months[currentDate.getMonth()]} <span className="text-[var(--primary)]">{currentDate.getFullYear()}</span>
                     </h2>
                     <div className="flex items-center gap-1">
                        <button 
@@ -761,7 +761,7 @@ export default function TeamDashboard() {
               {/* Grid Days */}
               {loadingEvents ? (
                 <div className="min-h-[400px] flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00]"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
                 </div>
               ) : (
                 <div className="grid grid-cols-7 gap-4">
@@ -778,17 +778,17 @@ export default function TeamDashboard() {
                             if (dayEvents.length === 1) setSelectedEvent(dayEvents[0]);
                           }}
                           className={cn(
-                            "min-h-[100px] md:min-h-[120px] p-2 md:p-4 rounded-3xl border transition-all hover:border-[#CCFF00]/50 group",
+                            "min-h-[100px] md:min-h-[120px] p-2 md:p-4 rounded-3xl border transition-all hover:border-[var(--primary-50)] group",
                             isCurrentMonth ? "bg-white dark:bg-[#1e293b]/20 border-gray-50 dark:border-white/5" : "bg-gray-50/50 dark:bg-black/5 border-transparent opacity-30",
-                            isToday && "ring-2 ring-[#CCFF00] border-[#CCFF00]",
+                            isToday && "ring-2 ring-[var(--primary)] border-[var(--primary)]",
                             dayEvents.length > 0 && "cursor-pointer"
                           )}
                         >
                            <div className="flex justify-between items-start mb-2">
-                              <span className={cn("text-xs font-black italic", isToday ? "text-[#CCFF00]" : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white")}>
+                              <span className={cn("text-xs font-black italic", isToday ? "text-[var(--primary)]" : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white")}>
                                  {day.getDate()}
                               </span>
-                              {isToday && <div className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse"></div>}
+                              {isToday && <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse"></div>}
                            </div>
 
                            <div className="space-y-1 overflow-hidden">
@@ -829,8 +829,8 @@ export default function TeamDashboard() {
       >
         {selectedLocation && (
           <div className="space-y-6">
-            <div className="flex items-center gap-4 p-6 bg-[#CCFF00]/5 rounded-[32px] border border-[#CCFF00]/10">
-               <div className="p-4 bg-gray-900 dark:bg-[#CCFF00] text-white dark:text-gray-900 rounded-2xl shadow-lg">
+            <div className="flex items-center gap-4 p-6 bg-[var(--primary-5)] rounded-[32px] border border-[var(--primary-10)]">
+               <div className="p-4 bg-gray-900 dark:bg-[var(--primary)] text-white dark:text-gray-900 rounded-2xl shadow-lg">
                  <MapPin size={24} />
                </div>
                <div>
@@ -883,7 +883,7 @@ export default function TeamDashboard() {
              {/* Sección: Datos Personales */}
               <div className="space-y-4">
                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                   <User className="w-4 h-4 text-[#CCFF00]" />
+                   <User className="w-4 h-4 text-[var(--primary)]" />
                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Datos Personales</h4>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -923,7 +923,7 @@ export default function TeamDashboard() {
                     <div>
                       <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Género</label>
                       <select 
-                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white disabled:opacity-50"
+                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white disabled:opacity-50"
                         value={editingPlayer.genero || ''}
                         onChange={(e) => setEditingPlayer({...editingPlayer, genero: e.target.value})}
                       >
@@ -951,7 +951,7 @@ export default function TeamDashboard() {
                     <div>
                       <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Tipo Documento</label>
                       <select 
-                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white disabled:opacity-50"
+                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white disabled:opacity-50"
                         value={editingPlayer.tipo_documento}
                         onChange={(e) => setEditingPlayer({...editingPlayer, tipo_documento: e.target.value})}
                       >
@@ -992,7 +992,7 @@ export default function TeamDashboard() {
              {!isElite && (
                 <div className="space-y-4">
                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                     <Shield className="w-4 h-4 text-[#CCFF00]" />
+                     <Shield className="w-4 h-4 text-[var(--primary)]" />
                      <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Información del Tutor</h4>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1036,14 +1036,14 @@ export default function TeamDashboard() {
               {/* Sección: Perfil Deportivo y Médico */}
               <div className="space-y-4">
                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                   <Trophy className="w-4 h-4 text-[#CCFF00]" />
+                   <Trophy className="w-4 h-4 text-[var(--primary)]" />
                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Perfil Deportivo y Médico</h4>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Posición</label>
                       <select 
-                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                        className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                         value={editingPlayer.posicion_id || ''}
                         onChange={(e) => setEditingPlayer({...editingPlayer, posicion_id: e.target.value})}
                       >
@@ -1095,14 +1095,14 @@ export default function TeamDashboard() {
               {!isElite && (
                 <div className="space-y-4">
                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                     <TrendingUp className="w-4 h-4 text-[#CCFF00]" />
+                     <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                      <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Equipos Adicionales (Ascendido)</h4>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Segundo Equipo</label>
                         <select 
-                          className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                          className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                           value={editingPlayer.equipo_id_2 || ''}
                           onChange={(e) => setEditingPlayer({...editingPlayer, equipo_id_2: e.target.value})}
                         >
@@ -1115,7 +1115,7 @@ export default function TeamDashboard() {
                       <div>
                         <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Tercer Equipo</label>
                         <select 
-                          className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all dark:text-white"
+                          className="w-full h-14 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all dark:text-white"
                           value={editingPlayer.equipo_id_3 || ''}
                           onChange={(e) => setEditingPlayer({...editingPlayer, equipo_id_3: e.target.value})}
                         >
@@ -1132,7 +1132,7 @@ export default function TeamDashboard() {
               {/* Sección: Trayectoria Deportiva */}
               <div className="space-y-4">
                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                   <TrendingUp className="w-4 h-4 text-[#CCFF00]" />
+                   <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Trayectoria Deportiva</h4>
                  </div>
                  <div className="space-y-3">
@@ -1164,7 +1164,7 @@ export default function TeamDashboard() {
                    <button 
                     type="button"
                     onClick={() => setShowTrayectoriaModal(true)}
-                    className="w-full py-4 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:border-[#CCFF00] hover:text-[#CCFF00] transition-all"
+                    className="w-full py-4 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
                    >
                      + Añadir Trayectoria Deportiva
                    </button>
@@ -1202,7 +1202,7 @@ export default function TeamDashboard() {
              {/* Sección: Geografía */}
              <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-                  <MapPin className="w-4 h-4 text-[#CCFF00]" />
+                  <MapPin className="w-4 h-4 text-[var(--primary)]" />
                   <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400">Ubicación Residencial</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1240,9 +1240,9 @@ export default function TeamDashboard() {
              {!isElite && (
                 <div className="space-y-6 pt-4 border-t border-gray-100 dark:border-white/10">
                    <div className="flex items-center gap-2 mb-2">
-                      <div className="h-1 w-8 bg-[#CCFF00] rounded-full"></div>
+                      <div className="h-1 w-8 bg-[var(--primary)] rounded-full"></div>
                       <h4 className="text-sm font-black uppercase italic tracking-widest text-gray-900 dark:text-white flex items-center gap-2">
-                        <Shield size={16} className="text-[#CCFF00]" />
+                        <Shield size={16} className="text-[var(--primary)]" />
                         Documentación y Archivos
                       </h4>
                    </div>
@@ -1292,7 +1292,7 @@ export default function TeamDashboard() {
                                  type="checkbox"
                                  checked={editingPlayer.viene_de_otro_club || false}
                                  onChange={(e) => setEditingPlayer({...editingPlayer, viene_de_otro_club: e.target.checked})}
-                                 className="w-4 h-4 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00]"
+                                 className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                                />
                                <span className="text-[10px] font-black uppercase text-gray-400">¿Viene de otro club?</span>
                              </label>
@@ -1313,7 +1313,7 @@ export default function TeamDashboard() {
 
              <div className="pt-4 sticky bottom-0 bg-white dark:bg-[#1e293b] flex gap-3 z-10">
                <Button type="button" variant="ghost" onClick={() => setEditingPlayer(null)} className="flex-1">Cancelar</Button>
-               <Button type="submit" isLoading={savingPlayer} className="flex-1 bg-black dark:bg-[#CCFF00] dark:text-gray-900 text-white uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl">
+               <Button type="submit" isLoading={savingPlayer} className="flex-1 bg-black dark:bg-[var(--primary)] dark:text-gray-900 text-white uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl">
                  Actualizar Ficha Técnica
                </Button>
              </div>
@@ -1358,7 +1358,7 @@ export default function TeamDashboard() {
                 type="checkbox"
                 checked={newTrayectoria.es_actual}
                 onChange={(e) => setNewTrayectoria({...newTrayectoria, es_actual: e.target.checked, temporada_fin: e.target.checked ? '' : newTrayectoria.temporada_fin})}
-                className="w-5 h-5 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00]"
+                className="w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               <span className="text-xs font-black uppercase italic text-gray-500">Es mi equipo actual</span>
             </label>
@@ -1405,7 +1405,7 @@ export default function TeamDashboard() {
                   showToast(err.message, 'error');
                 }
               }}
-              className="flex-1 bg-[#CCFF00] text-black uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl"
+              className="flex-1 bg-[var(--primary)] text-black uppercase font-black tracking-widest text-[10px] italic h-14 rounded-2xl"
             >
               Añadir y Continuar
             </Button>
@@ -1455,11 +1455,11 @@ export default function TeamDashboard() {
         {viewingPlayer && (
           <div className="space-y-8 pb-10">
             {/* Header / Hero Section */}
-            <div className="relative -mt-6 -mx-6 mb-8 h-48 bg-gradient-to-br from-black via-gray-900 to-[#CCFF00]/20 overflow-hidden flex items-center px-10">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#CCFF00]/10 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
+            <div className="relative -mt-6 -mx-6 mb-8 h-48 bg-gradient-to-br from-black via-gray-900 to-[var(--primary-20)] overflow-hidden flex items-center px-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-10)] blur-[100px] -mr-32 -mt-32 rounded-full"></div>
               
               <div className="flex items-center gap-8 relative z-10 w-full">
-                <div className="w-32 h-32 rounded-[40px] border-4 border-[#CCFF00] shadow-2xl overflow-hidden bg-white shrink-0">
+                <div className="w-32 h-32 rounded-[40px] border-4 border-[var(--primary)] shadow-2xl overflow-hidden bg-white shrink-0">
                   {viewingPlayer.foto_url ? (
                     <img 
                       src={getDirectImageUrl(viewingPlayer.foto_url)} 
@@ -1475,7 +1475,7 @@ export default function TeamDashboard() {
                 
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-3 lowercase">
-                    <Badge className="bg-[#CCFF00] text-black border-none font-black italic tracking-widest text-[10px] uppercase">
+                    <Badge className="bg-[var(--primary)] text-black border-none font-black italic tracking-widest text-[10px] uppercase">
                       {viewingPlayer.genero || 'Deportista'}
                     </Badge>
                     <span className="text-white/40 text-[10px] uppercase font-black tracking-widest italic flex items-center gap-1">
@@ -1485,7 +1485,7 @@ export default function TeamDashboard() {
                   <h3 className="text-4xl font-black text-white italic uppercase leading-none tracking-tighter">
                     {viewingPlayer.alias ? (
                       <>
-                        <span className="text-[#CCFF00] block text-xl mb-1 mt-1">"{viewingPlayer.alias}"</span>
+                        <span className="text-[var(--primary)] block text-xl mb-1 mt-1">"{viewingPlayer.alias}"</span>
                         {viewingPlayer.nombre_completo}
                       </>
                     ) : (
@@ -1493,8 +1493,8 @@ export default function TeamDashboard() {
                     )}
                   </h3>
                   <div className="flex items-center gap-4 text-white/60 text-xs font-bold uppercase tracking-widest">
-                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#CCFF00]" /> {viewingPlayer.fecha_nacimiento}</span>
-                    <span className="flex items-center gap-1.5"><Shield size={14} className="text-[#CCFF00]" /> {viewingPlayer.eps}</span>
+                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[var(--primary)]" /> {viewingPlayer.fecha_nacimiento}</span>
+                    <span className="flex items-center gap-1.5"><Shield size={14} className="text-[var(--primary)]" /> {viewingPlayer.eps}</span>
                   </div>
                 </div>
               </div>
@@ -1505,7 +1505,7 @@ export default function TeamDashboard() {
               {/* Columna Izquierda: Datos Personales */}
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-2">Información de Identidad</h5>
+                  <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-2">Información de Identidad</h5>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tipo de Doc.</p>
@@ -1531,7 +1531,7 @@ export default function TeamDashboard() {
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-2">Contacto Directo</h5>
+                  <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-2">Contacto Directo</h5>
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 group">
                       <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform">
@@ -1561,7 +1561,7 @@ export default function TeamDashboard() {
                   <div className="p-6 rounded-[32px] bg-gradient-to-br from-gray-50 to-white dark:from-white/5 dark:to-transparent border border-gray-100 dark:border-white/10 space-y-6 shadow-sm">
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                         <div className="p-1.5 bg-[#CCFF00] text-black rounded-lg"><Baby size={14} /></div>
+                         <div className="p-1.5 bg-[var(--primary)] text-black rounded-lg"><Baby size={14} /></div>
                          <h6 className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">Información del Tutor</h6>
                       </div>
                       <div className="space-y-2">
@@ -1570,10 +1570,10 @@ export default function TeamDashboard() {
                          </p>
                          <div className="flex flex-col gap-2">
                            <span className="text-xs text-gray-500 flex items-center gap-2 bg-white dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-50 dark:border-white/10 w-fit">
-                             <Phone size={12} className="text-[#CCFF00]" /> {viewingPlayer.tutor_celular}
+                             <Phone size={12} className="text-[var(--primary)]" /> {viewingPlayer.tutor_celular}
                            </span>
                            <span className="text-xs text-gray-500 flex items-center gap-2 bg-white dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-50 dark:border-white/10 w-fit lowercase">
-                             <Mail size={12} className="text-[#CCFF00]" /> {viewingPlayer.tutor_email}
+                             <Mail size={12} className="text-[var(--primary)]" /> {viewingPlayer.tutor_email}
                            </span>
                          </div>
                       </div>
@@ -1603,14 +1603,14 @@ export default function TeamDashboard() {
                     <Map size={80} />
                   </div>
                   <div className="flex items-center gap-2 relative z-10">
-                     <div className="p-1.5 bg-[#CCFF00] text-black rounded-lg"><MapPin size={14} /></div>
+                     <div className="p-1.5 bg-[var(--primary)] text-black rounded-lg"><MapPin size={14} /></div>
                      <h6 className="text-[10px] font-black uppercase tracking-widest">Ubicación Residencial</h6>
                   </div>
                   <div className="space-y-3 relative z-10">
                     <p className="text-sm font-black italic uppercase tracking-tighter">{viewingPlayer.direccion}</p>
                     <div className="flex gap-2">
                       <Badge className="bg-white/10 text-[9px] uppercase font-black border-none">{viewingPlayer.barrio}</Badge>
-                      <Badge className="bg-[#CCFF00] text-black text-[9px] uppercase font-black border-none italic">{viewingPlayer.municipio}</Badge>
+                      <Badge className="bg-[var(--primary)] text-black text-[9px] uppercase font-black border-none italic">{viewingPlayer.municipio}</Badge>
                     </div>
                   </div>
                 </div>
@@ -1618,10 +1618,10 @@ export default function TeamDashboard() {
             </div>
 
             {/* Perfil Deportivo y Médico */}
-            <div className="bg-[#CCFF00]/5 border border-[#CCFF00]/10 rounded-[40px] p-8 space-y-6">
+            <div className="bg-[var(--primary-5)] border border-[var(--primary-10)] rounded-[40px] p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gray-900 text-[#CCFF00] rounded-2xl shadow-lg">
+                  <div className="p-3 bg-gray-900 text-[var(--primary)] rounded-2xl shadow-lg">
                     <Trophy size={20} />
                   </div>
                   <div>
@@ -1630,8 +1630,8 @@ export default function TeamDashboard() {
                   </div>
                 </div>
                 {viewingPlayer.dorsal && (
-                  <div className="h-16 w-16 bg-gray-900 text-[#CCFF00] rounded-2xl flex items-center justify-center border-4 border-[#CCFF00]/20 shadow-xl relative group">
-                    <div className="absolute -top-2 -right-2 bg-[#CCFF00] text-black text-[8px] font-black px-1.5 py-0.5 rounded tracking-widest italic">DORSAL</div>
+                  <div className="h-16 w-16 bg-gray-900 text-[var(--primary)] rounded-2xl flex items-center justify-center border-4 border-[var(--primary-20)] shadow-xl relative group">
+                    <div className="absolute -top-2 -right-2 bg-[var(--primary)] text-black text-[8px] font-black px-1.5 py-0.5 rounded tracking-widest italic">DORSAL</div>
                     <span className="text-3xl font-black italic">{viewingPlayer.dorsal}</span>
                   </div>
                 )}
@@ -1650,7 +1650,7 @@ export default function TeamDashboard() {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Peso Corporal</p>
                   <p className="text-lg font-black text-gray-900 dark:text-white uppercase italic">{viewingPlayer.peso ? `${viewingPlayer.peso} kg` : '---'}</p>
                 </div>
-                <div className="p-5 rounded-3xl bg-[#CCFF00] text-black space-y-1 shadow-lg shadow-[#CCFF00]/10">
+                <div className="p-5 rounded-3xl bg-[var(--primary)] text-black space-y-1 shadow-lg shadow-[var(--primary-10)]">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Tipo de Sangre</p>
                   <p className="text-xl font-black italic">{viewingPlayer.rh || 'S/N'}</p>
                 </div>
@@ -1658,17 +1658,17 @@ export default function TeamDashboard() {
 
               {/* Equipos Ascendidos / Múltiples */}
               {!isElite && (viewingPlayer.equipo2 || viewingPlayer.equipo3) && (
-                <div className="pt-4 border-t border-[#CCFF00]/10 flex flex-wrap gap-4">
+                <div className="pt-4 border-t border-[var(--primary-10)] flex flex-wrap gap-4">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest w-full">Equipos Adicionales (Ascendido)</p>
                   {viewingPlayer.equipo2 && (
-                    <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase italic border border-[#CCFF00]/30">
-                       <TrendingUp size={14} className="text-[#CCFF00]" />
+                    <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase italic border border-[var(--primary-30)]">
+                       <TrendingUp size={14} className="text-[var(--primary)]" />
                        {viewingPlayer.equipo2.nombre}
                     </div>
                   )}
                   {viewingPlayer.equipo3 && (
-                    <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase italic border border-[#CCFF00]/30">
-                       <TrendingUp size={14} className="text-[#CCFF00]" />
+                    <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase italic border border-[var(--primary-30)]">
+                       <TrendingUp size={14} className="text-[var(--primary)]" />
                        {viewingPlayer.equipo3.nombre}
                     </div>
                   )}
@@ -1678,7 +1678,7 @@ export default function TeamDashboard() {
 
             {/* Trayectoria Deportiva */}
             <div className="space-y-4">
-               <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-2 flex items-center gap-2">
+               <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-2 flex items-center gap-2">
                  <TrendingUp size={14} /> Trayectoria del Jugador
                </h5>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1686,17 +1686,17 @@ export default function TeamDashboard() {
                    viewingPlayer.trayectorias
                     .sort((a: any, b: any) => (b.es_actual ? 1 : -1))
                     .map((tray: any, idx: number) => (
-                      <div key={idx} className={`p-4 rounded-3xl border ${tray.es_actual ? 'bg-[#CCFF00]/10 border-[#CCFF00]/20' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10'}`}>
+                      <div key={idx} className={`p-4 rounded-3xl border ${tray.es_actual ? 'bg-[var(--primary-10)] border-[var(--primary-20)]' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10'}`}>
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className={`text-sm font-black uppercase italic ${tray.es_actual ? 'text-[#CCFF00]' : 'text-gray-900 dark:text-white'}`}>
+                            <p className={`text-sm font-black uppercase italic ${tray.es_actual ? 'text-[var(--primary)]' : 'text-gray-900 dark:text-white'}`}>
                               {tray.equipo_nombre}
                             </p>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                               Periodo: {tray.temporada_inicio} - {tray.temporada_fin || 'Presente'}
                             </p>
                           </div>
-                          {tray.es_actual && <Badge className="bg-[#CCFF00] text-black text-[8px] font-black uppercase">Actual</Badge>}
+                          {tray.es_actual && <Badge className="bg-[var(--primary)] text-black text-[8px] font-black uppercase">Actual</Badge>}
                         </div>
                       </div>
                     ))
@@ -1715,7 +1715,7 @@ export default function TeamDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[
                     { label: 'Registro Civil', url: viewingPlayer.url_registro_civil, color: 'text-blue-500' },
-                    { label: 'Doc. Identidad', url: viewingPlayer.url_documento_id, color: 'text-[#CCFF00]' },
+                    { label: 'Doc. Identidad', url: viewingPlayer.url_documento_id, color: 'text-[var(--primary)]' },
                     { label: 'Contrato Firmado', url: viewingPlayer.url_contrato, color: 'text-purple-500' }
                   ].map((doc, idx) => (
                     <div key={idx} className="flex flex-col gap-3 p-5 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:border-gray-200 transition-all">
@@ -1745,7 +1745,7 @@ export default function TeamDashboard() {
             )}
 
             <div className="pt-8 border-t border-gray-100 dark:border-white/5 flex justify-end">
-              <Button onClick={() => setViewingPlayer(null)} className="px-10 h-14 bg-black text-[#CCFF00] rounded-2xl font-black uppercase italic tracking-widest text-xs">
+              <Button onClick={() => setViewingPlayer(null)} className="px-10 h-14 bg-black text-[var(--primary)] rounded-2xl font-black uppercase italic tracking-widest text-xs">
                 Cerrar Ficha
               </Button>
             </div>
@@ -1789,14 +1789,14 @@ export default function TeamDashboard() {
                 <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl space-y-2">
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Horario</p>
                    <div className="flex items-center gap-2 text-gray-900 dark:text-white font-black italic">
-                      <Clock size={16} className="text-[#CCFF00]" />
+                      <Clock size={16} className="text-[var(--primary)]" />
                       {selectedEvent.hora_inicio} - {selectedEvent.hora_fin}
                    </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl space-y-2">
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lugar</p>
                    <div className="flex items-center gap-2 text-gray-900 dark:text-white font-black italic">
-                      <MapPin size={16} className="text-[#CCFF00]" />
+                      <MapPin size={16} className="text-[var(--primary)]" />
                       {selectedEvent.lugar || 'Sede oficial'}
                    </div>
                 </div>
@@ -1819,12 +1819,12 @@ export default function TeamDashboard() {
       {toast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-10 duration-500">
            <div className={`flex items-center gap-3 px-6 py-4 rounded-3xl border shadow-2xl backdrop-blur-xl ${
-             toast.type === 'success' ? 'bg-black/90 border-[#CCFF00]/20 text-white' :
+             toast.type === 'success' ? 'bg-black/90 border-[var(--primary-20)] text-white' :
              toast.type === 'error' ? 'bg-red-500/90 border-red-500/20 text-white' :
              'bg-blue-600/90 border-blue-400/20 text-white'
            }`}>
              <div className={`p-2 rounded-xl ${
-               toast.type === 'success' ? 'bg-[#CCFF00] text-black' : 'bg-white/20 text-white'
+               toast.type === 'success' ? 'bg-[var(--primary)] text-black' : 'bg-white/20 text-white'
              }`}>
                {toast.type === 'success' ? <CheckCircle2 size={18} /> : 
                 toast.type === 'error' ? <AlertTriangle size={18} /> : <Info size={18} />}

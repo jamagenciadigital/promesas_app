@@ -95,7 +95,7 @@ export default function NotificationPopover() {
 
   const getIcon = (tipo: string) => {
     switch (tipo) {
-      case 'invitacion': return <Calendar className="w-4 h-4 text-[#CCFF00]" />;
+      case 'invitacion': return <Calendar className="w-4 h-4 text-[var(--primary)]" />;
       case 'pago': return <Wallet className="w-4 h-4 text-emerald-500" />;
       case 'confirmacion': return <Check className="w-4 h-4 text-blue-500" />;
       default: return <AlertCircle className="w-4 h-4 text-gray-400" />;
@@ -142,7 +142,7 @@ export default function NotificationPopover() {
             {unreadCount > 0 && (
               <button 
                 onClick={markAllAsRead}
-                className="text-[9px] font-bold text-[#CCFF00] uppercase tracking-widest hover:underline transition-all"
+                className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest hover:underline transition-all"
               >
                 Marcar todo como leído
               </button>

@@ -319,7 +319,7 @@ export default function RegisterPlayer() {
             <div className="text-left animate-in fade-in duration-700 space-y-4">
               {teamInfo?.club && (
                 <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-3xl border border-gray-100 max-w-fit">
-                  {teamInfo.club.logo_url ? <img src={getDirectImageUrl(teamInfo.club.logo_url)} className="w-12 h-12 rounded-2xl object-cover" /> : <div className="w-12 h-12 rounded-2xl bg-[#CCFF00]/10 flex items-center justify-center"><Shield className="w-6 h-6 text-[#CCFF00]" /></div>}
+                  {teamInfo.club.logo_url ? <img src={getDirectImageUrl(teamInfo.club.logo_url)} className="w-12 h-12 rounded-2xl object-cover" /> : <div className="w-12 h-12 rounded-2xl bg-[var(--primary-10)] flex items-center justify-center"><Shield className="w-6 h-6 text-[var(--primary)]" /></div>}
                   <div>
                     <h3 className="text-sm font-black uppercase tracking-tighter text-gray-900 leading-none">{teamInfo.club.nombre}</h3>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Club Validado</p>
@@ -327,11 +327,11 @@ export default function RegisterPlayer() {
                 </div>
               )}
               {teamInfo && (
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 p-6 bg-white/50 rounded-[32px] border border-gray-50 backdrop-blur-sm shadow-sm border-l-4 border-l-[#CCFF00] animate-in slide-in-from-top-4 duration-500">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 p-6 bg-white/50 rounded-[32px] border border-gray-50 backdrop-blur-sm shadow-sm border-l-4 border-l-[var(--primary)] animate-in slide-in-from-top-4 duration-500">
                   <div className="space-y-1">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">NIVEL</p>
                     <div className="flex items-center gap-1.5">
-                      <Trophy className="w-3 h-3 text-[#CCFF00]" />
+                      <Trophy className="w-3 h-3 text-[var(--primary)]" />
                       <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">{teamInfo.nivel_habilidad}</span>
                     </div>
                   </div>
@@ -339,7 +339,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">CATEGORÍA</p>
                       <div className="flex items-center gap-1.5">
-                        <Shield className="w-3 h-3 text-[#CCFF00]" />
+                        <Shield className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">{teamInfo.categoria.valor}</span>
                       </div>
                     </div>
@@ -347,7 +347,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">EQUIPO</p>
                       <div className="flex items-center gap-1.5">
-                        <Shield className="w-3 h-3 text-[#CCFF00]" />
+                        <Shield className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">{teamInfo.nombre}</span>
                       </div>
                     </div>
@@ -356,7 +356,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">SEDE ENTRENAMIENTO</p>
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3 h-3 text-[#CCFF00]" />
+                        <MapPin className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic truncate max-w-[120px]">{teamInfo.sede.nombre}</span>
                       </div>
                     </div>
@@ -365,7 +365,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">DÍAS DE ENTRENAMIENTO</p>
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3 h-3 text-[#CCFF00]" />
+                        <Calendar className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">{teamInfo.dias_entrenamiento.join(', ')}</span>
                       </div>
                     </div>
@@ -374,7 +374,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">HORARIOS</p>
                       <div className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 text-[#CCFF00]" />
+                        <Clock className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">
                           {teamInfo.hora_inicio && teamInfo.hora_fin ? `${teamInfo.hora_inicio} - ${teamInfo.hora_fin}` : teamInfo.hora_inicio || teamInfo.hora_fin}
                         </span>
@@ -385,7 +385,7 @@ export default function RegisterPlayer() {
                     <div className="space-y-1 col-span-2">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">COACH ASIGNADO</p>
                       <div className="flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-[#CCFF00]" />
+                        <User className="w-3 h-3 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-tighter text-gray-700 italic">
                           {teamInfo.entrenadores.map((e: any) => e.entrenador ? `${e.entrenador.nombre} ${e.entrenador.apellido}` : 'Staff Deportivo').join(', ') || 'Staff Deportivo'}
                         </span>
@@ -408,7 +408,7 @@ export default function RegisterPlayer() {
               {typeof step === 'number' && step > 0 && (
                 <div className="flex gap-1 h-1 w-full max-w-xs bg-gray-100 rounded-full overflow-hidden print:hidden">
                   {[1,2,3,4,5,6,7].map(s => (
-                    <div key={s} className={`flex-1 transition-all duration-500 ${step >= s ? 'bg-[#CCFF00]' : 'bg-transparent'}`}></div>
+                    <div key={s} className={`flex-1 transition-all duration-500 ${step >= s ? 'bg-[var(--primary)]' : 'bg-transparent'}`}></div>
                   ))}
                 </div>
               )}
@@ -420,7 +420,7 @@ export default function RegisterPlayer() {
                <div className="bg-white p-8 rounded-[40px] shadow-2xl shadow-black/5 border border-gray-50">
                  <Input label="Código del Equipo" placeholder="ABC-123" value={formData.codigo} onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toUpperCase() })} className="h-16 text-2xl font-black uppercase tracking-widest text-center" icon={<Hash className="w-6 h-6" />} />
                  {error && <p className="text-red-500 text-xs font-bold mt-3 px-2 italic">{error}</p>}
-                 <Button onClick={nextStep} isLoading={validatingCode} className="w-full h-16 bg-black text-[#CCFF00] font-black uppercase italic tracking-widest rounded-3xl mt-8 shadow-xl text-sm gap-2">Verificar <ChevronRight size={20} /></Button>
+                 <Button onClick={nextStep} isLoading={validatingCode} className="w-full h-16 bg-black text-[var(--primary)] font-black uppercase italic tracking-widest rounded-3xl mt-8 shadow-xl text-sm gap-2">Verificar <ChevronRight size={20} /></Button>
                </div>
              </div>
           )}
@@ -491,7 +491,7 @@ export default function RegisterPlayer() {
 
                   <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-[32px] border border-gray-100 dark:border-white/5">
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${formData.viene_de_otro_club ? 'bg-black text-[#CCFF00]' : 'bg-white dark:bg-white/5 text-gray-400 group-hover:border-[#CCFF00] border border-transparent'}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${formData.viene_de_otro_club ? 'bg-black text-[var(--primary)]' : 'bg-white dark:bg-white/5 text-gray-400 group-hover:border-[var(--primary)] border border-transparent'}`}>
                         {formData.viene_de_otro_club ? <CheckCircle2 size={24} /> : <div className="w-6 h-6 border-2 border-current rounded-lg" />}
                       </div>
                       <input 
@@ -509,7 +509,7 @@ export default function RegisterPlayer() {
 
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-14">Atrás</Button>
-                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Continuar <ChevronRight size={16} /></Button>
+                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Continuar <ChevronRight size={16} /></Button>
                   </div>
                 </div>
               )}
@@ -527,7 +527,7 @@ export default function RegisterPlayer() {
                   <Input label="Nro Documento Tutor" required value={formData.tutor_numero_documento} onChange={e => setFormData({...formData, tutor_numero_documento: e.target.value})} icon={<Hash size={16}/>} />
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-14 font-black uppercase text-[10px]">Anterior</Button>
-                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
+                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
                   </div>
                 </div>
               )}
@@ -542,7 +542,7 @@ export default function RegisterPlayer() {
                   </div>
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-14 font-black uppercase text-[10px]">Anterior</Button>
-                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
+                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
                   </div>
                 </div>
               )}
@@ -583,7 +583,7 @@ export default function RegisterPlayer() {
 
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-14 font-black uppercase text-[10px]">Anterior</Button>
-                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
+                    <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente <ChevronRight size={16} /></Button>
                   </div>
                 </div>
               )}
@@ -597,7 +597,7 @@ export default function RegisterPlayer() {
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">Concepto de Inscripción (Único)</h4>
                         <div className="grid grid-cols-1 gap-3">
                           {inscripcionPlans.map(p => (
-                            <button key={p.id} type="button" onClick={() => setFormData({ ...formData, plan_inscripcion_id: p.id })} className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${formData.plan_inscripcion_id === p.id ? 'bg-black border-black text-[#CCFF00]' : 'bg-gray-50 border-transparent text-gray-900 font-bold'}`}>
+                            <button key={p.id} type="button" onClick={() => setFormData({ ...formData, plan_inscripcion_id: p.id })} className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${formData.plan_inscripcion_id === p.id ? 'bg-black border-black text-[var(--primary)]' : 'bg-gray-50 border-transparent text-gray-900 font-bold'}`}>
                               <div className="text-left"><p className="uppercase italic tracking-tighter">{p.nombre}</p><p className="text-[8px] font-black opacity-60">PAGO ÚNICO</p></div>
                               <p className="text-xl font-black">${new Intl.NumberFormat('es-CO').format(p.precio)}</p>
                             </button>
@@ -612,7 +612,7 @@ export default function RegisterPlayer() {
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">Mensualidades de la Temporada</h4>
                         <div className="grid grid-cols-1 gap-3">
                           {regularPlans.map(p => (
-                            <button key={p.id} type="button" onClick={() => setFormData({ ...formData, plan_id: p.id })} className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${formData.plan_id === p.id ? 'bg-black border-black text-[#CCFF00]' : 'bg-gray-50 border-transparent text-gray-900 font-bold'}`}>
+                            <button key={p.id} type="button" onClick={() => setFormData({ ...formData, plan_id: p.id })} className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${formData.plan_id === p.id ? 'bg-black border-black text-[var(--primary)]' : 'bg-gray-50 border-transparent text-gray-900 font-bold'}`}>
                               <div className="text-left"><p className="uppercase italic tracking-tighter">{p.nombre}</p><p className="text-[8px] font-black opacity-60 uppercase">{p.periodo}</p></div>
                               <p className="text-xl font-black">${new Intl.NumberFormat('es-CO').format(p.precio)}</p>
                             </button>
@@ -626,7 +626,7 @@ export default function RegisterPlayer() {
 
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-16 font-black uppercase text-[10px]">Anterior</Button>
-                    <Button type="button" onClick={nextStep} className="flex-[2] h-16 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Revisar Contrato <ChevronRight size={16} /></Button>
+                    <Button type="button" onClick={nextStep} className="flex-[2] h-16 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Revisar Contrato <ChevronRight size={16} /></Button>
                   </div>
                 </div>
               )}
@@ -697,13 +697,13 @@ export default function RegisterPlayer() {
                     </Button>
 
                     <label className="flex items-start gap-3 cursor-pointer p-6 bg-gray-50 rounded-[32px] border border-gray-100 hover:bg-gray-100 transition-colors">
-                      <input type="checkbox" required checked={formData.acepta_terminos} onChange={e => setFormData({...formData, acepta_terminos: e.target.checked})} className="mt-1 h-5 w-5 rounded border-gray-300 text-black focus:ring-[#CCFF00]" />
+                      <input type="checkbox" required checked={formData.acepta_terminos} onChange={e => setFormData({...formData, acepta_terminos: e.target.checked})} className="mt-1 h-5 w-5 rounded border-gray-300 text-black focus:ring-[var(--primary)]" />
                       <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-relaxed">He verificado toda la información suministrada, he generado el contrato y acepto los términos y condiciones.</span>
                     </label>
 
                     <div className="flex gap-4 pt-4">
                       <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-14 font-black uppercase text-[10px]">Anterior</Button>
-                      <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[#CCFF00] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente: Documentos <ChevronRight size={16} /></Button>
+                      <Button type="button" onClick={nextStep} className="flex-[2] h-14 bg-black text-[var(--primary)] font-black uppercase text-xs rounded-3xl shadow-xl">Siguiente: Documentos <ChevronRight size={16} /></Button>
                     </div>
                   </div>
                 </div>
@@ -766,7 +766,7 @@ export default function RegisterPlayer() {
 
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="ghost" onClick={prevStep} className="flex-1 h-16 font-black uppercase text-[10px]">Anterior</Button>
-                    <Button type="submit" isLoading={loading} className="flex-[2] h-16 bg-[#CCFF00] text-black font-black uppercase italic tracking-widest text-xs rounded-[32px] shadow-2xl shadow-[#CCFF00]/20">Finalizar Registro</Button>
+                    <Button type="submit" isLoading={loading} className="flex-[2] h-16 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-xs rounded-[32px] shadow-2xl shadow-[var(--primary-20)]">Finalizar Registro</Button>
                   </div>
                 </div>
               )}
@@ -775,7 +775,7 @@ export default function RegisterPlayer() {
 
           {step === 'success' && (
             <div className="text-center space-y-10 animate-in zoom-in-95">
-               <div className="w-24 h-24 bg-[#CCFF00] rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-[#CCFF00]/30"><CheckCircle2 size={48} className="text-black" /></div>
+               <div className="w-24 h-24 bg-[var(--primary)] rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-[var(--primary-30)]"><CheckCircle2 size={48} className="text-black" /></div>
                <div className="space-y-4">
                  <h2 className="text-5xl font-black text-gray-900 uppercase italic tracking-tighter leading-none">¡Bienvenido!</h2>
                  <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Tu cuenta ha sido creada y tus cobros de temporada generados satisfactoriamente.</p>
@@ -812,7 +812,7 @@ export default function RegisterPlayer() {
                    )}
                  </div>
                )}
-               <Button onClick={() => window.location.reload()} className="h-16 px-12 bg-black text-[#CCFF00] rounded-3xl font-black uppercase italic tracking-widest shadow-2xl">Entendido</Button>
+               <Button onClick={() => window.location.reload()} className="h-16 px-12 bg-black text-[var(--primary)] rounded-3xl font-black uppercase italic tracking-widest shadow-2xl">Entendido</Button>
             </div>
           )}
         </div>

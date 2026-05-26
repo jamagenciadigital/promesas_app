@@ -63,7 +63,7 @@ export default function CoachProfile() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0f172a]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export default function CoachProfile() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0f172a] p-4 text-center">
         <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic">Entrenador no encontrado</h2>
-        <Button onClick={() => navigate(-1)} className="mt-4 bg-[#CCFF00] text-black">Regresar</Button>
+        <Button onClick={() => navigate(-1)} className="mt-4 bg-[var(--primary)] text-black">Regresar</Button>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function CoachProfile() {
           <div className="flex gap-3">
              <Button 
                onClick={handlePrint}
-               className="bg-black text-[#CCFF00] border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12"
+               className="bg-black text-[var(--primary)] border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12"
              >
                <Printer size={16} /> Imprimir Perfil
              </Button>

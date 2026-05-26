@@ -96,7 +96,7 @@ export default function ClubReservations() {
                                profile?.rol === 'entrenador' ? '/coach' : '/club';
                 navigate(`${basePath}/reservations/new`);
               }}
-              className="px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all bg-[#CCFF00] text-black shadow-lg hover:scale-105 mr-2"
+              className="px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all bg-[var(--primary)] text-black shadow-lg hover:scale-105 mr-2"
             >
               Nueva Reserva
             </button>
@@ -107,7 +107,7 @@ export default function ClubReservations() {
               onClick={() => setFilter(f)}
               className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
                 filter === f 
-                  ? 'bg-black dark:bg-[#CCFF00] text-white dark:text-black shadow-lg' 
+                  ? 'bg-black dark:bg-[var(--primary)] text-white dark:text-black shadow-lg' 
                   : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
@@ -123,7 +123,7 @@ export default function ClubReservations() {
           <select
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-[#CCFF00]"
+            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-[var(--primary)]"
           >
             <option value="all">Todos los Equipos</option>
             {teams.map(t => (
@@ -138,14 +138,14 @@ export default function ClubReservations() {
             placeholder="Buscar por jugador/responsable..."
             value={playerFilter}
             onChange={(e) => setPlayerFilter(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-[#CCFF00]"
+            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-[var(--primary)]"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CCFF00]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)]"></div>
         </div>
       ) : filteredReservations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -153,32 +153,32 @@ export default function ClubReservations() {
             <div 
               key={res.id} 
               onClick={() => setSelectedRes(res)}
-              className="cursor-pointer group bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-[40px] overflow-hidden hover:border-[#CCFF00]/30 transition-all duration-500 shadow-sm hover:shadow-2xl"
+              className="cursor-pointer group bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-[40px] overflow-hidden hover:border-[var(--primary-30)] transition-all duration-500 shadow-sm hover:shadow-2xl"
             >
               <div className="bg-black p-8 relative overflow-hidden">
                 <div className="flex justify-between items-start relative z-10">
                   <div className="space-y-2">
-                     <p className="text-[10px] font-black text-[#CCFF00] uppercase italic tracking-widest leading-none">Equipo: {res.equipos?.nombre || 'N/A'}</p>
+                     <p className="text-[10px] font-black text-[var(--primary)] uppercase italic tracking-widest leading-none">Equipo: {res.equipos?.nombre || 'N/A'}</p>
                      <h3 className="text-xl font-black text-white uppercase italic tracking-tighter leading-tight">{res.escenarios?.nombre}</h3>
                   </div>
                   <Badge variant={res.estado === 'confirmada' ? 'success' : res.estado === 'pendiente' ? 'warning' : 'error'}>
                     {res.estado}
                   </Badge>
                 </div>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#CCFF00]/10 rounded-full blur-[40px] -mr-16 -mt-16" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary-10)] rounded-full blur-[40px] -mr-16 -mt-16" />
               </div>
               
               <div className="p-8 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                    <Calendar className="text-[#CCFF00]" size={16} />
+                    <Calendar className="text-[var(--primary)]" size={16} />
                     <div className="text-left">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Fecha</p>
                       <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic">{parseLocalDate(res.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                    <Clock className="text-[#CCFF00]" size={16} />
+                    <Clock className="text-[var(--primary)]" size={16} />
                     <div className="text-left">
                       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Horario</p>
                       <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic">{res.hora_inicio?.substring(0,5)}</p>
@@ -187,7 +187,7 @@ export default function ClubReservations() {
                 </div>
 
                 <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                  <MapPin className="text-[#CCFF00]" size={16} />
+                  <MapPin className="text-[var(--primary)]" size={16} />
                   <div className="text-left">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Ubicación</p>
                     <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic truncate max-w-[180px]">{res.escenarios?.direccion || 'Sede Club'}</p>
@@ -217,8 +217,8 @@ export default function ClubReservations() {
         </div>
       ) : (
         <div className="bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[64px] p-24 text-center">
-          <div className="bg-[#CCFF00]/10 w-28 h-28 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner">
-            <CalendarDays className="w-12 h-12 text-[#CCFF00]" />
+          <div className="bg-[var(--primary-10)] w-28 h-28 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner">
+            <CalendarDays className="w-12 h-12 text-[var(--primary)]" />
           </div>
           <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Sin Reservas</h3>
           <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-3 italic">No hay reservas que coincidan con los filtros.</p>
@@ -238,8 +238,8 @@ export default function ClubReservations() {
 
             <div className="p-8 md:p-10">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 bg-[#CCFF00]/20 rounded-2xl flex items-center justify-center">
-                  <FileText className="text-[#CCFF00] w-8 h-8" />
+                <div className="w-16 h-16 bg-[var(--primary-20)] rounded-2xl flex items-center justify-center">
+                  <FileText className="text-[var(--primary)] w-8 h-8" />
                 </div>
                 <div>
                   <h2 className="text-3xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Detalle de Reserva</h2>
@@ -277,7 +277,7 @@ export default function ClubReservations() {
                   </div>
                   <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Costo</p>
-                    <p className="text-xs font-bold text-[#CCFF00]">${selectedRes.monto_total?.toLocaleString()}</p>
+                    <p className="text-xs font-bold text-[var(--primary)]">${selectedRes.monto_total?.toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -309,7 +309,7 @@ export default function ClubReservations() {
                       href={selectedRes.link_pago} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="px-4 py-2 bg-[#CCFF00] text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white transition-colors"
+                      className="px-4 py-2 bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white transition-colors"
                     >
                       Ver Comprobante
                     </a>

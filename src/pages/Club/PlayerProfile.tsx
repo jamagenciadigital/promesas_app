@@ -76,7 +76,7 @@ export default function PlayerProfile() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0f172a]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CCFF00]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -85,7 +85,7 @@ export default function PlayerProfile() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0f172a] p-4 text-center">
         <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase italic">Deportista no encontrado</h2>
-        <Button onClick={() => navigate(-1)} className="mt-4 bg-[#CCFF00] text-black">Regresar</Button>
+        <Button onClick={() => navigate(-1)} className="mt-4 bg-[var(--primary)] text-black">Regresar</Button>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function PlayerProfile() {
           <div className="flex gap-3">
              <Button 
                onClick={handlePrint}
-               className="bg-black text-[#CCFF00] border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12"
+               className="bg-black text-[var(--primary)] border-0 px-6 rounded-2xl flex items-center gap-2 uppercase font-black italic text-xs h-12"
              >
                <Printer size={16} /> Imprimir / PDF
              </Button>
@@ -149,12 +149,12 @@ export default function PlayerProfile() {
 
         {/* Cabecera Principal */}
         <div className="relative bg-black rounded-[48px] overflow-hidden shadow-2xl print:shadow-none print:rounded-[32px]">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#CCFF00]/10 blur-[120px] -mr-48 -mt-48 rounded-full"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary-10)] blur-[120px] -mr-48 -mt-48 rounded-full"></div>
           
           <div className="p-8 md:p-12 flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap items-center gap-10 relative z-10">
             {/* Foto de Perfil */}
             <div className="relative shrink-0">
-                <div className="w-48 h-48 md:w-56 md:h-56 rounded-[60px] border-[6px] border-[#CCFF00] overflow-hidden bg-gray-900 shadow-2xl print:shadow-none">
+                <div className="w-48 h-48 md:w-56 md:h-56 rounded-[60px] border-[6px] border-[var(--primary)] overflow-hidden bg-gray-900 shadow-2xl print:shadow-none">
                 {player.foto_url ? (
                     <img 
                     src={getDirectImageUrl(player.foto_url)} 
@@ -180,7 +180,7 @@ export default function PlayerProfile() {
             {/* Información Destacada */}
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <Badge className="bg-[#CCFF00] text-black border-none font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full print:bg-[#CCFF00] print:text-black">
+                <Badge className="bg-[var(--primary)] text-black border-none font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full print:bg-[var(--primary)] print:text-black">
                   Ficha Oficial: {player.genero || 'Deportista'}
                 </Badge>
                 <Badge variant="default" className="bg-transparent border border-white/20 text-white/60 font-black italic tracking-widest text-xs uppercase px-4 py-1.5 rounded-full">
@@ -190,14 +190,14 @@ export default function PlayerProfile() {
               
               <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase leading-none tracking-tighter">
                 {player.nombre_completo}<br/>
-                <span className="text-[#CCFF00]">{player.apellidos} {player.segundo_apellido || ''}</span>
+                <span className="text-[var(--primary)]">{player.apellidos} {player.segundo_apellido || ''}</span>
               </h1>
 
               <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-6 text-white/60 text-sm font-bold uppercase tracking-widest italic">
-                <span className="flex items-center gap-2"><Calendar size={18} className="text-[#CCFF00]" /> {player.fecha_nacimiento}</span>
-                <span className="flex items-center gap-2"><Shield size={18} className="text-[#CCFF00]" /> {player.eps}</span>
-                <span className="flex items-center gap-2"><MapPin size={18} className="text-[#CCFF00]" /> {player.municipio || '---'}</span>
-                {player.dorsal && <span className="flex items-center gap-2 font-black text-[#CCFF00]"><Trophy size={18} /> DORSAL: {player.dorsal}</span>}
+                <span className="flex items-center gap-2"><Calendar size={18} className="text-[var(--primary)]" /> {player.fecha_nacimiento}</span>
+                <span className="flex items-center gap-2"><Shield size={18} className="text-[var(--primary)]" /> {player.eps}</span>
+                <span className="flex items-center gap-2"><MapPin size={18} className="text-[var(--primary)]" /> {player.municipio || '---'}</span>
+                {player.dorsal && <span className="flex items-center gap-2 font-black text-[var(--primary)]"><Trophy size={18} /> DORSAL: {player.dorsal}</span>}
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function PlayerProfile() {
           {/* Columna 1: Identidad y Contacto */}
           <div className="space-y-8">
             <section className="bg-white dark:bg-[#1e293b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:border-gray-200">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black print:border-gray-100">Información de Identidad</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black print:border-gray-100">Información de Identidad</h3>
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Nombre Legal Completo</p>
@@ -229,11 +229,11 @@ export default function PlayerProfile() {
             </section>
 
             <section className="bg-black text-white p-8 rounded-[40px] shadow-sm space-y-6 print:bg-black print:text-white">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-white/10 pb-3">Perfil Deportivo y Antropométrico</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-white/10 pb-3">Perfil Deportivo y Antropométrico</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                 <div>
                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Posición</p>
-                  <p className="text-sm font-black text-[#CCFF00] uppercase italic leading-none">{player.posicion?.valor || '---'}</p>
+                  <p className="text-sm font-black text-[var(--primary)] uppercase italic leading-none">{player.posicion?.valor || '---'}</p>
                 </div>
                 <div>
                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Rh</p>
@@ -249,8 +249,8 @@ export default function PlayerProfile() {
                 </div>
                 {isElite && player.salario && (
                   <div className="col-span-2 pt-2 border-t border-white/10 mt-2">
-                    <p className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">Salario / Honorarios</p>
-                    <p className="text-xl font-black text-white italic leading-none transition-all hover:text-[#CCFF00]">
+                    <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mb-1">Salario / Honorarios</p>
+                    <p className="text-xl font-black text-white italic leading-none transition-all hover:text-[var(--primary)]">
                       $ {Number(player.salario).toLocaleString('es-CO')}
                     </p>
                   </div>
@@ -259,7 +259,7 @@ export default function PlayerProfile() {
             </section>
 
             <section className="bg-white dark:bg-[#1e293b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:border-gray-200">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black print:border-gray-100">Contacto Directo</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black print:border-gray-100">Contacto Directo</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-4 p-4 rounded-3xl bg-gray-50 dark:bg-white/5 print:bg-gray-50">
                   <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl"><Phone size={20} /></div>
@@ -282,7 +282,7 @@ export default function PlayerProfile() {
           {/* Columna 2: Tutor y Emergencia */}
           <div className="space-y-8">
             {!isElite && (
-              <section className="bg-[#CCFF00] p-8 rounded-[40px] shadow-sm space-y-6 relative overflow-hidden group print:bg-[#CCFF00]">
+              <section className="bg-[var(--primary)] p-8 rounded-[40px] shadow-sm space-y-6 relative overflow-hidden group print:bg-[var(--primary)]">
                 <Baby size={120} className="absolute -bottom-8 -right-8 opacity-10 transform -rotate-12 transition-transform group-hover:scale-125 duration-700" />
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black italic border-b border-black/10 pb-3">Información del Tutor</h3>
                 <div className="space-y-4 relative z-10">
@@ -300,7 +300,7 @@ export default function PlayerProfile() {
             )}
 
             <section className="bg-white dark:bg-[#1e293b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:border-red-100">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3">Trayectoria Deportiva</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3">Trayectoria Deportiva</h3>
               <div className="space-y-4 relative">
                 <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-gray-100 dark:bg-white/5"></div>
                 {player.trayectorias && player.trayectorias.length > 0 ? (
@@ -308,9 +308,9 @@ export default function PlayerProfile() {
                     .sort((a: any, b: any) => (b.es_actual ? 1 : -1))
                     .map((tray: any, idx: number) => (
                     <div key={idx} className="relative pl-8">
-                      <div className={`absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 ${tray.es_actual ? 'bg-[#CCFF00] border-[#CCFF00]' : 'bg-white dark:bg-[#1e293b] border-gray-300 dark:border-white/20'}`}></div>
+                      <div className={`absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 ${tray.es_actual ? 'bg-[var(--primary)] border-[var(--primary)]' : 'bg-white dark:bg-[#1e293b] border-gray-300 dark:border-white/20'}`}></div>
                       <div>
-                        <p className={`text-sm font-black uppercase italic ${tray.es_actual ? 'text-[#CCFF00]' : 'text-gray-900 dark:text-white'}`}>
+                        <p className={`text-sm font-black uppercase italic ${tray.es_actual ? 'text-[var(--primary)]' : 'text-gray-900 dark:text-white'}`}>
                           {tray.equipo_nombre} {tray.es_actual && '(ACTUAL)'}
                         </p>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -344,7 +344,7 @@ export default function PlayerProfile() {
           <div className="space-y-8 print:col-span-2 print:grid print:grid-cols-2 print:gap-8 print:space-y-0">
             <section className="bg-gray-900 p-8 rounded-[40px] shadow-xl space-y-6 relative overflow-hidden print:bg-gray-900">
                <MapPin size={100} className="absolute -top-10 -right-10 opacity-10 text-white transform rotate-12" />
-               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-white/5 pb-3">Residencia</h3>
+               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-white/5 pb-3">Residencia</h3>
                <div className="space-y-4 relative z-10">
                  <div>
                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Dirección Registrada</p>
@@ -352,7 +352,7 @@ export default function PlayerProfile() {
                  </div>
                  <div className="flex flex-wrap gap-2">
                    <Badge className="bg-white/10 text-white border-none font-black italic">BARRIO: {player.barrio}</Badge>
-                   <Badge className="bg-[#CCFF00] text-black border-none font-black italic">{player.municipio}</Badge>
+                   <Badge className="bg-[var(--primary)] text-black border-none font-black italic">{player.municipio}</Badge>
                  </div>
                </div>
             </section>
@@ -361,16 +361,16 @@ export default function PlayerProfile() {
               <section className="bg-white dark:bg-[#1e293b] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 space-y-6 print:hidden">
                 {(player.equipo2 || player.equipo3) && (
                   <div className="space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#CCFF00] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black">Equipos Adicionales (Ascendido)</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] italic border-b border-gray-100 dark:border-white/5 pb-3 print:text-black">Equipos Adicionales (Ascendido)</h3>
                     <div className="flex flex-col gap-3">
                       {player.equipo2 && (
-                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-900 text-white font-black uppercase italic text-[11px] tracking-tight border border-[#CCFF00]/20">
-                          <Trophy size={14} className="text-[#CCFF00]" /> {player.equipo2.nombre}
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-900 text-white font-black uppercase italic text-[11px] tracking-tight border border-[var(--primary-20)]">
+                          <Trophy size={14} className="text-[var(--primary)]" /> {player.equipo2.nombre}
                         </div>
                       )}
                       {player.equipo3 && (
-                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-900 text-white font-black uppercase italic text-[11px] tracking-tight border border-[#CCFF00]/20">
-                          <Trophy size={14} className="text-[#CCFF00]" /> {player.equipo3.nombre}
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-900 text-white font-black uppercase italic text-[11px] tracking-tight border border-[var(--primary-20)]">
+                          <Trophy size={14} className="text-[var(--primary)]" /> {player.equipo3.nombre}
                         </div>
                       )}
                     </div>
@@ -388,11 +388,11 @@ export default function PlayerProfile() {
                   ].map((doc, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 group">
                       <div className="flex items-center gap-3">
-                        <FileText className="text-gray-400 group-hover:text-[#CCFF00] transition-colors" size={18} />
+                        <FileText className="text-gray-400 group-hover:text-[var(--primary)] transition-colors" size={18} />
                         <span className="text-[10px] font-black uppercase text-gray-500 dark:text-gray-400">{doc.label}</span>
                       </div>
                       {doc.url ? (
-                        <a href={doc.url} target="_blank" rel="noreferrer" className="text-black dark:text-[#CCFF00] hover:scale-110 transition-transform"><Download size={18} /></a>
+                        <a href={doc.url} target="_blank" rel="noreferrer" className="text-black dark:text-[var(--primary)] hover:scale-110 transition-transform"><Download size={18} /></a>
                       ) : (
                         <span className="text-[8px] font-black uppercase text-gray-300 italic">Pendiente</span>
                       )}

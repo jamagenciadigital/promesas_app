@@ -287,13 +287,13 @@ export default function SuperAdminPlanes() {
       ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {planes.map(plan => (
-               <div key={plan.id} className="bg-[#1e293b] shadow-lg shadow-black/20 rounded-[32px] p-8 flex flex-col relative overflow-hidden group hover:border-[#CCFF00]/50 transition-all duration-300 border border-gray-700/50">
+               <div key={plan.id} className="bg-[#1e293b] shadow-lg shadow-black/20 rounded-[32px] p-8 flex flex-col relative overflow-hidden group hover:border-[var(--primary-50)] transition-all duration-300 border border-gray-700/50">
                   {!plan.estado && <div className="absolute top-6 right-6 bg-red-500/20 text-red-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-red-500/20 tracking-widest">Inactivo</div>}
                   {plan.estado && <div className="absolute top-6 right-6 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-emerald-500/20 tracking-widest">Activo</div>}
                   
                   <div className="flex-1">
                      <h3 className="text-2xl font-black text-white uppercase tracking-tighter pr-20">{plan.nombre}</h3>
-                     <p className="text-5xl font-black text-[#CCFF00] mt-2 mb-2 tracking-tighter">${plan.precio.toLocaleString()}</p>
+                     <p className="text-5xl font-black text-[var(--primary)] mt-2 mb-2 tracking-tighter">${plan.precio.toLocaleString()}</p>
                      <p className="text-sm text-gray-400 mb-8">{plan.descripcion || 'Sin descripción'}</p>
 
                      <div className="space-y-3 mb-8">
@@ -312,7 +312,7 @@ export default function SuperAdminPlanes() {
                      </div>
                      
                      <div className="flex flex-wrap mb-8">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#CCFF00] bg-[#CCFF00]/10 px-3 py-1.5 rounded-lg border border-[#CCFF00]/20">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] bg-[var(--primary-10)] px-3 py-1.5 rounded-lg border border-[var(--primary-20)]">
                            {plan.modulos_activos?.length || 0} Módulos Activos
                         </span>
                      </div>
@@ -354,27 +354,27 @@ export default function SuperAdminPlanes() {
                   
                   <div>
                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Nombre del Plan</label>
-                     <input type="text" required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all placeholder-gray-400" placeholder="Ej. Club PRO Elite" />
+                     <input type="text" required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all placeholder-gray-400" placeholder="Ej. Club PRO Elite" />
                   </div>
                   <div>
                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Descripción</label>
-                     <input type="text" value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all placeholder-gray-400" placeholder="Beneficios del plan..." />
+                     <input type="text" value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all placeholder-gray-400" placeholder="Beneficios del plan..." />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                      <div>
                         <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Precio / Mes ($)</label>
-                        <input type="number" step="0.01" required value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+                        <input type="number" step="0.01" required value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
                      </div>
                       <div>
                          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Estado</label>
-                         <select value={formData.estado ? 'true' : 'false'} onChange={e => setFormData({...formData, estado: e.target.value === 'true'})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all [&>option]:text-gray-900">
+                         <select value={formData.estado ? 'true' : 'false'} onChange={e => setFormData({...formData, estado: e.target.value === 'true'})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all [&>option]:text-gray-900">
                             <option value="true">Activo / Visible</option>
                             <option value="false">Oculto / Retirado</option>
                          </select>
                       </div>
                       <div className="col-span-2">
                          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Comisión Fija por Pago ($)</label>
-                         <input type="number" step="1" required value={formData.comision} onChange={e => setFormData({...formData, comision: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" placeholder="Ej. 5000" />
+                         <input type="number" step="1" required value={formData.comision} onChange={e => setFormData({...formData, comision: e.target.value})} className="w-full h-12 bg-gray-50 dark:bg-white/5 rounded-xl px-4 text-sm font-medium border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" placeholder="Ej. 5000" />
                          <p className="text-[10px] text-gray-400 mt-1 italic">* Monto fijo que el club debe pagar al sistema por cada reserva o cobro confirmado (ej. 1 USD o 2000 COP).</p>
                       </div>
                    </div>
@@ -383,15 +383,15 @@ export default function SuperAdminPlanes() {
                   <div className="grid grid-cols-3 gap-4">
                      <div>
                         <label className="block text-[10px] font-bold text-gray-500 mb-1">Max Equipos</label>
-                        <input type="number" required value={formData.limite_equipos} onChange={e => setFormData({...formData, limite_equipos: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+                        <input type="number" required value={formData.limite_equipos} onChange={e => setFormData({...formData, limite_equipos: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
                      </div>
                      <div>
                         <label className="block text-[10px] font-bold text-gray-500 mb-1">Max Jugadores</label>
-                        <input type="number" required value={formData.limite_jugadores} onChange={e => setFormData({...formData, limite_jugadores: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+                        <input type="number" required value={formData.limite_jugadores} onChange={e => setFormData({...formData, limite_jugadores: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
                      </div>
                      <div>
                         <label className="block text-[10px] font-bold text-gray-500 mb-1">Max SuperUsuarios</label>
-                        <input type="number" required value={formData.limite_usuarios} onChange={e => setFormData({...formData, limite_usuarios: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+                        <input type="number" required value={formData.limite_usuarios} onChange={e => setFormData({...formData, limite_usuarios: e.target.value})} className="w-full h-10 bg-gray-50 dark:bg-white/5 rounded-lg px-3 text-sm font-bold text-center border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
                      </div>
                   </div>
                </div>
@@ -507,7 +507,7 @@ export default function SuperAdminPlanes() {
                   "rounded-xl px-5 font-bold transition-all duration-200 border-none",
                   confirmConfig.isDanger 
                     ? "bg-red-600 hover:bg-red-700 text-white"
-                    : "bg-black text-[#CCFF00] hover:bg-black/90 dark:bg-white dark:text-black"
+                    : "bg-black text-[var(--primary)] hover:bg-black/90 dark:bg-white dark:text-black"
                 )}
               >
                 {confirmConfig.confirmText || 'Confirmar'}

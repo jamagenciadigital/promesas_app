@@ -112,7 +112,7 @@ export default function Equipos() {
           categoria:deportes_config_campos(valor),
           sede:club_sedes(nombre),
           coordinador:perfiles!equipos_coordinador_id_fkey(nombre),
-          entrenadores:equipo_entrenadores(entrenador_id, perfiles(nombre))
+          entrenadores:equipo_entrenadores(entrenador_id)
         `)
         .eq('club_id', activeClubId)
         .order('nombre');
@@ -191,8 +191,8 @@ export default function Equipos() {
         edad_maxima: equipo.edad_maxima?.toString() || '',
         capacidad_maxima: equipo.capacidad_maxima?.toString() || '',
         dias_entrenamiento: equipo.dias_entrenamiento || [],
-        hora_inicio: equipo.hora_inicio || '',
-        hora_fin: equipo.hora_fin || '',
+        hora_inicio: equipo.hora_inicio ? equipo.hora_inicio.split('T')[1]?.split(':').slice(0,2).join(':') || '' : '',
+        hora_fin: equipo.hora_fin ? equipo.hora_fin.split('T')[1]?.split(':').slice(0,2).join(':') || '' : '',
         sede_id: equipo.sede_id || '',
         codigo: equipo.codigo || '',
         coordinador_id: equipo.coordinador_id || '',
@@ -354,7 +354,7 @@ export default function Equipos() {
           <Button 
             onClick={() => handleOpenModal()} 
             disabled={atTeamLimit}
-            className={`${atTeamLimit ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-900 dark:bg-[#daff01] dark:text-gray-900 shadow-lg shadow-black/5 hover:scale-105 active:scale-95'} font-bold px-8 py-3 rounded-2xl flex items-center gap-2 border-0 transition-all`}
+            className={`${atTeamLimit ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-black/90'} font-bold px-8 py-3 rounded-2xl flex items-center gap-2 border-0 transition-all`}
             title={atTeamLimit ? `Límite de equipos alcanzado (${planLimits?.equipos})` : 'Crear nuevo equipo'}
           >
             <Plus className="w-5 h-5" />
@@ -371,14 +371,14 @@ export default function Equipos() {
             placeholder="Buscar por nombre..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl text-sm focus:ring-2 focus:ring-[#CCFF00] outline-none transition-all dark:text-white shadow-sm"
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1e293b]/50 border border-gray-200 dark:border-[#334155] rounded-2xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all dark:text-white shadow-sm"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="py-20 text-center text-gray-500">
-           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#CCFF00] mx-auto mb-4"></div>
+           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
            Cargando equipos...
         </div>
       ) : filteredEquipos.length === 0 ? (
@@ -390,12 +390,12 @@ export default function Equipos() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEquipos.map((equipo: any) => (
-            <div key={equipo.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[#CCFF00] hover:shadow-2xl hover:shadow-[#CCFF00]/5 transition-all duration-300">
+            <div key={equipo.id} className="group bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-[#334155] rounded-[32px] overflow-hidden hover:border-[var(--primary)] hover:shadow-2xl hover:shadow-[var(--primary-5)] transition-all duration-300">
               <div className="p-8 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="success" className="bg-[#CCFF00]/10 text-[#CCFF00] border-[#CCFF00]/20 px-3 py-1 uppercase text-[10px] font-black tracking-widest">
+                      <Badge variant="success" className="bg-[var(--primary-10)] text-[var(--primary)] border-[var(--primary-20)] px-3 py-1 uppercase text-[10px] font-black tracking-widest">
                         {equipo.categoria?.valor || 'Sin Categoría'}
                       </Badge>
                       {equipo.estado && equipo.estado !== 'activo' && (
@@ -447,7 +447,7 @@ export default function Equipos() {
                     )}
                     <button 
                       onClick={() => navigate(`${equipo.codigo}`)}
-                      className="p-2.5 bg-[#CCFF00]/10 text-[#CCFF00] rounded-xl hover:bg-[#CCFF00] hover:text-gray-900 transition-all font-black text-[10px] uppercase tracking-widest"
+                      className="p-2.5 bg-black text-white rounded-xl hover:bg-black/90 transition-all font-black text-[10px] uppercase tracking-widest"
                     >
                       Ver Equipo
                     </button>
@@ -473,9 +473,9 @@ export default function Equipos() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 bg-[#CCFF00]/5 p-2 rounded-xl border border-[#CCFF00]/10">
-                    <div className="p-2 bg-[#CCFF00] rounded-lg"><Hash className="w-4 h-4 text-gray-900" /></div>
-                    <span className="font-mono font-bold tracking-widest text-[#CCFF00]">{equipo.codigo}</span>
+                  <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 bg-[var(--primary-5)] p-2 rounded-xl border border-[var(--primary-10)]">
+                    <div className="p-2 bg-[var(--primary)] rounded-lg"><Hash className="w-4 h-4 text-gray-900" /></div>
+                    <span className="font-mono font-bold tracking-widest text-[var(--primary)]">{equipo.codigo}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                     <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-lg"><Trophy className="w-4 h-4" /></div>
@@ -502,11 +502,14 @@ export default function Equipos() {
                         <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-2 text-right">Cuerpo Técnico</p>
                         <div className="flex -space-x-2 justify-end">
                           {equipo.entrenadores?.length > 0 ? (
-                            equipo.entrenadores.map((e: any, idx: number) => (
-                              <div key={idx} className="h-8 w-8 rounded-full bg-gray-900 dark:bg-[#CCFF00] border-2 border-white dark:border-[#1e293b] flex items-center justify-center text-[10px] font-black text-white dark:text-gray-900 uppercase" title={e.perfiles?.nombre}>
-                                {e.perfiles?.nombre?.charAt(0)}
-                              </div>
-                            ))
+                            equipo.entrenadores.map((e: any, idx: number) => {
+                              const coachName = coaches.find(c => c.id === e.entrenador_id)?.nombre || '?';
+                              return (
+                                <div key={idx} className="h-8 w-8 rounded-full bg-gray-900 dark:bg-[var(--primary)] border-2 border-white dark:border-[#1e293b] flex items-center justify-center text-[10px] font-black text-white dark:text-gray-900 uppercase" title={coachName}>
+                                  {coachName.charAt(0)}
+                                </div>
+                              );
+                            })
                           ) : (
                             <span className="text-[10px] text-gray-400 italic">No asignado</span>
                           )}
@@ -556,7 +559,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Estado del Equipo</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                     value={formData.estado}
                     onChange={(e) => setFormData({ ...formData, estado: e.target.value as any })}
                     required
@@ -572,7 +575,7 @@ export default function Equipos() {
                     <button 
                       type="button" 
                       onClick={() => setFormData({...formData, codigo: Math.random().toString(36).substring(2, 8).toUpperCase()})}
-                      className="text-[#CCFF00] hover:rotate-180 transition-transform duration-500"
+                      className="text-[var(--primary)] hover:rotate-180 transition-transform duration-500"
                     >
                       <RefreshCcw className="w-3 h-3" />
                     </button>
@@ -581,7 +584,7 @@ export default function Equipos() {
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
-                      className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] font-mono font-bold uppercase transition-all"
+                      className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--primary)] font-mono font-bold uppercase transition-all"
                       value={formData.codigo}
                       onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toUpperCase() })}
                       required
@@ -601,7 +604,7 @@ export default function Equipos() {
                         onClick={() => setFormData({ ...formData, nivel_habilidad: level })}
                         className={`flex-1 py-3 px-2 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
                           formData.nivel_habilidad === level
-                            ? 'bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]'
+                            ? 'bg-[var(--primary-10)] border-[var(--primary)] text-[var(--primary)]'
                             : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-gray-200'
                         }`}
                       >
@@ -613,7 +616,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Categoría</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                     value={formData.categoria_id}
                     onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
                     required
@@ -630,7 +633,7 @@ export default function Equipos() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Sede de Entrenamiento</label>
                   <select
-                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[#CCFF00] transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-3.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                     value={formData.sede_id}
                     onChange={(e) => setFormData({ ...formData, sede_id: e.target.value })}
                   >
@@ -676,7 +679,7 @@ export default function Equipos() {
                       onClick={() => toggleDay(day)}
                       className={`px-5 py-3 rounded-2xl text-[11px] font-black uppercase transition-all border-2 ${
                         formData.dias_entrenamiento.includes(day)
-                          ? 'bg-[#CCFF00] border-[#CCFF00] text-gray-900 shadow-lg shadow-[#CCFF00]/20'
+                          ? 'bg-[var(--primary)] border-[var(--primary)] text-gray-900 shadow-lg shadow-[var(--primary-20)]'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-gray-200'
                       }`}
                     >
@@ -713,7 +716,7 @@ export default function Equipos() {
                       onClick={() => toggleCoach(coach.id)}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                         formData.entrenadores_ids.includes(coach.id)
-                          ? 'bg-[#CCFF00]/5 border-[#CCFF00] text-gray-900 dark:text-white'
+                          ? 'bg-[var(--primary-5)] border-[var(--primary)] text-gray-900 dark:text-white'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 font-medium'
                       }`}
                     >
@@ -736,7 +739,7 @@ export default function Equipos() {
                       onClick={() => setFormData(prev => ({ ...prev, coordinador_id: prev.coordinador_id === coord.id ? '' : coord.id }))}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                         formData.coordinador_id === coord.id
-                          ? 'bg-[#CCFF00] border-[#CCFF00] text-gray-900'
+                          ? 'bg-[var(--primary)] border-[var(--primary)] text-gray-900'
                           : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 font-medium'
                       }`}
                     >
@@ -753,7 +756,7 @@ export default function Equipos() {
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest">
                   Cancelar
                 </Button>
-                <Button type="submit" isLoading={saving} className="flex-1 bg-gray-900 dark:bg-[#CCFF00] dark:text-gray-900 h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl shadow-[#CCFF00]/10">
+                <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white h-14 rounded-2xl font-black uppercase tracking-widest border-0 shadow-xl shadow-black/10">
                   {editingEquipo ? 'Guardar Cambios' : 'Crear Equipo'}
                 </Button>
               </div>

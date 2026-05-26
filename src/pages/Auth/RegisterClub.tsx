@@ -301,7 +301,7 @@ export default function RegisterClub() {
                 <div className="pt-4 pb-2">
                   <button
                     type="submit"
-                    className="group relative w-full flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all shadow-lg shadow-[#182332]/20"
+                    className="group relative w-full flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[var(--primary)] hover:bg-[#202f43] focus:outline-none transition-all shadow-lg shadow-[#182332]/20"
                   >
                     CONTINUAR <ArrowRight size={18} className="ml-2" />
                   </button>
@@ -382,7 +382,7 @@ export default function RegisterClub() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all shadow-xl"
+                    className="flex-[2] flex items-center justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[var(--primary)] hover:bg-[#202f43] focus:outline-none transition-all shadow-xl"
                   >
                     CONTINUAR <ArrowRight size={18} className="ml-2" />
                   </button>
@@ -433,7 +433,7 @@ export default function RegisterClub() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group relative flex-[2] flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all disabled:opacity-70"
+                    className="group relative flex-[2] flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-[#182332] hover:text-[var(--primary)] hover:bg-[#202f43] focus:outline-none transition-all disabled:opacity-70"
                   >
                     {loading ? 'CREANDO...' : 'REGISTRAR CLUB'}
                   </button>
@@ -469,7 +469,7 @@ export default function RegisterClub() {
             
             <button
               onClick={handleModalClose}
-              className="w-full py-3.5 px-4 font-bold rounded-full text-white bg-[#182332] hover:text-[#CCFF00] hover:bg-[#202f43] focus:outline-none transition-all"
+              className="w-full py-3.5 px-4 font-bold rounded-full text-white bg-[#182332] hover:text-[var(--primary)] hover:bg-[#202f43] focus:outline-none transition-all"
             >
               IR A INICIAR SESIÓN
             </button>

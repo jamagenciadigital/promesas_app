@@ -266,7 +266,7 @@ export default function GeneralInfoTab() {
                name="temporada_inicio"
                value={formData.temporada_inicio}
                onChange={(e) => handleChange(e as any)}
-               className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+               className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
             />
             <Input 
                label="Fecha Fin"
@@ -274,7 +274,7 @@ export default function GeneralInfoTab() {
                name="temporada_fin"
                value={formData.temporada_fin}
                onChange={(e) => handleChange(e as any)}
-               className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+               className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
             />
           </div>
         </section>
@@ -302,14 +302,14 @@ export default function GeneralInfoTab() {
                   name="nombre" 
                   value={formData.nombre} 
                   onChange={(e) => handleChange(e as any)} 
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                 />
                 <Input 
                   label="NIT / Identificación" 
                   name="nit" 
                   value={formData.nit} 
                   onChange={(e) => handleChange(e as any)} 
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                   placeholder="Ej: 900.123.456-7"
                 />
                 <div className="space-y-1.5">
@@ -333,7 +333,7 @@ export default function GeneralInfoTab() {
                   name="descripcion"
                   value={formData.descripcion}
                   onChange={(e) => handleChange(e as any)}
-                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all min-h-[100px] py-3 resize-none"
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all min-h-[100px] py-3 resize-none"
                   placeholder="Escribe una breve descripción del club..."
                 />
               </div>
@@ -346,15 +346,15 @@ export default function GeneralInfoTab() {
           <h3 className="text-sm font-bold text-[#182332] uppercase tracking-wider">Contacto y Ubicación</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Input label="Email Corporativo" type="email" name="email_corporativo" value={formData.email_corporativo} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
-            <Input label="Teléfono / WhatsApp" name="telefono" value={formData.telefono} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
-            <Input label="Sitio Web" name="website" value={formData.website} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+            <Input label="Email Corporativo" type="email" name="email_corporativo" value={formData.email_corporativo} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
+            <Input label="Teléfono / WhatsApp" name="telefono" value={formData.telefono} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
+            <Input label="Sitio Web" name="website" value={formData.website} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Input label="País" name="pais" value={formData.pais} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
-            <Input label="Ciudad" name="ciudad" value={formData.ciudad} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
-            <Input label="Dirección / Sede Principal" name="direccion" value={formData.direccion} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent transition-all" />
+            <Input label="País" name="pais" value={formData.pais} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
+            <Input label="Ciudad" name="ciudad" value={formData.ciudad} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
+            <Input label="Dirección / Sede Principal" name="direccion" value={formData.direccion} onChange={(e) => handleChange(e as any)} className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" />
           </div>
         </section>
 

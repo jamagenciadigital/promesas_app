@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 import DashboardLayout from './components/Layout/DashboardLayout';
@@ -56,6 +57,7 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
+        <ThemeProvider>
         <Router>
         <Routes>
           {/* Public Route */}
@@ -228,6 +230,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </ThemeProvider>
     </AuthProvider>
   </LanguageProvider>
   );

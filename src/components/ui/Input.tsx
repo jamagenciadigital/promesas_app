@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             type={type}
             className={cn(
-              "block w-full rounded-xl border-gray-300 shadow-sm transition-all focus:ring-2 focus:ring-[#CCFF00] focus:border-transparent sm:text-sm bg-gray-50 text-gray-900 placeholder-gray-400 px-4 py-3 disabled:bg-gray-50 disabled:text-gray-500",
+              "block w-full rounded-xl border-gray-300 shadow-sm transition-all focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent sm:text-sm bg-gray-50 text-gray-900 placeholder-gray-400 px-4 py-3 disabled:bg-gray-50 disabled:text-gray-500",
               error && "border-red-500 text-red-900 focus:ring-red-500 focus:border-red-500",
               className,
               finalIcon && "pl-11"

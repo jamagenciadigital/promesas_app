@@ -213,8 +213,8 @@ export default function PlayerCalendar() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in pb-20">
       <div className="flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#CCFF00]/10 rounded-2xl">
-            <CalendarIcon className="w-8 h-8 text-[#CCFF00]" />
+          <div className="p-3 bg-[var(--primary-10)] rounded-2xl">
+            <CalendarIcon className="w-8 h-8 text-[var(--primary)]" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">Mi Calendario</h1>
@@ -232,7 +232,7 @@ export default function PlayerCalendar() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
              <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#CCFF00]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[var(--primary)]"></div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Cargando eventos...</p>
              </div>
         ) : events.length === 0 ? (
@@ -242,10 +242,10 @@ export default function PlayerCalendar() {
             </div>
         ) : (
           events.map((event) => (
-            <div key={event.id} className="group bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-[40px] p-8 hover:border-[#CCFF00] hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+            <div key={event.id} className="group bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-[40px] p-8 hover:border-[var(--primary)] hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
                {/* Date Badge */}
                <div className="absolute top-0 right-0 p-6">
-                  <div className="w-14 h-14 bg-black dark:bg-[#111215] rounded-2xl flex flex-col items-center justify-center shadow-lg group-hover:bg-[#CCFF00] transition-colors">
+                  <div className="w-14 h-14 bg-black dark:bg-[#111215] rounded-2xl flex flex-col items-center justify-center shadow-lg group-hover:bg-[var(--primary)] transition-colors">
                      <span className="text-[10px] font-black text-gray-400 group-hover:text-black uppercase leading-none">{parseLocalDate(event.fecha).toLocaleString('es-ES', { month: 'short' })}</span>
                      <span className="text-xl font-black text-white group-hover:text-black tabular-nums">{parseLocalDate(event.fecha).getDate()}</span>
                   </div>
@@ -253,7 +253,7 @@ export default function PlayerCalendar() {
 
                <div className="space-y-6 pt-4">
                   <div className="space-y-2">
-                    <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full ${event.isJuego ? 'bg-[#CCFF00]/20 text-[#CCFF00]' : event.tipo === 'entrenamiento' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                    <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full ${event.isJuego ? 'bg-[var(--primary-20)] text-[var(--primary)]' : event.tipo === 'entrenamiento' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
                       {event.isJuego ? 'Partido Amistoso' : event.tipo}
                     </span>
                     <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-tight pr-12 line-clamp-2">{event.titulo}</h3>
@@ -277,7 +277,7 @@ export default function PlayerCalendar() {
                   <div className="pt-4 flex gap-2">
                       <Button 
                         onClick={() => fetchEventDetails(event)}
-                        className="flex-1 py-3 bg-gray-50 dark:bg-white/5 text-[9px] font-black uppercase tracking-widest italic rounded-xl border border-gray-100 dark:border-white/5 hover:bg-[#CCFF00] hover:text-black transition-all"
+                        className="flex-1 py-3 bg-gray-50 dark:bg-white/5 text-[9px] font-black uppercase tracking-widest italic rounded-xl border border-gray-100 dark:border-white/5 hover:bg-[var(--primary)] hover:text-black transition-all"
                       >
                         {confirmedEvents.has(event.id) ? 'Ver Detalles' : 'Ver Invitación'}
                       </Button>
@@ -298,7 +298,7 @@ export default function PlayerCalendar() {
         <div className="space-y-8">
            <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-3xl space-y-2">
-                 <div className="flex items-center gap-2 text-[#CCFF00]">
+                 <div className="flex items-center gap-2 text-[var(--primary)]">
                     <Clock size={20} />
                     <span className="text-[10px] font-black uppercase tracking-widest italic">Horario</span>
                  </div>
@@ -307,7 +307,7 @@ export default function PlayerCalendar() {
                  </p>
               </div>
               <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-3xl space-y-2">
-                 <div className="flex items-center gap-2 text-[#CCFF00]">
+                 <div className="flex items-center gap-2 text-[var(--primary)]">
                     <MapPin size={20} />
                     <span className="text-[10px] font-black uppercase tracking-widest italic">Ubicación</span>
                  </div>
@@ -329,15 +329,15 @@ export default function PlayerCalendar() {
 
            {/* Objetivos de la Planificación */}
            {planning?.objetivos?.length > 0 && (
-             <div className="bg-[#CCFF00]/5 p-6 rounded-[32px] border border-[#CCFF00]/10 space-y-4">
+             <div className="bg-[var(--primary-5)] p-6 rounded-[32px] border border-[var(--primary-10)] space-y-4">
                 <div className="flex items-center gap-2">
-                   <div className="p-2 bg-[#CCFF00] text-black rounded-lg"><Info size={14} /></div>
+                   <div className="p-2 bg-[var(--primary)] text-black rounded-lg"><Info size={14} /></div>
                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white">Objetivos de la Sesión</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                    {planning.objetivos.map((obj: any, idx: number) => (
                      <div key={idx} className="flex items-center gap-3 bg-white dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#CCFF00]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]"></div>
                         <span className="text-[10px] font-bold text-gray-400 uppercase">{obj.type}:</span>
                         <span className="text-[10px] font-black text-gray-900 dark:text-white uppercase italic truncate">{obj.text}</span>
                      </div>
@@ -367,11 +367,11 @@ export default function PlayerCalendar() {
                     <div className="flex items-center gap-4">
                        <div className="flex-1 h-3 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-[#CCFF00] transition-all duration-1000" 
+                            className="h-full bg-[var(--primary)] transition-all duration-1000" 
                             style={{ width: `${playerAttendance.puntaje_total}%` }}
                           />
                        </div>
-                       <span className="text-2xl font-black text-[#CCFF00] italic leading-none">{playerAttendance.puntaje_total}%</span>
+                       <span className="text-2xl font-black text-[var(--primary)] italic leading-none">{playerAttendance.puntaje_total}%</span>
                     </div>
                     
                     {playerAttendance.evaluaciones?.length > 0 && (
@@ -379,7 +379,7 @@ export default function PlayerCalendar() {
                         {playerAttendance.evaluaciones.map((ev: any, idx: number) => (
                           <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-black/20">
                             <span className="text-[9px] font-bold text-gray-400 uppercase italic truncate pr-4">{ev.objetivo}</span>
-                            <span className="text-[9px] font-black text-[#CCFF00]">{ev.puntaje}/5</span>
+                            <span className="text-[9px] font-black text-[var(--primary)]">{ev.puntaje}/5</span>
                           </div>
                         ))}
                       </div>
@@ -388,7 +388,7 @@ export default function PlayerCalendar() {
                 )}
 
                 {playerAttendance.notas && (
-                  <div className="p-4 bg-[#CCFF00]/5 border border-[#CCFF00]/10 rounded-2xl">
+                  <div className="p-4 bg-[var(--primary-5)] border border-[var(--primary-10)] rounded-2xl">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Observación del Entrenador</p>
                     <p className="text-xs text-gray-600 dark:text-gray-300 italic">"{playerAttendance.notas}"</p>
                   </div>
@@ -409,7 +409,7 @@ export default function PlayerCalendar() {
                 <Button 
                   onClick={() => handleAcceptInvitation(selectedEvent)}
                   disabled={confirming}
-                  className="flex-1 py-4 bg-[#CCFF00] text-black text-[10px] font-black uppercase tracking-widest italic rounded-2xl shadow-xl shadow-[#CCFF00]/20 hover:scale-105 transition-all"
+                  className="flex-1 py-4 bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest italic rounded-2xl shadow-xl shadow-[var(--primary-20)] hover:scale-105 transition-all"
                 >
                   {confirming ? 'Confirmando...' : 'Aceptar Invitación'}
                 </Button>
