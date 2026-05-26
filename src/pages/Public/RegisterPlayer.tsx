@@ -179,7 +179,7 @@ export default function RegisterPlayer() {
         .from('equipos')
         .select(`
           *, 
-          club:clubes(id, nombre, nit, logo_url, qr_url, pago_instrucciones, temporada_inicio, temporada_fin, pais, plan_id),
+          club:clubes(id, nombre, nit, logo_url, qr_url, pago_instrucciones, temporada_inicio, temporada_fin, pais, plan_id, theme),
           sede:club_sedes(nombre),
           categoria:deportes_config_campos(valor),
           entrenadores:equipo_entrenadores(
@@ -304,8 +304,13 @@ export default function RegisterPlayer() {
   return (
     <div className="min-h-screen bg-white flex relative overflow-hidden bg-gray-50/30 pb-20">
       {/* Visual Left Side */}
-      <div className="hidden lg:block lg:w-[40%] xl:w-1/3 absolute lg:relative inset-y-0 left-0 z-0 bg-cover bg-center shadow-[10px_0_30px_rgba(0,0,0,0.5)] print:hidden" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80")' }}>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
+      <div className="hidden lg:block lg:w-[40%] xl:w-1/3 absolute lg:relative inset-y-0 left-0 z-0 bg-cover bg-center shadow-[10px_0_30px_rgba(0,0,0,0.5)] print:hidden" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80")' }}>
+        <div className="absolute inset-0 transition-colors duration-500" 
+             style={{ 
+               backgroundColor: teamInfo?.club?.theme?.sidebar_bg || '#182332', 
+               opacity: 0.85, 
+               mixBlendMode: 'multiply' 
+             }} />
         <div className="absolute bottom-12 left-12 right-12 text-white">
           <img src="/assets/LOGO-HORIZONTAL.png" className="w-auto h-16 mb-6" alt="Fichaje Logo"/>
           <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none mb-4">Registro Oficial</h1>
