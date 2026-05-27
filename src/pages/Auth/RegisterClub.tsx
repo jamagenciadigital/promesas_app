@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
+import { FileUpload } from '../../components/ui/FileUpload';
 import { Check, Shield, Zap, Star, Trophy, Users, Layout, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function RegisterClub() {
@@ -23,7 +24,9 @@ export default function RegisterClub() {
     telefono: '',
     email_corporativo: '',
     website: '',
-    deporte_id: ''
+    deporte_id: '',
+    reconocimiento_deportivo_url: '',
+    documento_representante_url: ''
   });
 
   // Paso 2: Datos del AdminClub
@@ -122,6 +125,14 @@ export default function RegisterClub() {
       }
 
       const newClubId = rpcData.club_id;
+
+      // 1b. Update club with document URLs (RPC may not support these fields)
+      if (clubData.reconocimiento_deportivo_url || clubData.documento_representante_url) {
+        await supabase.from('clubes').update({
+          reconocimiento_deportivo_url: clubData.reconocimiento_deportivo_url || null,
+          documento_representante_url: clubData.documento_representante_url || null,
+        }).eq('id', newClubId);
+      }
 
       // 2. Now sign up the user, passing the new club_id in metadata
       // We pass redundant keys (nombre, full_name) to ensure compatibility with different triggers
@@ -296,6 +307,26 @@ export default function RegisterClub() {
                     value={clubData.website} onChange={e => setClubData({...clubData, website: e.target.value})}
                     className="appearance-none rounded-2xl relative block w-full px-5 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#182332] focus:border-[#182332] sm:text-sm"
                   />
+                </div>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Documentos del Club</p>
+                  <FileUpload
+                    bucket="club-documentos"
+                    path={`reconocimiento/${clubData.nombre || 'club'}`}
+                    label="Reconocimiento Deportivo"
+                    value={clubData.reconocimiento_deportivo_url}
+                    onChange={(url) => setClubData({...clubData, reconocimiento_deportivo_url: url})}
+                  />
+                  <div className="mt-4">
+                    <FileUpload
+                      bucket="club-documentos"
+                      path={`representante/${clubData.nombre || 'club'}`}
+                      label="Documento Representante Legal"
+                      value={clubData.documento_representante_url}
+                      onChange={(url) => setClubData({...clubData, documento_representante_url: url})}
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-4 pb-2">

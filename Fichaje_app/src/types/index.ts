@@ -17,15 +17,16 @@ export interface UserProfile {
 }
 
 export interface ClubTheme {
+  login_bg?: string;
+  button_bg?: string;
+  button_text?: string;
+  button_hover?: string;
   sidebar_bg?: string;
   sidebar_text?: string;
   sidebar_hover_bg?: string;
   sidebar_active_bg?: string;
   sidebar_active_text?: string;
-  button_bg?: string;
-  button_text?: string;
-  button_hover?: string;
-  login_bg?: string;
+  primary_color?: string;
 }
 
 export interface Club {
@@ -40,6 +41,12 @@ export interface Club {
   whatsapp_notif_bienvenida?: boolean;
   whatsapp_notif_cargos?: boolean;
   whatsapp_notif_recordatorios?: boolean;
+  resend_api_key?: string;
+  resend_from_email?: string;
+  template_id_registro?: string;
+  template_id_recuperacion?: string;
+  template_id_notificaciones?: string;
+  activar_correos?: boolean;
   estado?: string;
   pais?: string;
   ciudad?: string;
@@ -56,6 +63,8 @@ export interface Club {
   created_at: string;
   plan_id?: string;
   nit?: string;
+  reconocimiento_deportivo_url?: string;
+  documento_representante_url?: string;
   planes_suscripcion?: {
     nombre: string;
     precio: number;
@@ -154,6 +163,7 @@ export interface ProductoEvento {
   link_pago?: string;
   imagen_url?: string;
   equipos?: string[]; // Array of team ids
+  tipo?: 'evento' | 'producto';
   created_at: string;
 }
 

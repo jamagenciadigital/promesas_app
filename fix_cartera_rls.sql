@@ -16,8 +16,17 @@ FOR SELECT USING (
 
 -- Asegurar que los administradores también puedan insertar y actualizar si es necesario
 DROP POLICY IF EXISTS "Admin gestiona cartera" ON public.cartera;
+DROP POLICY IF EXISTS "Inserción de cartera automática" ON public.cartera;
+
 CREATE POLICY "Admin gestiona cartera" ON public.cartera 
 FOR ALL USING (
+  club_id = public.get_my_club_id() OR
+  (nullif(current_setting('request.jwt.claims', true)::json->'user_metadata'->>'rol', '')) = 'superadmin'
+);
+
+-- Política separada para INSERT con WITH CHECK (FOR ALL USING no cubre INSERT en Supabase)
+CREATE POLICY "Admin inserta cartera" ON public.cartera 
+FOR INSERT WITH CHECK (
   club_id = public.get_my_club_id() OR
   (nullif(current_setting('request.jwt.claims', true)::json->'user_metadata'->>'rol', '')) = 'superadmin'
 );

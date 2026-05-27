@@ -14,6 +14,7 @@ export default function SuperAdminConfig() {
     resend_from_email: '',
     template_id_registro: '',
     template_id_recuperacion: '',
+    template_id_notificaciones: '',
     activar_correos: true,
   });
 
@@ -39,6 +40,7 @@ export default function SuperAdminConfig() {
           resend_from_email: data.resend_from_email || '',
           template_id_registro: data.template_id_registro || '',
           template_id_recuperacion: data.template_id_recuperacion || '',
+          template_id_notificaciones: data.template_id_notificaciones || '',
           activar_correos: data.activar_correos,
         });
       }
@@ -61,6 +63,7 @@ export default function SuperAdminConfig() {
             resend_from_email: config.resend_from_email,
             template_id_registro: config.template_id_registro,
             template_id_recuperacion: config.template_id_recuperacion,
+            template_id_notificaciones: config.template_id_notificaciones,
             activar_correos: config.activar_correos,
             updated_at: new Date().toISOString()
           })
@@ -78,6 +81,7 @@ export default function SuperAdminConfig() {
             resend_from_email: config.resend_from_email,
             template_id_registro: config.template_id_registro,
             template_id_recuperacion: config.template_id_recuperacion,
+            template_id_notificaciones: config.template_id_notificaciones,
             activar_correos: config.activar_correos,
           }])
           .select()
@@ -229,6 +233,19 @@ export default function SuperAdminConfig() {
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#E30613]/20 focus:border-[#E30613] transition-colors bg-gray-50"
                 />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-600">
+                  ID Template: Notificaciones (cartera, agenda, etc.)
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: notification_fichaje"
+                  value={config.template_id_notificaciones}
+                  onChange={(e) => setConfig({ ...config, template_id_notificaciones: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#E30613]/20 focus:border-[#E30613] transition-colors bg-gray-50"
+                />
+              </div>
             </div>
           </div>
 
@@ -239,7 +256,8 @@ export default function SuperAdminConfig() {
               <p className="text-xs text-blue-700 mt-1">
                 Al crear tus plantillas en Resend, asegúrate de usar estas variables: <br/>
                 Para bienvenida: <code>{"{{nombre}}"}</code>, <code>{"{{club}}"}</code>, <code>{"{{email}}"}</code><br/>
-                Para contraseña: <code>{"{{nombre}}"}</code>, <code>{"{{link_recuperacion}}"}</code>
+                Para contraseña: <code>{"{{nombre}}"}</code>, <code>{"{{link_recuperacion}}"}</code><br/>
+                Para notificaciones: <code>{"{{contenido}}"}</code>, <code>{"{{asunto}}"}</code>, <code>{"{{nombre}}"}</code>, <code>{"{{club}}"}</code>
               </p>
             </div>
           </div>

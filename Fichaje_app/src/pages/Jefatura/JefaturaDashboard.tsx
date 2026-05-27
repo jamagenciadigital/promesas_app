@@ -3,7 +3,7 @@ import {
   Building2, Users, Calendar, CheckSquare, Wrench, 
   AlertCircle, MessageSquare, TrendingUp, Search, 
   Plus, Edit2, Trash2, UserPlus, MapPin, Clock, BarChart3,
-  DollarSign, Wallet, Trophy
+  DollarSign, Wallet, Trophy, Activity
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -16,10 +16,22 @@ import EscenarioDashboard from '../Escenario/EscenarioDashboard';
 export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defaultTab?: 'indicators' | 'venues' | 'assignments' | 'pqrs' }) {
   const { user, profile, activeClubId } = useAuth();
   const [activeTab, setActiveTab] = useState<'indicators' | 'venues' | 'assignments' | 'pqrs'>(defaultTab);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>({
     uniqueUsers: 0,
-    services: 0,
+    clase: 0,
+    entrenamiento: 0,
+    evento: 0,
+    ligas: 0,
+    clubes: 0,
+    deportistas: 0,
+    entrenadores: 0,
+    padres: 0,
     occupancy: 0,
     maintenance: 0,
     repairTime: 0,
@@ -101,10 +113,8 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
       const uniquePlayers = new Set<string>();
 
       if (resData) {
-        // IDs de deportistas individuales
         resData.filter(r => r.tipo_reserva === 'jugador' && r.deportista_id).forEach(r => uniquePlayers.add(r.deportista_id));
 
-        // Deportistas pertenecientes a equipos reservados
         const teamIds = [...new Set(resData.filter(r => r.tipo_reserva === 'equipo' && r.equipo_id).map(r => r.equipo_id))];
         
         if (teamIds.length > 0) {
@@ -119,9 +129,59 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         setStats((prev: any) => ({ 
           ...prev, 
           uniqueUsers: uniquePlayers.size,
-          services: resData.length 
         }));
       }
+
+      // 2. Clase (planificaciones), Entrenamiento & Evento (agenda_deportiva)
+      const { count: claseCount } = await supabase
+        .from('planificaciones')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: entrenamientoCount } = await supabase
+        .from('agenda_deportiva')
+        .select('*', { count: 'exact', head: true })
+        .eq('tipo', 'entrenamiento');
+
+      const { count: eventoCount } = await supabase
+        .from('agenda_deportiva')
+        .select('*', { count: 'exact', head: true })
+        .eq('tipo', 'evento');
+
+      // 3. Ligas (juegos_amistosos), Clubes, Deportistas
+      const { count: ligasCount } = await supabase
+        .from('juegos_amistosos')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: clubesCount } = await supabase
+        .from('clubes')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: deportistasCount } = await supabase
+        .from('deportistas')
+        .select('*', { count: 'exact', head: true });
+
+      // 4. Entrenadores y Padres (perfiles por rol)
+      const { count: entrenadoresCount } = await supabase
+        .from('perfiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'entrenador');
+
+      const { count: padresCount } = await supabase
+        .from('perfiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'padre');
+
+      setStats((prev: any) => ({
+        ...prev,
+        clase: claseCount ?? 0,
+        entrenamiento: entrenamientoCount ?? 0,
+        evento: eventoCount ?? 0,
+        ligas: ligasCount ?? 0,
+        clubes: clubesCount ?? 0,
+        deportistas: deportistasCount ?? 0,
+        entrenadores: entrenadoresCount ?? 0,
+        padres: padresCount ?? 0,
+      }));
 
       // 2. PQRS Metrics
       const { data: pqrsData } = await supabase
@@ -216,49 +276,22 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none flex items-center gap-4">
-            <Building2 className="text-[#CCFF00]" size={40} /> Jefatura de Escenarios
-          </h1>
-          <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-2 italic">
-            Dashboard Estratégico e Indicadores de Gestión
-          </p>
+          <h1 className="text-2xl font-bold text-[#182332] dark:text-white tracking-tight">Jefatura de Escenarios</h1>
+          <p className="text-sm text-gray-400 mt-1">Dashboard estratégico e indicadores de gestión</p>
         </div>
-        
-        <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-2xl border border-gray-200 dark:border-white/10">
-          <button 
-            onClick={() => setActiveTab('indicators')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'indicators' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
-          >
-            <BarChart3 className="inline-flex mr-2" size={14} /> Indicadores
-          </button>
-          <button 
-            onClick={() => setActiveTab('pqrs')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'pqrs' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
-          >
-            <MessageSquare className="inline-flex mr-2" size={14} /> Buzón PQRS
-          </button>
-          <button 
-            onClick={() => setActiveTab('venues')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'venues' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
-          >
-            <MapPin className="inline-flex mr-2" size={14} /> Escenarios
-          </button>
-          <button 
-            onClick={() => setActiveTab('assignments')}
-            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${activeTab === 'assignments' ? 'bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20' : 'text-gray-500 hover:text-white'}`}
-          >
-            <UserPlus className="inline-flex mr-2" size={14} /> Asignación
-          </button>
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-full dark:bg-red-950/20 dark:border-red-900/30">
+          <Building2 size={14} className="text-[#E30613]" />
+          <span className="text-[11px] font-semibold text-[#E30613]">Panel General</span>
         </div>
-      </header>
+      </div>
 
       {activeTab === 'indicators' && (
         <div className="space-y-8">
           {/* Main Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
             {/* Usuarios Únicos */}
             <IndicatorCard 
               title="Usuarios Únicos" 
@@ -269,25 +302,94 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               bg="bg-blue-500/10"
             />
 
-            {/* Servicios Prestados */}
+            {/* Clase */}
             <IndicatorCard 
-              title="Servicios Prestados" 
-              value={stats.services} 
-              subtitle="Usos efectivos" 
+              title="Clase" 
+              value={stats.clase} 
+              subtitle="Planificaciones" 
               icon={<Calendar />} 
+              color="text-sky-500"
+              bg="bg-sky-500/10"
+            />
+
+            {/* Entrenamiento */}
+            <IndicatorCard 
+              title="Entrenamiento" 
+              value={stats.entrenamiento} 
+              subtitle="Agenda deportiva" 
+              icon={<Activity />} 
               color="text-emerald-500"
               bg="bg-emerald-500/10"
             />
 
-            {/* Tasa de Ocupación */}
+            {/* Evento */}
+            <IndicatorCard 
+              title="Evento" 
+              value={stats.evento} 
+              subtitle="Agenda deportiva" 
+              icon={<Trophy />} 
+              color="text-amber-500"
+              bg="bg-amber-500/10"
+            />
+
+            {/* Ligas */}
+            <IndicatorCard 
+              title="Ligas" 
+              value={stats.ligas} 
+              subtitle="Partidos registrados" 
+              icon={<Trophy />} 
+              color="text-purple-500"
+              bg="bg-purple-500/10"
+            />
+
+            {/* Clubes */}
+            <IndicatorCard 
+              title="Clubes" 
+              value={stats.clubes} 
+              subtitle="Registrados" 
+              icon={<Building2 />} 
+              color="text-indigo-500"
+              bg="bg-indigo-500/10"
+            />
+
+            {/* Deportistas */}
+            <IndicatorCard 
+              title="Deportistas" 
+              value={stats.deportistas} 
+              subtitle="Registrados" 
+              icon={<Users />} 
+              color="text-cyan-500"
+              bg="bg-cyan-500/10"
+            />
+
+            {/* Entrenadores */}
+            <IndicatorCard 
+              title="Entrenadores" 
+              value={stats.entrenadores} 
+              subtitle="Registrados" 
+              icon={<UserPlus />} 
+              color="text-orange-500"
+              bg="bg-orange-500/10"
+            />
+
+            {/* Padres */}
+            <IndicatorCard 
+              title="Padres" 
+              value={stats.padres} 
+              subtitle="Registrados" 
+              icon={<Users />} 
+              color="text-rose-500"
+              bg="bg-rose-500/10"
+            />
+
             {/* Tasa de Ocupación */}
             <IndicatorCard 
               title="Tasa de Ocupación" 
               value="---" 
               subtitle="Promedio semanal" 
               icon={<TrendingUp />} 
-              color="text-[#CCFF00]"
-              bg="bg-[#CCFF00]/10"
+              color="text-[var(--primary)]"
+              bg="bg-[var(--primary-10)]"
               isDevelopment
             />
 
@@ -325,29 +427,29 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
           </div>
 
           {/* PQRS Stats */}
-          <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10">
-            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <MessageSquare className="text-[#CCFF00]" /> Gestión de PQRS por Escenario
+          <div className="bg-white dark:bg-[#16171b] rounded-2xl border border-gray-100 dark:border-white/5 p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-base font-bold text-[#182332] dark:text-white mb-6 flex items-center gap-3">
+              <MessageSquare className="text-[#E30613]" /> Gestión de PQRS por Escenario
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-               <div className="space-y-2 p-6 bg-gray-50 dark:bg-black/20 rounded-3xl">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Recibidas</p>
-                  <h4 className="text-4xl font-black text-white italic">{stats.pqrsTotal}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+               <div className="space-y-2 p-6 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Recibidas</p>
+                  <h4 className="text-3xl font-bold text-[#182332] dark:text-white">{stats.pqrsTotal}</h4>
                </div>
-               <div className="space-y-2 p-6 bg-emerald-500/10 rounded-3xl relative overflow-hidden group">
-                  <div className="absolute top-1 right-2">
+               <div className="space-y-2 p-6 bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute top-1.5 right-2">
                     <span className="text-[7px] font-black uppercase text-emerald-500/50 italic tracking-widest">En Desarrollo</span>
                   </div>
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">En Término Legal</p>
-                  <h4 className="text-4xl font-black text-emerald-500/50 italic">---</h4>
+                  <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider mb-1">En Término Legal</p>
+                  <h4 className="text-3xl font-bold text-emerald-600/50">---</h4>
                </div>
-               <div className="space-y-2 p-6 bg-amber-500/10 rounded-3xl relative overflow-hidden group">
-                  <div className="absolute top-1 right-2">
+               <div className="space-y-2 p-6 bg-amber-50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/30 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute top-1.5 right-2">
                     <span className="text-[7px] font-black uppercase text-amber-500/50 italic tracking-widest">En Desarrollo</span>
                   </div>
-                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest italic">Tiempo de Respuesta</p>
-                  <h4 className="text-4xl font-black text-amber-500/50 italic">---</h4>
+                  <p className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider mb-1">Tiempo de Respuesta</p>
+                  <h4 className="text-3xl font-bold text-amber-600/50">---</h4>
                </div>
             </div>
           </div>
@@ -356,17 +458,17 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
 
       {activeTab === 'pqrs' && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10">
-            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <MessageSquare className="text-[#CCFF00]" /> Buzón de PQRS Recibidas
+          <div className="bg-white dark:bg-[#16171b] rounded-2xl border border-gray-100 dark:border-white/5 p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-base font-bold text-[#182332] dark:text-white mb-6 flex items-center gap-3">
+              <MessageSquare className="text-[#E30613]" /> Buzón de PQRS Recibidas
             </h3>
             
             <div className="space-y-4">
               {pqrsList.length > 0 ? pqrsList.map(p => (
-                <div key={p.id} className="p-6 bg-gray-50 dark:bg-black/20 rounded-[32px] border border-gray-100 dark:border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-[#CCFF00]/30 transition-all group">
-                  <div className="space-y-1">
+                <div key={p.id} className="p-5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-sm transition-all group">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-gray-500 uppercase italic tracking-widest">{p.codigo}</span>
+                      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{p.codigo}</span>
                       <Badge className={`text-[8px] font-black uppercase ${
                         p.estado === 'pendiente' ? 'bg-amber-500/10 text-amber-500' : 
                         p.estado === 'en_revision' ? 'bg-blue-500/10 text-blue-500' : 
@@ -375,17 +477,17 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
                         {p.estado}
                       </Badge>
                     </div>
-                    <p className="font-black text-white uppercase italic">{p.tipo}: {p.escenarios?.nombre || 'Sede General'}</p>
+                    <p className="font-bold text-[#182332] dark:text-white text-sm">{p.tipo}: {p.escenarios?.nombre || 'Sede General'}</p>
                     <p className="text-xs text-gray-400 line-clamp-1 italic">"{p.descripcion}"</p>
                   </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="text-right hidden md:block mr-4">
-                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest italic">{p.solicitante_nombre}</p>
-                      <p className="text-[8px] text-gray-600">{new Date(p.created_at).toLocaleDateString()}</p>
+                  <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                    <div className="text-right mr-4">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{p.solicitante_nombre}</p>
+                      <p className="text-[8px] text-gray-400 mt-0.5">{new Date(p.created_at).toLocaleDateString()}</p>
                     </div>
                     <button 
                       onClick={() => { setSelectedPqrs(p); setPqrsResponse(p.respuesta || ''); setIsPqrsModalOpen(true); }}
-                      className="flex-1 md:flex-none px-6 py-3 bg-white dark:bg-white/5 hover:bg-[#CCFF00] hover:text-black rounded-2xl font-black text-[10px] uppercase italic transition-all"
+                      className="px-5 py-2.5 bg-[#182332] dark:bg-white/10 hover:bg-[#E30613] hover:text-white text-white rounded-xl font-semibold text-xs transition-all"
                     >
                       Gestionar
                     </button>
@@ -403,57 +505,62 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
       )}
 
       {activeTab === 'venues' && (
-        <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 overflow-hidden">
+        <div className="bg-white dark:bg-[#16171b] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-md transition-shadow">
            <EscenarioDashboard defaultView="list" />
         </div>
       )}
 
       {activeTab === 'assignments' && (
-        <div className="bg-white dark:bg-[#16171b] rounded-[48px] border border-gray-100 dark:border-white/5 p-10 space-y-8">
-           <div className="flex justify-between items-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Asignación de Personal</h3>
-              <Button onClick={() => setIsAssignModalOpen(true)} className="bg-[#CCFF00] text-black font-black uppercase italic text-[10px] rounded-xl px-6 h-12">Asignar Nuevo</Button>
-           </div>
-           
-           <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                 <thead>
-                    <tr className="border-b border-gray-100 dark:border-white/5">
-                       <th className="pb-4 text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Usuario</th>
-                       <th className="pb-4 text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Escenario</th>
-                       <th className="pb-4 text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Rol</th>
-                       <th className="pb-4 text-[10px] font-black text-gray-500 uppercase tracking-widest italic text-right">Acciones</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                    {assignments.map(as => (
-                      <tr key={as.id}>
-                         <td className="py-6">
-                            <div className="font-bold text-gray-900 dark:text-white">{as.perfiles?.nombre}</div>
-                            <div className="text-[10px] text-gray-500">{as.perfiles?.email}</div>
-                         </td>
-                         <td className="py-6 text-sm font-bold text-gray-400">{as.escenarios?.nombre}</td>
-                         <td className="py-6">
-                            <Badge className="bg-blue-500/10 text-blue-500 uppercase text-[8px] font-black">{as.rol_asignado}</Badge>
-                         </td>
-                         <td className="py-6 text-right">
-                            <button 
-                              onClick={async () => {
-                                if (window.confirm('¿Eliminar asignación?')) {
-                                  await supabase.from('escenario_usuarios').delete().eq('id', as.id);
-                                  fetchAssignments();
-                                }
-                              }}
-                              className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                         </td>
-                      </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
+        <div className="bg-white dark:bg-[#16171b] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-md transition-shadow space-y-4 animate-in fade-in">
+          <div className="p-6 border-b border-gray-50 dark:border-white/5 flex justify-between items-center">
+            <div>
+              <h2 className="text-base font-bold text-[#182332] dark:text-white">Asignación de Personal</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">Gestión de roles y escenarios asignados</p>
+            </div>
+            <Button onClick={() => setIsAssignModalOpen(true)} className="bg-[#E30613] text-white hover:bg-red-700 font-bold uppercase text-[10px] rounded-xl px-5 h-10">
+              Asignar Nuevo
+            </Button>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50/80 dark:bg-white/5 text-[10px] font-semibold text-gray-400 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3">Usuario</th>
+                  <th className="px-6 py-3">Escenario</th>
+                  <th className="px-6 py-3">Rol</th>
+                  <th className="px-6 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                {assignments.map(as => (
+                  <tr key={as.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-[#182332] dark:text-white text-sm">{as.perfiles?.nombre}</div>
+                      <div className="text-[10px] text-gray-400">{as.perfiles?.email}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-500 dark:text-gray-400">{as.escenarios?.nombre}</td>
+                    <td className="px-6 py-4">
+                      <Badge className="bg-blue-500/10 text-blue-500 uppercase text-[8px] font-black">{as.rol_asignado}</Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={async () => {
+                          if (window.confirm('¿Eliminar asignación?')) {
+                            await supabase.from('escenario_usuarios').delete().eq('id', as.id);
+                            fetchAssignments();
+                          }
+                        }}
+                        className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -502,7 +609,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
             </select>
           </div>
 
-          <Button onClick={handleAssign} className="w-full bg-[#CCFF00] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[#CCFF00]/10 mt-4">
+          <Button onClick={handleAssign} className="w-full bg-[var(--primary)] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[var(--primary-10)] mt-4">
             Confirmar Asignación
           </Button>
         </div>
@@ -515,18 +622,18 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         <div className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-white/5">
-              <p className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">Solicitante</p>
+              <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mb-1">Solicitante</p>
               <p className="text-sm font-bold text-white">{selectedPqrs?.solicitante_nombre}</p>
               <p className="text-[10px] text-gray-500">{selectedPqrs?.solicitante_email}</p>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-white/5">
-              <p className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest mb-1">Descripción del {selectedPqrs?.tipo}</p>
+              <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mb-1">Descripción del {selectedPqrs?.tipo}</p>
               <p className="text-sm text-gray-300 italic">"{selectedPqrs?.descripcion}"</p>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Tu Respuesta</label>
               <textarea 
-                className="w-full h-32 p-4 bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl text-white text-sm focus:border-[#CCFF00] outline-none transition-all resize-none"
+                className="w-full h-32 p-4 bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl text-white text-sm focus:border-[var(--primary)] outline-none transition-all resize-none"
                 placeholder="Escribe aquí la respuesta oficial..."
                 value={pqrsResponse}
                 onChange={(e) => setPqrsResponse(e.target.value)}
@@ -544,7 +651,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
             <Button 
               onClick={() => { handleRespondPqrs(selectedPqrs.id, pqrsResponse); setIsPqrsModalOpen(false); }}
               disabled={!pqrsResponse}
-              className="flex-2 bg-[#CCFF00] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[#CCFF00]/10"
+              className="flex-2 bg-[var(--primary)] text-black font-black uppercase italic h-14 rounded-2xl shadow-xl shadow-[var(--primary-10)]"
             >
               Enviar Respuesta
             </Button>
@@ -566,7 +673,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               </div>
               <div className="p-6 bg-gray-50 dark:bg-black/20 rounded-3xl text-center">
                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Recaudación</p>
-                 <h4 className="text-2xl font-black text-[#CCFF00] italic">{formatCurrency(selectedVenueMetrics?.revenue)}</h4>
+                 <h4 className="text-2xl font-black text-[var(--primary)] italic">{formatCurrency(selectedVenueMetrics?.revenue)}</h4>
               </div>
               <div className="p-6 bg-gray-50 dark:bg-black/20 rounded-3xl text-center">
                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">PQRS Recibidas</p>
@@ -600,7 +707,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
               </div>
            </div>
            
-           <Button onClick={() => setIsMetricsModalOpen(false)} className="w-full bg-black text-[#CCFF00] font-black uppercase italic h-14 rounded-2xl">Cerrar Detalle</Button>
+           <Button onClick={() => setIsMetricsModalOpen(false)} className="w-full bg-black text-[var(--primary)] font-black uppercase italic h-14 rounded-2xl">Cerrar Detalle</Button>
         </div>
       </Modal>
     </div>
@@ -609,19 +716,20 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
 
 function IndicatorCard({ title, value, subtitle, icon, color, bg, isDevelopment }: any) {
   return (
-    <div className={`${bg} p-8 rounded-[40px] border border-white/5 relative overflow-hidden group hover:scale-[1.02] transition-all`}>
-      <div className="relative z-10 space-y-2">
-        <div className="flex justify-between items-center">
-          <p className={`text-[10px] font-black ${color} uppercase tracking-[0.3em] italic`}>{title}</p>
-          {isDevelopment && (
-            <span className={`${color} bg-white/10 text-[7px] font-black px-2 py-0.5 rounded-full uppercase italic tracking-widest opacity-70`}>En Desarrollo</span>
-          )}
-        </div>
-        <h4 className={`text-4xl font-black text-white italic tracking-tighter leading-none ${isDevelopment ? 'opacity-30' : ''}`}>{value}</h4>
-        <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{subtitle}</p>
+    <div className="bg-white dark:bg-[#16171b] p-6 rounded-2xl border border-gray-100 dark:border-white/5 relative overflow-hidden group hover:shadow-md transition-all">
+      <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform text-[#182332] dark:text-white">
+        {React.cloneElement(icon, { size: 56 })}
       </div>
-      <div className={`absolute -right-4 -bottom-4 ${color} opacity-10 group-hover:scale-110 transition-transform`} style={{ fontSize: '80px' }}>
-        {React.cloneElement(icon, { size: 100 })}
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">{title}</p>
+      <h3 className={`text-2xl font-bold text-[#182332] dark:text-white ${isDevelopment ? 'opacity-30' : ''}`}>{value}</h3>
+      <div className="mt-3 flex items-center gap-1.5">
+        {isDevelopment ? (
+          <span className="text-[9px] font-semibold text-amber-500 bg-amber-50 dark:bg-amber-950/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+            En Desarrollo
+          </span>
+        ) : (
+          <p className="text-[10px] font-medium text-gray-400">{subtitle}</p>
+        )}
       </div>
     </div>
   );

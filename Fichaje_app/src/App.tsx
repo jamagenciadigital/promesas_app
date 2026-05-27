@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 import DashboardLayout from './components/Layout/DashboardLayout';
@@ -13,6 +14,7 @@ import AthleteList from './pages/SuperAdmin/AthleteList';
 import ClubList from './pages/SuperAdmin/ClubList';
 import ClubAdmins from './pages/SuperAdmin/ClubAdmins';
 import SuperAdminPlanes from './pages/SuperAdmin/SuperAdminPlanes';
+
 import FriendlyMatches from './pages/Club/Games/FriendlyMatches';
 import BasketballScorekeeper from './pages/Club/Games/Basketball/BasketballScorekeeper';
 import SportsConfig from './pages/SuperAdmin/SportsConfig';
@@ -41,6 +43,8 @@ import PlayerNewReservation from './pages/Player/PlayerNewReservation';
 import RegisterParent from './pages/Public/RegisterParent';
 import EscenarioDashboard from './pages/Escenario/EscenarioDashboard';
 import JefaturaDashboard from './pages/Jefatura/JefaturaDashboard';
+import JefaturaSettings from './pages/Jefatura/JefaturaSettings';
+import JefaturaClubes from './pages/Jefatura/JefaturaClubes';
 
 import DireccionDeportiva from './pages/Club/Pro/DireccionDeportiva';
 import RegisterElitePlayer from './pages/Club/RegisterElitePlayer';
@@ -55,11 +59,13 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
+        <ThemeProvider>
         <Router>
         <Routes>
           {/* Public Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/login/:clubId" element={<Login />} />
           <Route path="/registro-club" element={<RegisterClub />} />
           <Route path="/registro-deportista" element={<RegisterPlayer />} />
           <Route path="/registro-padre" element={<RegisterParent />} />
@@ -152,7 +158,7 @@ function App() {
 
           {/* ESCENARIO DEPORTIVO DASHBOARD - NUEVO ROL VINCULADO */}
           <Route path="/escenario/*" element={
-            <ProtectedRoute allowedRoles={['escenario_deportivo', 'admin_escenario', 'superadmin', 'admin_club']}>
+            <ProtectedRoute allowedRoles={['escenario_deportivo', 'admin_escenario', 'superadmin', 'admin_club', 'jefatura']}>
               <DashboardLayout>
                 <Routes>
                   <Route path="/" element={<EscenarioDashboard />} />
@@ -191,7 +197,10 @@ function App() {
                 <Routes>
                   <Route path="/" element={<JefaturaDashboard />} />
                   <Route path="venues" element={<JefaturaDashboard defaultTab="venues" />} />
+                  <Route path="clubes" element={<JefaturaClubes />} />
                   <Route path="assignments" element={<JefaturaDashboard defaultTab="assignments" />} />
+                  <Route path="pqrs" element={<JefaturaDashboard defaultTab="pqrs" />} />
+                  <Route path="settings" element={<JefaturaSettings />} />
                   <Route path="*" element={<Navigate to="/jefatura" replace />} />
                 </Routes>
               </DashboardLayout>
@@ -227,6 +236,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </ThemeProvider>
     </AuthProvider>
   </LanguageProvider>
   );

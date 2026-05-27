@@ -1,11 +1,22 @@
 import { PrismaClient } from '../../generated/prisma';
 
+async function getSystemConfig(prisma: PrismaClient) {
+  try {
+    const sys = await prisma.$queryRawUnsafe<any[]>(
+      'SELECT * FROM public.configuracion_sistema LIMIT 1'
+    );
+    return sys && sys.length > 0 ? sys[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 export const APP_EMAIL_CONFIG = {
   resend_api_key: 're_5whxtgXY_9j8nza3AcRscadgvfVqHzGWw',
   resend_from_email: 'replay-to@fichaje.com.co',
   template_id_registro: 'bienvenido-fichaje',
   template_id_recuperacion: 'restaurar_fichaje',
-  template_id_notificaciones: 'bienvenido-fichaje',
+  template_id_notificaciones: 'notification_fichaje',
   activar_correos: true
 };
 
@@ -63,11 +74,12 @@ export async function sendEmail(
     const cfg = clubes[0];
     const clubName = cfg.nombre || 'Club';
 
-    // Resolve API key and email config (uses club custom if present, else fallback)
+    // Resolve API key and email config (club → sistema → hardcoded)
     const hasCustomConfig = !!(cfg.resend_api_key && cfg.resend_from_email);
-    const api_key = hasCustomConfig ? cfg.resend_api_key : APP_EMAIL_CONFIG.resend_api_key;
-    const from_email = hasCustomConfig ? cfg.resend_from_email : APP_EMAIL_CONFIG.resend_from_email;
-    const is_active = hasCustomConfig ? cfg.activar_correos : APP_EMAIL_CONFIG.activar_correos;
+    const sysCfg = hasCustomConfig ? null : await getSystemConfig(prisma);
+    const api_key = hasCustomConfig ? cfg.resend_api_key : (sysCfg?.resend_api_key || APP_EMAIL_CONFIG.resend_api_key);
+    const from_email = hasCustomConfig ? cfg.resend_from_email : (sysCfg?.resend_from_email || APP_EMAIL_CONFIG.resend_from_email);
+    const is_active = hasCustomConfig ? cfg.activar_correos : (sysCfg?.activar_correos ?? APP_EMAIL_CONFIG.activar_correos);
 
     if (!is_active) {
       console.log(`Email cancelado: Los correos están desactivados para el club ${club_id}.`);
@@ -79,15 +91,15 @@ export async function sendEmail(
       return false;
     }
 
-    // 2. Resolve template ID based on type
+    // 2. Resolve template ID based on type (club → sistema → hardcoded)
     let templateId = '';
 
     if (type === 'registro') {
-      templateId = cfg.template_id_registro || APP_EMAIL_CONFIG.template_id_registro;
+      templateId = cfg.template_id_registro || sysCfg?.template_id_registro || APP_EMAIL_CONFIG.template_id_registro;
     } else if (type === 'recuperacion') {
-      templateId = cfg.template_id_recuperacion || APP_EMAIL_CONFIG.template_id_recuperacion;
+      templateId = cfg.template_id_recuperacion || sysCfg?.template_id_recuperacion || APP_EMAIL_CONFIG.template_id_recuperacion;
     } else if (type === 'notificaciones') {
-      templateId = cfg.template_id_notificaciones || APP_EMAIL_CONFIG.template_id_notificaciones;
+      templateId = cfg.template_id_notificaciones || sysCfg?.template_id_notificaciones || APP_EMAIL_CONFIG.template_id_notificaciones;
     }
 
     if (!templateId) {
@@ -102,6 +114,8 @@ export async function sendEmail(
       ? from_email
       : clubName + ' <' + from_email + '>';
 
+    const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -113,7 +127,11 @@ export async function sendEmail(
         to: [to],
         template: {
           id: templateId,
-          variables: variables
+          variables: {
+            club: clubName,
+            enlace_login: `${frontendUrl}/login/${club_id}`,
+            ...variables
+          }
         }
       })
     });
@@ -156,12 +174,13 @@ export async function sendNotificationEmail(
     const cfg = clubes[0];
     const clubName = cfg.nombre || 'Club';
 
-    // Resolve API key and email config (uses club custom if present, else fallback)
+    // Resolve API key and email config (club → sistema → hardcoded)
     const hasCustomConfig = !!(cfg.resend_api_key && cfg.resend_from_email);
-    const api_key = hasCustomConfig ? cfg.resend_api_key : APP_EMAIL_CONFIG.resend_api_key;
-    const from_email = hasCustomConfig ? cfg.resend_from_email : APP_EMAIL_CONFIG.resend_from_email;
-    const is_active = hasCustomConfig ? cfg.activar_correos : APP_EMAIL_CONFIG.activar_correos;
-    const template_id_notificaciones = (hasCustomConfig ? cfg.template_id_notificaciones : null) || APP_EMAIL_CONFIG.template_id_notificaciones;
+    const sysCfg = hasCustomConfig ? null : await getSystemConfig(prisma);
+    const api_key = hasCustomConfig ? cfg.resend_api_key : (sysCfg?.resend_api_key || APP_EMAIL_CONFIG.resend_api_key);
+    const from_email = hasCustomConfig ? cfg.resend_from_email : (sysCfg?.resend_from_email || APP_EMAIL_CONFIG.resend_from_email);
+    const is_active = hasCustomConfig ? cfg.activar_correos : (sysCfg?.activar_correos ?? APP_EMAIL_CONFIG.activar_correos);
+    const template_id_notificaciones = cfg.template_id_notificaciones || sysCfg?.template_id_notificaciones || APP_EMAIL_CONFIG.template_id_notificaciones;
 
     if (!is_active) {
       console.log(`Email cancelado: Los correos están desactivados para el club ${club_id}.`);
@@ -183,7 +202,7 @@ export async function sendNotificationEmail(
     let asunto = '';
     let contenido = '';
 
-    if (plantillas && plantillas.length > 0) {
+    if (plantillas && plantillas.length > 0 && plantillas[0].cuerpo && plantillas[0].cuerpo.trim() !== '') {
       asunto = plantillas[0].asunto || '';
       contenido = plantillas[0].cuerpo || '';
     } else {
@@ -199,9 +218,11 @@ export async function sendNotificationEmail(
     }
 
     // 3. Replace variables in body and subject
+    const frontendUrl = process.env.FRONTEND_URL || 'https://app.fichaje.com.co';
     const mergedVars: Record<string, any> = {
       ...variables,
       club: clubName,
+      enlace_login: `${frontendUrl}/login/${club_id}`,
     };
     for (const [key, value] of Object.entries(mergedVars)) {
       asunto = asunto.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), String(value ?? ''));
@@ -209,40 +230,54 @@ export async function sendNotificationEmail(
     }
     mergedVars.asunto = asunto;
 
-    // 4. Send via Resend using the template
+    // 4. Send via Resend
     const fromFormatted = from_email.includes('<')
       ? from_email
       : clubName + ' <' + from_email + '>';
 
-    console.log(`Enviando email de notificación (${tipo}) a ${to} via template...`);
+    console.log(`Enviando email de notificación (${tipo}) a ${to} via template '${template_id_notificaciones}'...`);
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${api_key}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: fromFormatted,
-        to: [to],
-        template: {
-          id: template_id_notificaciones,
-          variables: {
-            ...mergedVars,
-            contenido: contenido
-          }
-        }
-      })
+    const resendBody: Record<string, any> = {
+      from: fromFormatted,
+      to: [to],
+      subject: asunto,
+      template: {
+        id: template_id_notificaciones,
+        variables: { ...mergedVars, contenido }
+      }
+    };
+
+    const templateResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(resendBody)
     });
 
-    const data: any = await response.json();
+    const templateData: any = await templateResponse.json();
 
-    if (!response.ok) {
-      console.error("Resend API error:", data);
+    if (templateResponse.ok) {
+      console.log(`Email enviado via template! ID: ${templateData.id}`);
+      return true;
+    }
+
+    console.warn(`Template falló (${templateResponse.status}), enviando como HTML plano...`, templateData);
+
+    // Fallback si el template no existe → HTML directo
+    delete resendBody.template;
+    resendBody.html = contenido;
+
+    const htmlResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(resendBody)
+    });
+
+    const htmlData: any = await htmlResponse.json();
+
+    if (!htmlResponse.ok) {
+      console.error("Resend HTML error:", htmlData);
       return false;
     }
 
-    console.log(`Email de notificación enviado con éxito! ID: ${data.id}`);
+    console.log(`Email enviado con éxito via HTML! ID: ${htmlData.id}`);
     return true;
 
   } catch (error) {

@@ -63,6 +63,8 @@ export interface Club {
   created_at: string;
   plan_id?: string;
   nit?: string;
+  reconocimiento_deportivo_url?: string;
+  documento_representante_url?: string;
   planes_suscripcion?: {
     nombre: string;
     precio: number;
@@ -161,6 +163,7 @@ export interface ProductoEvento {
   link_pago?: string;
   imagen_url?: string;
   equipos?: string[]; // Array of team ids
+  tipo?: 'evento' | 'producto';
   created_at: string;
 }
 

@@ -4,18 +4,29 @@ import { supabase } from '../../lib/supabase';
 import { 
   User, Calendar, Shield, MapPin, Phone, Mail, 
   Heart, Baby, FileText, Download, Printer, ArrowLeft,
-  QrCode, Trophy, TrendingUp
+  QrCode, Trophy, TrendingUp, CheckCircle2, X
 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { QRCodeSVG } from 'qrcode.react';
+import { useAuth } from '../../context/AuthContext';
+import { approveAthleteDocuments, rejectAthleteDocuments } from '../../lib/cartera';
 
 export default function PlayerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  
   const [player, setPlayer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Validation States
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [showRejectionForm, setShowRejectionForm] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  const isAdmin = profile?.rol === 'admin_club' || profile?.rol === 'direccion_deportiva';
 
   const getDirectImageUrl = (url: string) => {
     if (!url) return '';
@@ -30,44 +41,79 @@ export default function PlayerProfile() {
     return trimmed;
   };
 
-  useEffect(() => {
-    async function fetchPlayer() {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchPlayer = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || '');
-        const looksLikeUUID = (id || '').length > 20 && (id || '').includes('-');
-        
-        let query = supabase
-          .from('deportistas')
-          .select(`
-            *,
-            posicion:deportes_config_campos(valor),
-            equipo:equipos!deportistas_equipo_id_fkey(nivel_habilidad),
-            equipo2:equipos!deportistas_equipo_id_2_fkey(nombre),
-            equipo3:equipos!deportistas_equipo_id_3_fkey(nombre),
-            trayectorias:trayectorias_deportivas(*)
-          `);
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || '');
+      const looksLikeUUID = (id || '').length > 20 && (id || '').includes('-');
+      
+      let query = supabase
+        .from('deportistas')
+        .select(`
+          *,
+          posicion:deportes_config_campos(valor),
+          equipo:equipos!deportistas_equipo_id_fkey(nivel_habilidad),
+          equipo2:equipos!deportistas_equipo_id_2_fkey(nombre),
+          equipo3:equipos!deportistas_equipo_id_3_fkey(nombre),
+          trayectorias:trayectorias_deportivas(*)
+        `);
 
-        if (isUUID || looksLikeUUID) {
-          query = query.eq('id', id);
-        } else {
-          query = query.eq('numero_documento', id);
-        }
-
-        const { data, error } = await query.single();
-        if (error) throw error;
-        setPlayer(data);
-      } catch (err: any) {
-        console.error("Error fetching player:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (isUUID || looksLikeUUID) {
+        query = query.eq('id', id);
+      } else {
+        query = query.eq('numero_documento', id);
       }
+
+      const { data, error } = await query.single();
+      if (error) throw error;
+      setPlayer(data);
+    } catch (err: any) {
+      console.error("Error fetching player:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     if (id) fetchPlayer();
   }, [id]);
+
+  const handleApprove = async () => {
+    try {
+      setProcessing(true);
+      await approveAthleteDocuments(player);
+      alert("Deportista aprobado y cartera generada con éxito.");
+      fetchPlayer();
+    } catch (err: any) {
+      alert(`Error al aprobar: ${err.message}`);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) {
+      alert("Por favor ingresa un motivo de rechazo.");
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      const athleteName = `${player.nombre_completo} ${player.apellidos || ''}`.trim();
+      await rejectAthleteDocuments(player.id, athleteName, rejectionReason);
+      alert("Rechazo procesado con éxito.");
+      setRejectionReason('');
+      setShowRejectionForm(false);
+      fetchPlayer();
+    } catch (err: any) {
+      alert(`Error al rechazar: ${err.message}`);
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -118,14 +164,66 @@ export default function PlayerProfile() {
       <div id="ficha-deportista" className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 print:m-0 print:p-4 print:max-w-none">
         {/* Alerta de Validación */}
         {player.estado === 'pendiente_validacion' && (
-          <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-[32px] flex items-center gap-4 animate-pulse print:hidden">
-            <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20">
-              <Calendar size={24} />
+          <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20">
+                <Calendar size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase italic text-amber-600 dark:text-amber-400 leading-none">Validación de Documentos Pendiente</h3>
+                <p className="text-xs font-bold text-amber-500/80 mt-1 uppercase tracking-widest">El equipo administrativo está revisando la información cargada.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-black uppercase italic text-amber-600 dark:text-amber-400 leading-none">Validación de Documentos Pendiente</h3>
-              <p className="text-xs font-bold text-amber-500/80 mt-1 uppercase tracking-widest">El equipo administrativo está revisando la información cargada.</p>
-            </div>
+
+            {isAdmin && (
+              <div className="flex flex-col gap-4 w-full md:w-auto">
+                {!showRejectionForm ? (
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleApprove}
+                      disabled={processing}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 h-12 rounded-2xl uppercase font-black italic text-[10px] tracking-widest flex items-center gap-1.5"
+                    >
+                      <CheckCircle2 size={14} /> Aprobar Registro
+                    </Button>
+                    <Button
+                      onClick={() => setShowRejectionForm(true)}
+                      disabled={processing}
+                      variant="outline"
+                      className="border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-6 h-12 rounded-2xl uppercase font-black italic text-[10px] tracking-widest flex items-center gap-1.5"
+                    >
+                      <X size={14} /> Rechazar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 bg-white dark:bg-[#1e293b] p-4 rounded-2xl border border-gray-100 dark:border-white/5 w-full md:min-w-[320px]">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Motivo del rechazo</p>
+                    <textarea
+                      placeholder="Ej: Registro Civil no visible..."
+                      className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-xs outline-none text-gray-900 dark:text-white h-20 resize-none focus:ring-2 focus:ring-red-500"
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        onClick={() => { setShowRejectionForm(false); setRejectionReason(''); }}
+                        variant="ghost"
+                        className="h-8 px-3 rounded-lg text-[9px] uppercase font-black"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleReject}
+                        disabled={processing || !rejectionReason.trim()}
+                        className="bg-red-500 text-white h-8 px-4 rounded-lg text-[9px] uppercase font-black italic"
+                      >
+                        Enviar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

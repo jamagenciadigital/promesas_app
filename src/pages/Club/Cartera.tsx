@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -14,6 +14,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Badge } from '../../components/ui/Badge';
 import { useNavigate } from 'react-router-dom';
 import { ProductoEvento } from '../../types';
+import { approveAthleteDocuments, rejectAthleteDocuments } from '../../lib/cartera';
 
 interface Charge {
   id: string;
@@ -22,7 +23,7 @@ interface Charge {
   titulo: string;
   monto: number;
   fecha_vencimiento: string;
-  estado: 'pendiente' | 'pagado' | 'vencido' | 'anulado';
+  estado: 'pendiente' | 'pagado' | 'vencido' | 'anulado' | 'por validar';
   comprobante_url?: string;
   fecha_pago?: string;
   producto_evento_id?: string;
@@ -59,17 +60,23 @@ export default function Cartera() {
     descripcion: '',
     precio: 0,
     link_pago: '',
-    equipos: [] as string[]
+    equipos: [] as string[],
+    tipo: 'evento' as 'evento' | 'producto'
   });
   const [eventImage, setEventImage] = useState<File | null>(null);
   const [eventPreview, setEventPreview] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [assignMode, setAssignMode] = useState<'all' | 'manual'>('all');
+  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([]);
+  const [teamPlayers, setTeamPlayers] = useState<Record<string, {id: string, nombre_completo: string, apellidos: string}[]>>({});
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
   
   // Document Validation State
   const [pendingAthletes, setPendingAthletes] = useState<any[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
   const [validatingAthlete, setValidatingAthlete] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showRejectionField, setShowRejectionField] = useState(false);
   const [processingValidation, setProcessingValidation] = useState(false);
 
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -88,7 +95,6 @@ export default function Cartera() {
       if (error) throw error;
       if (data) {
         setPendingAthletes([data]);
-        alert("Jugador encontrado. ClubID del jugador: " + data.club_id);
       } else {
         alert("No se encontró ningún deportista con ese documento.");
       }
@@ -197,38 +203,47 @@ export default function Cartera() {
     }
   }, [activeTab, activeClubId, profile?.club_id]);
 
+  const fetchTeamPlayers = useCallback(async (teamIds: string[]) => {
+    if (teamIds.length === 0) {
+      setTeamPlayers({});
+      return;
+    }
+    try {
+      setLoadingPlayers(true);
+      const { data, error } = await supabase
+        .from('deportistas')
+        .select('id, nombre_completo, apellidos, equipo_id')
+        .eq('club_id', activeClubId || profile?.club_id)
+        .in('equipo_id', teamIds)
+        .order('nombre_completo', { ascending: true });
+
+      if (error) throw error;
+
+      const grouped: Record<string, {id: string, nombre_completo: string, apellidos: string}[]> = {};
+      teamIds.forEach(tid => grouped[tid] = []);
+      data?.forEach(p => {
+        if (grouped[p.equipo_id]) {
+          grouped[p.equipo_id].push({ id: p.id, nombre_completo: p.nombre_completo, apellidos: p.apellidos });
+        }
+      });
+      setTeamPlayers(grouped);
+    } catch (err) {
+      console.error("Error fetching team players:", err);
+    } finally {
+      setLoadingPlayers(false);
+    }
+  }, [activeClubId, profile?.club_id]);
+
+  useEffect(() => {
+    if (creatingGroupEvent && eventForm.equipos.length > 0) {
+      fetchTeamPlayers(eventForm.equipos);
+    }
+  }, [eventForm.equipos, creatingGroupEvent, fetchTeamPlayers]);
+
   const handleApproveDocs = async (athlete: any) => {
     try {
       setProcessingValidation(true);
-      const { error } = await supabase
-        .from('deportistas')
-        .update({ 
-          estado: 'activo'
-        })
-        .eq('id', athlete.id);
-
-      if (error) throw error;
-      
-      // GENERAR CARTERA AL ACTIVAR
-      await generateCarteraForAthlete(athlete);
-
-      // Notificar al padre/tutor
-      const { data: padre } = await supabase
-        .from('perfiles')
-        .select('id')
-        .eq('deportista_id', athlete.id)
-        .eq('rol', 'padre')
-        .single();
-
-      if (padre) {
-        await supabase.from('notificaciones').insert({
-          user_id: padre.id,
-          titulo: 'Documentación Aprobada ✅',
-          mensaje: `Los documentos de ${athlete.nombre_completo} han sido validados. El deportista ya se encuentra activo.`,
-          tipo: 'sistema'
-        });
-      }
-
+      await approveAthleteDocuments(athlete);
       setValidatingAthlete(null);
       fetchPendingAthletes();
       alert("Deportista activado y cartera generada con éxito.");
@@ -239,114 +254,19 @@ export default function Cartera() {
     }
   };
 
-  const generateCarteraForAthlete = async (athlete: any) => {
-    try {
-      // 1. Obtener datos del club y planes
-      const { data: club } = await supabase.from('clubes').select('*').eq('id', athlete.club_id).single();
-      const { data: planes } = await supabase.from('planes_club').select('*').eq('club_id', athlete.club_id);
-
-      if (!club || !planes) return;
-
-      const activeInscPlan = planes.find(p => p.id === athlete.plan_inscripcion_id);
-      const activeRegularPlan = planes.find(p => p.id === athlete.plan_id);
-      const cobros = [];
-
-      // A. Cobro de Inscripción
-      if (activeInscPlan) {
-        cobros.push({
-          club_id: athlete.club_id,
-          deportista_id: athlete.id,
-          titulo: `PAGO INSCRIPCIÓN: ${activeInscPlan.nombre}`,
-          monto: activeInscPlan.precio,
-          fecha_vencimiento: new Date().toISOString().split('T')[0],
-          estado: 'pendiente',
-          plan_id: activeInscPlan.id
-        });
-      }
-
-      // B. Generar Cobros de Plan durante la temporada
-      if (activeRegularPlan && club.temporada_inicio && club.temporada_fin) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const seasonStart = new Date(club.temporada_inicio + 'T00:00:00');
-        const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        let current = seasonStart < startOfCurrentMonth ? startOfCurrentMonth : seasonStart;
-
-        const end = new Date(club.temporada_fin + 'T23:59:59');
-        let mesesSalto = activeRegularPlan.periodo === '3 meses' ? 3 : activeRegularPlan.periodo === '6 meses' ? 6 : activeRegularPlan.periodo === '12 meses' ? 12 : 1;
-
-        let esPrimerMes = true;
-
-        while (current <= end) {
-          const monthName = current.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
-          let monto = activeRegularPlan.precio;
-
-          if (esPrimerMes) {
-            const daysInMonth = new Date(current.getFullYear(), current.getMonth() + 1, 0).getDate();
-            const daysRemaining = daysInMonth - today.getDate() + 1;
-            monto = Math.round((activeRegularPlan.precio / daysInMonth) * daysRemaining);
-            esPrimerMes = false;
-          }
-
-          cobros.push({
-            club_id: athlete.club_id,
-            deportista_id: athlete.id,
-            titulo: `${activeRegularPlan.nombre.toUpperCase()} - ${monthName} ${current.getFullYear()}`,
-            monto,
-            fecha_vencimiento: current.toISOString().split('T')[0],
-            estado: 'pendiente',
-            plan_id: activeRegularPlan.id
-          });
-
-          current.setMonth(current.getMonth() + mesesSalto);
-        }
-      }
-
-      if (cobros.length > 0) {
-        await supabase.from('cartera').insert(cobros);
-      }
-    } catch (err) {
-      console.error("Error generating cartera on approval:", err);
-    }
-  };
-
   const handleRejectDocs = async () => {
-    if (!validatingAthlete || !rejectionReason) {
+    if (!validatingAthlete || !rejectionReason.trim()) {
       alert("Por favor ingresa un motivo de rechazo.");
       return;
     }
 
     try {
       setProcessingValidation(true);
-      const { error } = await supabase
-        .from('deportistas')
-        .update({ 
-          estado: 'rechazado'
-        })
-        .eq('id', validatingAthlete.id);
-
-      if (error) throw error;
-
-      // Notificar al padre/tutor
-      const { data: padre } = await supabase
-        .from('perfiles')
-        .select('id')
-        .eq('deportista_id', validatingAthlete.id)
-        .eq('rol', 'padre')
-        .single();
-
-      if (padre) {
-        await supabase.from('notificaciones').insert({
-          user_id: padre.id,
-          titulo: 'Documentación Rechazada ❌',
-          mensaje: `Los documentos de ${validatingAthlete.nombre_completo} han sido rechazados. Motivo: ${rejectionReason}. Por favor sube los documentos corregidos.`,
-          tipo: 'sistema'
-        });
-      }
-
+      const athleteName = `${validatingAthlete.nombre_completo} ${validatingAthlete.apellidos || ''}`.trim();
+      await rejectAthleteDocuments(validatingAthlete.id, athleteName, rejectionReason.trim());
       setValidatingAthlete(null);
       setRejectionReason('');
+      setShowRejectionField(false);
       fetchPendingAthletes();
       alert("Rechazo procesado y notificado.");
     } catch (err: any) {
@@ -371,18 +291,23 @@ export default function Cartera() {
       descripcion: evento.descripcion || '',
       precio: evento.precio,
       link_pago: evento.link_pago || '',
-      equipos: evento.equipos || []
+      equipos: evento.equipos || [],
+      tipo: evento.tipo || 'evento'
     });
     setEventPreview(evento.imagen_url || null);
     setEventImage(null);
+    setAssignMode('all');
+    setSelectedAthletes([]);
     setCreatingGroupEvent(true);
   };
 
   const initCreateEvent = () => {
     setEditingEventId(null);
-    setEventForm({ nombre: '', descripcion: '', precio: 0, link_pago: '', equipos: [] });
+    setEventForm({ nombre: '', descripcion: '', precio: 0, link_pago: '', equipos: [], tipo: 'evento' });
     setEventImage(null);
     setEventPreview(null);
+    setAssignMode('all');
+    setSelectedAthletes([]);
     setCreatingGroupEvent(true);
   };
 
@@ -390,8 +315,16 @@ export default function Cartera() {
     e.preventDefault();
     if (!profile?.club_id) return;
     
-    if (!eventForm.nombre || eventForm.precio <= 0 || eventForm.equipos.length === 0) {
-      alert("Por favor completa nombre, precio y asigna al menos un equipo.");
+    if (!eventForm.nombre || eventForm.precio <= 0) {
+      alert("Por favor completa el nombre y el precio.");
+      return;
+    }
+    if (assignMode === 'manual' && selectedAthletes.length === 0) {
+      alert("Debes seleccionar al menos un jugador en modo 'Seleccionar individualmente'.");
+      return;
+    }
+    if (assignMode === 'all' && eventForm.equipos.length === 0) {
+      alert("Debes seleccionar al menos un equipo.");
       return;
     }
 
@@ -405,13 +338,13 @@ export default function Cartera() {
         const filePath = `${profile.club_id}/productos/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('comprobantes-pagos') 
+          .from('eventos-productos')
           .upload(filePath, eventImage);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) throw new Error("Error al subir banner. ¿Existe el bucket 'eventos-productos' en Supabase Storage?");
 
         const { data: { publicUrl } } = supabase.storage
-          .from('comprobantes-pagos')
+          .from('eventos-productos')
           .getPublicUrl(filePath);
 
         imageUrl = publicUrl;
@@ -429,7 +362,8 @@ export default function Cartera() {
             precio: eventForm.precio,
             link_pago: eventForm.link_pago,
             equipos: eventForm.equipos,
-            imagen_url: imageUrl
+            imagen_url: imageUrl,
+            tipo: eventForm.tipo
           }).eq('id', editingEventId);
         if (updError) throw updError;
 
@@ -453,23 +387,35 @@ export default function Cartera() {
             precio: eventForm.precio,
             link_pago: eventForm.link_pago,
             equipos: eventForm.equipos,
-            imagen_url: imageUrl
+            imagen_url: imageUrl,
+            tipo: eventForm.tipo
           }).select().single();
         
         if (evError) throw evError;
         eventId = newEvent.id;
       }
 
-      // Assign Charges to current members of the selected teams
-      const { data: athletesToCharge, error: pError } = await supabase
-        .from('deportistas')
-        .select('id')
-        .eq('club_id', profile.club_id)
-        .in('equipo_id', eventForm.equipos);
+      // Assign Charges
+      let athletesToCharge: { id: string }[];
 
-      if (pError) throw pError;
+      if (assignMode === 'manual') {
+        if (selectedAthletes.length === 0) {
+          alert("Debes seleccionar al menos un jugador.");
+          return;
+        }
+        athletesToCharge = selectedAthletes.map(id => ({ id }));
+      } else {
+        const { data, error: pError } = await supabase
+          .from('deportistas')
+          .select('id')
+          .eq('club_id', profile.club_id)
+          .in('equipo_id', eventForm.equipos);
 
-      if (athletesToCharge && athletesToCharge.length > 0) {
+        if (pError) throw pError;
+        athletesToCharge = data || [];
+      }
+
+      if (athletesToCharge.length > 0) {
          // Prevent redundant assigning
          const { data: existingCharges } = await supabase
            .from('cartera')
@@ -479,26 +425,41 @@ export default function Cartera() {
          const existingIds = new Set(existingCharges?.map(c => c.deportista_id) || []);
          const newAthletes = athletesToCharge.filter(ath => !existingIds.has(ath.id));
 
-         if (newAthletes.length > 0) {
-           const chargesToInsert = newAthletes.map(ath => ({
-              club_id: profile.club_id,
-              deportista_id: ath.id,
-              producto_evento_id: eventId,
-              titulo: eventForm.nombre,
-              monto: eventForm.precio,
-              estado: 'pendiente',
-              fecha_vencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString()
-           }));
+          if (newAthletes.length > 0) {
+            const nextMonth = new Date();
+            nextMonth.setDate(1);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const chargesToInsert = newAthletes.map(ath => ({
+               club_id: profile.club_id,
+               deportista_id: ath.id,
+               producto_evento_id: eventId,
+               titulo: eventForm.nombre,
+               monto: eventForm.precio,
+               estado: 'pendiente',
+               fecha_vencimiento: nextMonth.toISOString().split('T')[0]
+            }));
 
            const { error: cError } = await supabase.from('cartera').insert(chargesToInsert);
            if (cError) throw cError;
          }
 
-         // Send Push Notification to associated parents
+         // Send Push Notification to affected parents
+         let affectedAthleteIds = athletesToCharge.map(a => a.id);
+
+         // En edición, también notificar a padres de cobros existentes modificados
+         if (editingEventId) {
+           const { data: existingChargeAthletes } = await supabase
+             .from('cartera')
+             .select('deportista_id')
+             .eq('producto_evento_id', editingEventId);
+           const existingIds = existingChargeAthletes?.map(c => c.deportista_id) || [];
+           affectedAthleteIds = [...new Set([...affectedAthleteIds, ...existingIds])];
+         }
+
          const { data: padres } = await supabase
            .from('perfiles')
            .select('id')
-           .in('deportista_id', athletesToCharge.map(a => a.id))
+           .in('deportista_id', affectedAthleteIds)
            .eq('rol', 'padre');
 
          if (padres && padres.length > 0) {
@@ -513,11 +474,69 @@ export default function Cartera() {
             }));
             await supabase.from('notificaciones').insert(notifs);
          }
+
+         // 3. Send Email notifications for new charges (cartera template → Template Notificaciones en Resend)
+         if (newAthletes.length > 0) {
+           const { data: padresMail } = await supabase
+             .from('perfiles')
+             .select('email, nombre, deportista_id')
+             .in('deportista_id', newAthletes.map(a => a.id))
+             .eq('rol', 'padre');
+
+           const { data: athletesMail } = await supabase
+             .from('deportistas')
+             .select('id, nombre_completo, apellidos, email_deportista')
+             .in('id', newAthletes.map(a => a.id));
+
+           const fmt = (amount: number) =>
+             new Intl.NumberFormat('es-CO', { style: 'currency', currency: clubCurrency, minimumFractionDigits: 0 }).format(amount);
+
+           for (const p of padresMail || []) {
+             if (p.email) {
+               try {
+                 await fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/send`, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({
+                     to: p.email,
+                     tipo: 'cartera',
+                     club_id: profile?.club_id,
+                     variables: { nombre: p.nombre || 'Acudiente', monto: fmt(eventForm.precio) }
+                   })
+                 });
+               } catch (err) {
+                 console.error("Error sending cartera email to parent:", err);
+               }
+             }
+           }
+
+           for (const a of athletesMail || []) {
+             if (a.email_deportista) {
+               try {
+                 await fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/send`, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({
+                     to: a.email_deportista,
+                     tipo: 'cartera',
+                     club_id: profile?.club_id,
+                     variables: {
+                       nombre: `${a.nombre_completo || ''} ${a.apellidos || ''}`.trim() || 'Deportista',
+                       monto: fmt(eventForm.precio)
+                     }
+                   })
+                 });
+               } catch (err) {
+                 console.error("Error sending cartera email to athlete:", err);
+               }
+             }
+           }
+         }
       }
 
       await fetchInitialData();
       setCreatingGroupEvent(false);
-      setEventForm({ nombre: '', descripcion: '', precio: 0, link_pago: '', equipos: [] });
+      setEventForm({ nombre: '', descripcion: '', precio: 0, link_pago: '', equipos: [], tipo: 'evento' });
       setEventImage(null);
       setEventPreview(null);
       setEditingEventId(null);
@@ -794,9 +813,6 @@ export default function Cartera() {
               <div>
                 <h2 className="text-xl font-black italic uppercase text-gray-900 dark:text-white">Pendientes de Validación</h2>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Revisa y activa a los nuevos deportistas registrados</p>
-                <div className="mt-2 text-[10px] font-mono text-gray-400 bg-black/5 p-2 rounded-lg">
-                  DEBUG: ClubID={activeClubId || profile?.club_id || 'NULL'} | PendingCount={pendingAthletes.length}
-                </div>
               </div>
             </div>
 
@@ -907,10 +923,18 @@ export default function Cartera() {
          )}
       </Modal>
 
-      {/* MODAL PARA VER COMPROBANTE */}
-      <Modal isOpen={!!viewingComprobante} onClose={() => setViewingComprobante(null)} title="Comprobante de Pago">
+      {/* MODAL PARA VER COMPROBANTE / DOCUMENTO */}
+      <Modal isOpen={!!viewingComprobante} onClose={() => setViewingComprobante(null)} title="Ver Documento">
          <div className="space-y-4">
-            <img src={viewingComprobante || ''} className="w-full rounded-2xl shadow-2xl" />
+            {viewingComprobante?.toLowerCase().includes('.pdf') ? (
+              <iframe 
+                src={viewingComprobante} 
+                className="w-full h-[65vh] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/5" 
+                title="Visor de PDF"
+              />
+            ) : (
+              <img src={viewingComprobante || ''} className="w-full rounded-2xl shadow-2xl max-h-[70vh] object-contain" alt="Documento" />
+            )}
             <Button className="w-full h-14 bg-black text-white rounded-2xl font-black uppercase text-xs" onClick={() => setViewingComprobante(null)}>Cerrar</Button>
          </div>
       </Modal>
@@ -919,13 +943,33 @@ export default function Cartera() {
       <Modal isOpen={creatingGroupEvent} onClose={() => setCreatingGroupEvent(false)} title="Crear Producto o Evento">
         <form onSubmit={submitEvent} className="space-y-6">
           <Input 
-            label="Nombre del Evento/Producto *" 
-            placeholder="Ej. Torneo de Verano, Uniforme Visitante" 
+            label="Nombre *" 
+            placeholder={eventForm.tipo === 'evento' ? "Ej. Torneo de Verano, Copa Navidad" : "Ej. Uniforme Visitante, Buzo"} 
             value={eventForm.nombre}
             onChange={e => setEventForm({...eventForm, nombre: e.target.value})}
             required
           />
-          
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tipo *</label>
+            <div className="flex gap-2">
+              {(['evento', 'producto'] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setEventForm({...eventForm, tipo: t})}
+                  className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${
+                    eventForm.tipo === t
+                      ? 'bg-black text-[var(--primary)] shadow-xl'
+                      : 'bg-gray-100 dark:bg-white/5 text-gray-400'
+                  }`}
+                >
+                  {t === 'evento' ? 'Evento / Torneo' : 'Producto'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Descripción</label>
             <textarea
@@ -955,23 +999,108 @@ export default function Cartera() {
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Equipos a Cobrar *</label>
-            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
-              {equipos.map(eq => (
-                <label key={eq.id} className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="w-4 h-4 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
-                    checked={eventForm.equipos.includes(eq.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) setEventForm({...eventForm, equipos: [...eventForm.equipos, eq.id]});
-                      else setEventForm({...eventForm, equipos: eventForm.equipos.filter(id => id !== eq.id)});
-                    }}
-                  />
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">{eq.nombre}</span>
-                </label>
-              ))}
+            <div className="space-y-2 max-h-60 overflow-y-auto p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+              {equipos.map(eq => {
+                const isSelected = eventForm.equipos.includes(eq.id);
+                const players = teamPlayers[eq.id] || [];
+                return (
+                  <div key={eq.id} className="bg-white dark:bg-[#1e1f24] rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+                    <label className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setEventForm({...eventForm, equipos: [...eventForm.equipos, eq.id]});
+                          } else {
+                            setEventForm({...eventForm, equipos: eventForm.equipos.filter(id => id !== eq.id)});
+                            setSelectedAthletes(prev => prev.filter(aid => !players.some(p => p.id === aid)));
+                          }
+                        }}
+                      />
+                      <span className="text-sm font-bold text-gray-900 dark:text-white uppercase">{eq.nombre}</span>
+                      <span className="ml-auto text-[10px] font-black text-gray-400 uppercase tracking-widest">{players.length} jugadores</span>
+                    </label>
+
+                    {isSelected && assignMode === 'manual' && players.length > 0 && (
+                      <div className="border-t border-gray-100 dark:border-white/10 px-4 py-3 space-y-1">
+                        <label className="flex items-center gap-2 cursor-pointer py-1">
+                          <input 
+                            type="checkbox"
+                            className="w-3.5 h-3.5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                            checked={players.every(p => selectedAthletes.includes(p.id))}
+                            onChange={() => {
+                              const allSelected = players.every(p => selectedAthletes.includes(p.id));
+                              if (allSelected) {
+                                setSelectedAthletes(prev => prev.filter(aid => !players.some(p => p.id === aid)));
+                              } else {
+                                const newIds = players.map(p => p.id);
+                                setSelectedAthletes(prev => [...new Set([...prev, ...newIds])]);
+                              }
+                            }}
+                          />
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Seleccionar todos</span>
+                        </label>
+                        {players.map(p => (
+                          <label key={p.id} className="flex items-center gap-2 cursor-pointer py-1 pl-4">
+                            <input 
+                              type="checkbox"
+                              className="w-3.5 h-3.5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                              checked={selectedAthletes.includes(p.id)}
+                              onChange={() => {
+                                setSelectedAthletes(prev =>
+                                  prev.includes(p.id)
+                                    ? prev.filter(id => id !== p.id)
+                                    : [...prev, p.id]
+                                );
+                              }}
+                            />
+                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{p.nombre_completo} {p.apellidos}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {equipos.length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-4 font-bold uppercase tracking-widest">No hay equipos disponibles</p>
+              )}
             </div>
-            <p className="text-[8px] text-gray-400 uppercase tracking-widest">Al guardar, se generará una deuda automáticamente para todos los deportistas de los equipos seleccionados.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Asignar Cobros</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setAssignMode('all'); setSelectedAthletes([]); }}
+                className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${
+                  assignMode === 'all'
+                    ? 'bg-black text-[var(--primary)] shadow-xl'
+                    : 'bg-gray-100 dark:bg-white/5 text-gray-400'
+                }`}
+              >
+                Todos los jugadores
+              </button>
+              <button
+                type="button"
+                onClick={() => setAssignMode('manual')}
+                className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${
+                  assignMode === 'manual'
+                    ? 'bg-black text-[var(--primary)] shadow-xl'
+                    : 'bg-gray-100 dark:bg-white/5 text-gray-400'
+                }`}
+              >
+                Seleccionar individualmente
+              </button>
+            </div>
+            {assignMode === 'manual' && eventForm.equipos.length > 0 && (
+              <p className="text-[8px] text-gray-400 uppercase tracking-widest text-center">
+                {loadingPlayers ? 'Cargando jugadores...' : `${selectedAthletes.length} jugador(es) seleccionado(s)`}
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -1077,20 +1206,20 @@ export default function Cartera() {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => setRejectionReason('reason')} // Mostrar campo de motivo
-                    className={`h-16 border-2 border-red-500/20 text-red-500 rounded-3xl font-black uppercase italic tracking-widest text-[10px] gap-2 hover:bg-red-500 hover:text-white transition-all ${rejectionReason ? 'bg-red-500 text-white' : ''}`}
+                    onClick={() => setShowRejectionField(true)}
+                    className={`h-16 border-2 border-red-500/20 text-red-500 rounded-3xl font-black uppercase italic tracking-widest text-[10px] gap-2 hover:bg-red-500 hover:text-white transition-all ${showRejectionField ? 'bg-red-500 text-white' : ''}`}
                   >
                     Rechazar Documentos <XCircle size={16} />
                   </Button>
                 </div>
 
-                {rejectionReason && (
+                {showRejectionField && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                     <textarea 
                       className="w-full bg-red-500/5 border-2 border-red-500/20 rounded-3xl p-5 text-sm outline-none focus:border-red-500 transition-all dark:text-white"
                       placeholder="Indica el motivo del rechazo (ej. Documento borroso, contrato sin firma)..."
                       rows={3}
-                      value={rejectionReason === 'reason' ? '' : rejectionReason}
+                      value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                     />
                     <Button 

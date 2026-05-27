@@ -1245,12 +1245,13 @@ enum user_role {
 
 /// Configuracion general del sistema (SuperAdmin)
 model configuracion_sistema {
-  id                        String    @id @default(uuid()) @db.Uuid
-  resend_api_key            String?   // API Key actual de Resend
-  resend_from_email         String?   // Ej: "notificaciones@promesasapp.com"
-  template_id_registro      String?   // ID del template de Resend para el registro
-  template_id_recuperacion  String?   // ID del template de Resend para recuperar password
-  activar_correos           Boolean   @default(true)
+  id                          String    @id @default(uuid()) @db.Uuid
+  resend_api_key              String?   // API Key actual de Resend
+  resend_from_email           String?   // Ej: "notificaciones@promesasapp.com"
+  template_id_registro        String?   // ID del template de Resend para el registro
+  template_id_recuperacion    String?   // ID del template de Resend para recuperar password
+  template_id_notificaciones  String?   // ID del template de Resend para notificaciones (cartera, agenda, etc.)
+  activar_correos             Boolean   @default(true)
   created_at                DateTime  @default(now()) @db.Timestamptz(6)
   updated_at                DateTime  @default(now()) @db.Timestamptz(6)
 

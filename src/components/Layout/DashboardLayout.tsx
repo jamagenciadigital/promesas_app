@@ -51,7 +51,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!clubId) {
-      resetTheme();
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from('configuracion_sistema')
+            .select('theme')
+            .limit(1)
+            .single();
+          if (data?.theme && typeof data.theme === 'object') {
+            applyTheme(data.theme as ClubTheme);
+          } else {
+            resetTheme();
+          }
+        } catch {
+          resetTheme();
+        }
+      })();
       return;
     }
 
@@ -84,9 +99,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     };
 
+    const handleSystemThemeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<ClubTheme>;
+      if (customEvent.detail) {
+        applyTheme(customEvent.detail);
+      }
+    };
+
     window.addEventListener('club-theme-updated', handleThemeUpdate);
+    window.addEventListener('system-theme-updated', handleSystemThemeUpdate);
     return () => {
       window.removeEventListener('club-theme-updated', handleThemeUpdate);
+      window.removeEventListener('system-theme-updated', handleSystemThemeUpdate);
     };
   }, [clubId]);
 

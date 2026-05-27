@@ -43,6 +43,8 @@ import PlayerNewReservation from './pages/Player/PlayerNewReservation';
 import RegisterParent from './pages/Public/RegisterParent';
 import EscenarioDashboard from './pages/Escenario/EscenarioDashboard';
 import JefaturaDashboard from './pages/Jefatura/JefaturaDashboard';
+import JefaturaSettings from './pages/Jefatura/JefaturaSettings';
+import JefaturaClubes from './pages/Jefatura/JefaturaClubes';
 
 import DireccionDeportiva from './pages/Club/Pro/DireccionDeportiva';
 import RegisterElitePlayer from './pages/Club/RegisterElitePlayer';
@@ -63,6 +65,7 @@ function App() {
           {/* Public Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/login/:clubId" element={<Login />} />
           <Route path="/registro-club" element={<RegisterClub />} />
           <Route path="/registro-deportista" element={<RegisterPlayer />} />
           <Route path="/registro-padre" element={<RegisterParent />} />
@@ -155,7 +158,7 @@ function App() {
 
           {/* ESCENARIO DEPORTIVO DASHBOARD - NUEVO ROL VINCULADO */}
           <Route path="/escenario/*" element={
-            <ProtectedRoute allowedRoles={['escenario_deportivo', 'admin_escenario', 'superadmin', 'admin_club']}>
+            <ProtectedRoute allowedRoles={['escenario_deportivo', 'admin_escenario', 'superadmin', 'admin_club', 'jefatura']}>
               <DashboardLayout>
                 <Routes>
                   <Route path="/" element={<EscenarioDashboard />} />
@@ -194,7 +197,10 @@ function App() {
                 <Routes>
                   <Route path="/" element={<JefaturaDashboard />} />
                   <Route path="venues" element={<JefaturaDashboard defaultTab="venues" />} />
+                  <Route path="clubes" element={<JefaturaClubes />} />
                   <Route path="assignments" element={<JefaturaDashboard defaultTab="assignments" />} />
+                  <Route path="pqrs" element={<JefaturaDashboard defaultTab="pqrs" />} />
+                  <Route path="settings" element={<JefaturaSettings />} />
                   <Route path="*" element={<Navigate to="/jefatura" replace />} />
                 </Routes>
               </DashboardLayout>

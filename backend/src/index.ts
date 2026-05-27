@@ -24,7 +24,8 @@ const JWT_SECRET = process.env.JWT_SECRET || '5qkGYgq4OsMFS0Ii';
 app.use(cors({
   origin: '*',
   methods: '*',
-  allowedHeaders: '*'
+  allowedHeaders: '*',
+  exposedHeaders: ['Content-Range']
 }));
 
 // Local file storage (replaces Supabase Storage)
@@ -1156,6 +1157,108 @@ app.post('/api/notifications/welcome', async (req, res) => {
     return res.status(500).json({ error: error.message || 'Error interno' });
   }
 });
+
+// AUTOMATED MONTHLY PORTFOLIO NOTIFICATIONS ON THE 5TH
+async function runMonthlyCarteraNotifications() {
+  console.log("Checking monthly cartera notifications (on the 5th of each month)...");
+  try {
+    const charges = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT c.id, c.club_id, c.deportista_id, c.monto, c.titulo, c.last_notified_at, cl.moneda
+       FROM public.cartera c
+       JOIN public.clubes cl ON cl.id = c.club_id
+       WHERE c.estado IN ('pendiente', 'vencido')`
+    );
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    for (const charge of charges) {
+      if (charge.last_notified_at) {
+        const lastNotified = new Date(charge.last_notified_at);
+        if (lastNotified.getMonth() === currentMonth && lastNotified.getFullYear() === currentYear) {
+          continue; // Already notified this month
+        }
+      }
+
+      const athletes = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, nombre_completo, apellidos, email_deportista 
+         FROM public.deportistas 
+         WHERE id = $1 LIMIT 1`,
+        charge.deportista_id
+      );
+
+      if (!athletes || athletes.length === 0) continue;
+      const athlete = athletes[0];
+      const athleteName = `${athlete.nombre_completo || ''} ${athlete.apellidos || ''}`.trim();
+
+      const parents = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, nombre, email 
+         FROM public.perfiles 
+         WHERE deportista_id = $1 AND rol = 'padre' LIMIT 1`,
+        charge.deportista_id
+      );
+
+      const currency = charge.moneda ? charge.moneda.split(' ')[0] : 'COP';
+      const formattedMonto = new Intl.NumberFormat('es-CO', { 
+        style: 'currency', 
+        currency, 
+        minimumFractionDigits: 0 
+      }).format(Number(charge.monto));
+
+      if (athlete.email_deportista) {
+        try {
+          await sendNotificationEmail(
+            prisma, 
+            athlete.email_deportista, 
+            'cartera', 
+            { nombre: athleteName, monto: formattedMonto }, 
+            charge.club_id
+          );
+        } catch (e) {
+          console.error(`Error notifying athlete ${athlete.email_deportista}:`, e);
+        }
+      }
+
+      if (parents && parents.length > 0) {
+        const parent = parents[0];
+        if (parent.email) {
+          try {
+            await sendNotificationEmail(
+              prisma, 
+              parent.email, 
+              'cartera', 
+              { nombre: parent.nombre || athleteName, monto: formattedMonto }, 
+              charge.club_id
+            );
+          } catch (e) {
+            console.error(`Error notifying parent ${parent.email}:`, e);
+          }
+        }
+      }
+
+      await prisma.$executeRawUnsafe(
+        `UPDATE public.cartera SET last_notified_at = NOW() WHERE id = $1`,
+        charge.id
+      );
+    }
+  } catch (error) {
+    console.error("Error running monthly cartera notifications:", error);
+  }
+}
+
+// Check every hour
+let lastRunDayString = "";
+setInterval(() => {
+  const today = new Date();
+  const dayOfMonth = today.getDate();
+  const dateStr = today.toISOString().split('T')[0];
+
+  if (dayOfMonth === 5 && lastRunDayString !== dateStr) {
+    lastRunDayString = dateStr;
+    runMonthlyCarteraNotifications();
+  }
+}, 60 * 60 * 1000); // 1 hour
 
 app.listen(port, () => {
   console.log(`🚀 Fichaje Backend running on port ${port}`);

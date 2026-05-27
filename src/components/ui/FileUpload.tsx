@@ -6,7 +6,7 @@ import { Upload, X, Loader2, FileText, CheckCircle2 } from 'lucide-react';
 interface FileUploadProps {
   value?: string;
   onChange: (url: string) => void;
-  bucket: 'deportista-documentos' | 'club-logos' | 'atleta-fotos' | 'comprobantes-reserva' | 'pqrs-adjuntos';
+  bucket: 'deportista-documentos' | 'club-logos' | 'atleta-fotos' | 'comprobantes-reserva' | 'pqrs-adjuntos' | 'club-documentos';
   path?: string;
   label?: string;
   accept?: string;

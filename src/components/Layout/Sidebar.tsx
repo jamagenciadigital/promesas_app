@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Home, Users, Settings, Activity, ChevronLeft, ChevronRight, Calendar, X, FileText, User, MessageCircle, Shield, Wallet, Share2, MapPin, Box, Trophy, UserPlus } from 'lucide-react';
+import { LogOut, Home, Users, Settings, Activity, ChevronLeft, ChevronRight, Calendar, X, FileText, User, MessageCircle, Shield, Wallet, Share2, MapPin, Box, Trophy, UserPlus, Building2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { cn } from '../../lib/utils';
@@ -126,9 +126,10 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
       return [
         { name: t('nav.dashboard'), icon: Home, path: '/jefatura' },
         { name: 'Escenarios', icon: MapPin, path: '/jefatura/venues' },
+        { name: 'Clubes', icon: Building2, path: '/jefatura/clubes' },
         { name: 'Asignaciones', icon: UserPlus, path: '/jefatura/assignments' },
-        { name: 'Inventario', icon: Box, path: '/club/logistica' },
         { name: 'PQRS', icon: MessageCircle, path: '/jefatura/pqrs' },
+        { name: t('nav.settings'), icon: Settings, path: '/jefatura/settings' },
       ];
     default:
       return [];

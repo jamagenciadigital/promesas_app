@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { Tooltip } from '../../components/ui/Tooltip';
 
 interface Charge {
   id: string;
@@ -265,12 +266,13 @@ export default function CarteraDetails() {
     try {
       const { data: padres } = await supabase
         .from('perfiles')
-        .select('id')
+        .select('id, email, nombre')
         .eq('deportista_id', athlete.id)
         .eq('rol', 'padre');
 
       const isVencido = charge.estado === 'vencido';
       
+      // 1. Insert in-app notifications
       if (padres && padres.length > 0) {
         const notifs = padres.map(p => ({
           user_id: p.id,
@@ -282,16 +284,71 @@ export default function CarteraDetails() {
           leida: false
         }));
         await supabase.from('notificaciones').insert(notifs);
-        alert("Recordatorio enviado con éxito al acudiente vía in-app.");
+      }
+
+      // 2. Send email notifications using /api/notifications/send
+      let emailSent = false;
+
+      // A. Send to parents
+      if (padres && padres.length > 0) {
+        for (const p of padres) {
+          if (p.email) {
+            try {
+              await fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  to: p.email,
+                  tipo: 'cartera',
+                  club_id: profile?.club_id,
+                  variables: {
+                    nombre: p.nombre || athlete.tutor_nombre || `${athlete.nombre_completo} ${athlete.apellidos || ''}`.trim(),
+                    monto: formatCurrency(charge.monto)
+                  }
+                })
+              });
+              emailSent = true;
+            } catch (err) {
+              console.error("Error sending reminder email to parent:", err);
+            }
+          }
+        }
+      }
+
+      // B. Send to athlete
+      if (athlete.email_deportista) {
+        try {
+          await fetch(`${import.meta.env.VITE_SUPABASE_URL}/api/notifications/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: athlete.email_deportista,
+              tipo: 'cartera',
+              club_id: profile?.club_id,
+              variables: {
+                nombre: `${athlete.nombre_completo} ${athlete.apellidos || ''}`.trim(),
+                monto: formatCurrency(charge.monto)
+              }
+            })
+          });
+          emailSent = true;
+        } catch (err) {
+          console.error("Error sending reminder email to athlete:", err);
+        }
+      }
+
+      // 3. Inform the admin
+      if (emailSent) {
+        alert("Recordatorio enviado con éxito vía correo electrónico e in-app.");
       } else if (athlete?.tutor_celular) {
-        if (confirm("El acudiente no ha creado cuenta en la app. ¿Deseas enviarle el recordatorio por WhatsApp?")) {
+        if (confirm("El acudiente no tiene correo configurado. ¿Deseas enviarle el recordatorio por WhatsApp?")) {
            const text = isVencido 
              ? `Hola ${athlete.tutor_nombre}, el cobro "${charge.titulo}" por ${formatCurrency(charge.monto)} se encuentra vencido. Por favor regulariza tu pago lo antes posible.`
              : `Hola ${athlete.tutor_nombre}, te recordamos que tienes un pago pendiente por "${charge.titulo}" con un valor de ${formatCurrency(charge.monto)}.`;
            window.open(`https://wa.me/${athlete.tutor_celular.replace(/\D/g,'')}?text=${encodeURIComponent(text)}`, '_blank');
         }
       } else {
-        alert("No se encontró cuenta en la app ni teléfono del acudiente.");
+        alert("Recordatorio enviado vía in-app (no hay cuentas de correo ni celulares configurados).");
       }
     } catch (err: any) {
       alert("Error al enviar recordatorio: " + err.message);
@@ -436,26 +493,40 @@ export default function CarteraDetails() {
                         <td className="py-4 px-2 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {charge.comprobante_url && (
-                                <button onClick={() => setViewingComprobante(charge.comprobante_url || null)} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Ver Comprobante"><FileText size={16} /></button>
+                              <Tooltip content={`Ver comprobante de pago subido para "${charge.titulo}"`}>
+                                <button onClick={() => setViewingComprobante(charge.comprobante_url || null)} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors"><FileText size={16} /></button>
+                              </Tooltip>
                             )}
                             
                             {charge.estado === 'por validar' && (
                                 <>
-                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[var(--primary-10)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-black rounded-lg transition-all" title="Aprobar Pago"><CheckCircle2 size={16} /></button>
-                                  <button onClick={() => handleUpdateStatus(charge.id, 'pendiente')} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all" title="Rechazar Comprobante"><XCircle size={16} /></button>
+                                  <Tooltip content={`Aprobar pago de ${formatCurrency(charge.monto)} por "${charge.titulo}"`}>
+                                    <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[var(--primary-10)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-black rounded-lg transition-all"><CheckCircle2 size={16} /></button>
+                                  </Tooltip>
+                                  <Tooltip content={`Rechazar comprobante y devolver a pendiente`}>
+                                    <button onClick={() => handleUpdateStatus(charge.id, 'pendiente')} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all"><XCircle size={16} /></button>
+                                  </Tooltip>
                                 </>
                             )}
 
                             {(charge.estado === 'pendiente' || charge.estado === 'vencido') && (
                                 <>
-                                  <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[var(--primary-10)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-black rounded-lg transition-all" title="Aprobar Pago (Subir Comprobante)"><CheckCircle2 size={16} /></button>
-                                  <button onClick={() => handleSendReminder(charge)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-all" title="Enviar Recordatorio"><Bell size={16} /></button>
-                                  <button onClick={() => handleUpdateStatus(charge.id, 'anulado')} className="p-2 hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" title="Anular Cobro"><XCircle size={16} /></button>
+                                  <Tooltip content={`Marcar como pagado o subir comprobante por ${formatCurrency(charge.monto)}`}>
+                                    <button onClick={() => setApprovingCharge(charge)} className="p-2 bg-[var(--primary-10)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-black rounded-lg transition-all"><CheckCircle2 size={16} /></button>
+                                  </Tooltip>
+                                  <Tooltip content={`Enviar recordatorio de pago al acudiente por ${formatCurrency(charge.monto)}`}>
+                                    <button onClick={() => handleSendReminder(charge)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-all"><Bell size={16} /></button>
+                                  </Tooltip>
+                                  <Tooltip content={`Anular este cobro de ${formatCurrency(charge.monto)} — lo ocultará de la cartera del jugador`}>
+                                    <button onClick={() => handleUpdateStatus(charge.id, 'anulado')} className="p-2 hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all"><XCircle size={16} /></button>
+                                  </Tooltip>
                                 </>
                             )}
 
                             {charge.estado === 'anulado' && (
-                                <button onClick={() => handleUpdateStatus(charge.id, 'pendiente')} className="p-2 hover:bg-blue-500/10 text-gray-400 hover:text-blue-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" title="Habilitar Cobro"><RotateCcw size={16} /></button>
+                              <Tooltip content={`Restaurar cobro anulado de ${formatCurrency(charge.monto)} — volverá a aparecer como pendiente`}>
+                                <button onClick={() => handleUpdateStatus(charge.id, 'pendiente')} className="p-2 hover:bg-blue-500/10 text-gray-400 hover:text-blue-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all"><RotateCcw size={16} /></button>
+                              </Tooltip>
                             )}
                           </div>
                         </td>

@@ -438,7 +438,7 @@ export default function ClubNewReservation() {
                       {getWeekDays().map((date, idx) => {
                           const dateStr = date.toISOString().split('T')[0];
                           const dayName = DAYS_NAME[date.getUTCDay()];
-                          const dailySlots = horarios.filter(h => h.dia_semana === date.getUTCDay());
+                          const dailySlots = horarios.filter(h => h.dia_semana === date.getUTCDay() && !h.es_bloqueado);
                           const isToday = new Date().toISOString().split('T')[0] === dateStr;
 
                           return (

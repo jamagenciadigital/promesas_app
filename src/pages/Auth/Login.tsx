@@ -1,11 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { getAuthErrorMessage } from '../../utils/authErrors';
+import type { ClubTheme } from '../../types';
+
+function applyClubTheme(theme: ClubTheme) {
+  const root = document.documentElement;
+  if (theme.login_bg) root.style.setProperty('--club-login-bg', theme.login_bg);
+  if (theme.button_bg) root.style.setProperty('--club-button-bg', theme.button_bg);
+  if (theme.button_text) root.style.setProperty('--club-button-text', theme.button_text);
+  if (theme.button_hover) root.style.setProperty('--club-button-hover', theme.button_hover);
+  if (theme.sidebar_bg) root.style.setProperty('--club-sidebar-bg', theme.sidebar_bg);
+  if (theme.sidebar_text) root.style.setProperty('--club-sidebar-text', theme.sidebar_text);
+  if (theme.sidebar_hover_bg) root.style.setProperty('--club-sidebar-hover-bg', theme.sidebar_hover_bg);
+  if (theme.sidebar_active_bg) root.style.setProperty('--club-sidebar-active-bg', theme.sidebar_active_bg);
+  if (theme.sidebar_active_text) root.style.setProperty('--club-sidebar-active-text', theme.sidebar_active_text);
+  if (theme.primary_color) root.style.setProperty('--club-primary-color', theme.primary_color);
+}
 
 export default function Login() {
+  const { clubId: clubIdParam } = useParams<{ clubId: string }>();
+  const [searchParams] = useSearchParams();
+  const clubId = clubIdParam || searchParams.get('club');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,11 +38,31 @@ export default function Login() {
   const [isVerifyingStatus, setIsVerifyingStatus] = useState(false);
   const [showSuspendedModal, setShowSuspendedModal] = useState(false);
   
+  const [clubData, setClubData] = useState<{ nombre: string; logo_url?: string } | null>(null);
+  const [clubError, setClubError] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!clubId || profile) return;
+    supabase
+      .from('clubes')
+      .select('nombre, logo_url, theme')
+      .eq('id', clubId)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setClubError(true);
+          return;
+        }
+        setClubData({ nombre: data.nombre, logo_url: data.logo_url });
+        if (data.theme) applyClubTheme(data.theme as ClubTheme);
+      });
+  }, [clubId, profile]);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setViewMode('update');
     });
@@ -35,7 +74,7 @@ export default function Login() {
 
     if (profile && viewMode === 'login') {
       const from = (location.state as any)?.from?.pathname;
-      if (from && from !== '/' && from !== '/login') {
+      if (from && from !== '/' && from !== '/login' && !from.startsWith('/login/')) {
         navigate(from, { replace: true });
         return;
       }
@@ -118,11 +157,24 @@ export default function Login() {
         {/* Solid White Card */}
         <div className="bg-white rounded-[40px] p-10 shadow-[0_25px_60px_rgba(0,0,0,0.3)] border border-gray-100 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center">
-            <img src="/assets/logo-login.png" alt="Fichaje" className="w-28 h-auto object-contain" />
-            <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">GESTION DEPORTIVA</p>
+            {clubData?.logo_url ? (
+              <img src={clubData.logo_url} alt={clubData.nombre} className="w-28 h-auto object-contain rounded-xl" />
+            ) : (
+              <img src="/assets/logo-login.png" alt="Fichaje" className="w-28 h-auto object-contain" />
+            )}
+            {clubData ? (
+              <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">{clubData.nombre}</p>
+            ) : (
+              <p className="text-[9px] font-black uppercase text-gray-400 tracking-[0.4em] mt-5 italic text-center">GESTION DEPORTIVA</p>
+            )}
           </div>
  
           <form className="w-full space-y-5" onSubmit={handleLogin}>
+            {clubError && (
+              <div className="bg-yellow-50 text-yellow-800 p-4 rounded-2xl text-xs text-center border border-yellow-100 w-full">
+                Club no encontrado. <Link to="/login" className="underline font-bold">Inicia sesión aquí</Link>
+              </div>
+            )}
             {error && (
               <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs text-center border border-red-100 animate-in fade-in slide-in-from-top-2 w-full">
                 {error}

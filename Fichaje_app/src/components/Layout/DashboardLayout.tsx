@@ -1,15 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Building2, ChevronLeft, X, Shield } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { supabase } from '../../lib/supabase';
+import { ClubTheme } from '../../types';
+
+const DEFAULT_THEME_COLORS = {
+  '--club-primary-color': '#bd0f10',
+  '--club-sidebar-bg': '#bd0f10',
+  '--club-sidebar-text': 'rgba(255, 255, 255, 0.8)',
+  '--club-sidebar-hover-bg': 'rgba(255, 255, 255, 0.1)',
+  '--club-sidebar-active-bg': '#ffffff',
+  '--club-sidebar-active-text': '#bd0f10',
+  '--club-button-bg': '#182332',
+  '--club-button-text': '#ffffff',
+  '--club-button-hover': '#202f43',
+  '--club-login-bg': '#000000',
+};
+
+function applyTheme(theme: ClubTheme) {
+  const root = document.documentElement;
+  root.style.setProperty('--club-primary-color', theme.primary_color || DEFAULT_THEME_COLORS['--club-primary-color']);
+  root.style.setProperty('--club-sidebar-bg', theme.sidebar_bg || DEFAULT_THEME_COLORS['--club-sidebar-bg']);
+  root.style.setProperty('--club-sidebar-text', theme.sidebar_text || DEFAULT_THEME_COLORS['--club-sidebar-text']);
+  root.style.setProperty('--club-sidebar-hover-bg', theme.sidebar_hover_bg || DEFAULT_THEME_COLORS['--club-sidebar-hover-bg']);
+  root.style.setProperty('--club-sidebar-active-bg', theme.sidebar_active_bg || DEFAULT_THEME_COLORS['--club-sidebar-active-bg']);
+  root.style.setProperty('--club-sidebar-active-text', theme.sidebar_active_text || DEFAULT_THEME_COLORS['--club-sidebar-active-text']);
+  root.style.setProperty('--club-button-bg', theme.button_bg || DEFAULT_THEME_COLORS['--club-button-bg']);
+  root.style.setProperty('--club-button-text', theme.button_text || DEFAULT_THEME_COLORS['--club-button-text']);
+  root.style.setProperty('--club-button-hover', theme.button_hover || DEFAULT_THEME_COLORS['--club-button-hover']);
+  root.style.setProperty('--club-login-bg', theme.login_bg || DEFAULT_THEME_COLORS['--club-login-bg']);
+}
+
+function resetTheme() {
+  const root = document.documentElement;
+  Object.entries(DEFAULT_THEME_COLORS).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { profile, activeClubId, setActiveClubId, isViewOnly, setIsViewOnly } = useAuth();
   const navigate = useNavigate();
+
+  const clubId = activeClubId || profile?.club_id;
+
+  useEffect(() => {
+    if (!clubId) {
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from('configuracion_sistema')
+            .select('theme')
+            .limit(1)
+            .single();
+          if (data?.theme && typeof data.theme === 'object') {
+            applyTheme(data.theme as ClubTheme);
+          } else {
+            resetTheme();
+          }
+        } catch {
+          resetTheme();
+        }
+      })();
+      return;
+    }
+
+    async function loadTheme() {
+      try {
+        const { data, error } = await supabase
+          .from('clubes')
+          .select('theme')
+          .eq('id', clubId)
+          .single();
+
+        if (error) throw error;
+        if (data && data.theme && typeof data.theme === 'object') {
+          applyTheme(data.theme as ClubTheme);
+        } else {
+          resetTheme();
+        }
+      } catch (err) {
+        console.error('Error loading club theme:', err);
+        resetTheme();
+      }
+    }
+
+    loadTheme();
+
+    const handleThemeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<ClubTheme>;
+      if (customEvent.detail) {
+        applyTheme(customEvent.detail);
+      }
+    };
+
+    const handleSystemThemeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<ClubTheme>;
+      if (customEvent.detail) {
+        applyTheme(customEvent.detail);
+      }
+    };
+
+    window.addEventListener('club-theme-updated', handleThemeUpdate);
+    window.addEventListener('system-theme-updated', handleSystemThemeUpdate);
+    return () => {
+      window.removeEventListener('club-theme-updated', handleThemeUpdate);
+      window.removeEventListener('system-theme-updated', handleSystemThemeUpdate);
+    };
+  }, [clubId]);
 
   const showViewOnlyBanner = isViewOnly && profile?.rol === 'superadmin';
 
@@ -20,7 +123,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#0f1115] text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-300">
+    <div className="flex h-screen bg-[#f8f9fb] text-gray-900 overflow-hidden transition-colors duration-300">
       {/* Sidebar for Desktop */}
       <div className="hidden md:flex">
         <Sidebar />

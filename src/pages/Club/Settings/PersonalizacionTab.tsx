@@ -151,7 +151,10 @@ export default function PersonalizacionTab() {
   };
 
   const handleSave = async () => {
-    if (!profile?.club_id) return;
+    if (!profile?.club_id) {
+      setError('No tienes un club asignado. Contacta a un superadministrador para que te asigne a un club.');
+      return;
+    }
     setSaving(true);
     setError(null);
     setSuccessMsg(null);
@@ -162,7 +165,12 @@ export default function PersonalizacionTab() {
         .update({ theme: theme })
         .eq('id', profile.club_id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        if (updateError.message?.includes('row-level security') || updateError.code === '42501') {
+          throw new Error('Permiso denegado. Informa al superadministrador que debe ejecutar la política de seguridad para permitir la actualización del club.');
+        }
+        throw updateError;
+      }
       
       setSuccessMsg('¡Personalización visual guardada y aplicada con éxito!');
       
@@ -200,6 +208,12 @@ export default function PersonalizacionTab() {
             <p className="text-xs text-gray-500">Adapte la identidad visual de su club en toda la aplicación en tiempo real.</p>
           </div>
         </div>
+        
+        {!profile?.club_id && (
+          <div className="bg-amber-50 text-amber-800 px-4 py-2 rounded-xl text-xs font-medium border border-amber-200">
+            Sin club asignado — los cambios no podrán guardarse
+          </div>
+        )}
         
         <div className="flex gap-2">
           <button

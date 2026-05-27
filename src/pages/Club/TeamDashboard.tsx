@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, Star, PackageCheck, Wallet, Filter
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { approveAthleteDocuments, rejectAthleteDocuments } from '../../lib/cartera';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
@@ -38,6 +39,12 @@ export default function TeamDashboard() {
   const [deletingPlayer, setDeletingPlayer] = useState<any>(null);
   const [savingPlayer, setSavingPlayer] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  
+  // Validation States
+  const [validatingAthlete, setValidatingAthlete] = useState<any>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [processingValidation, setProcessingValidation] = useState(false);
+
   const [showTrayectoriaModal, setShowTrayectoriaModal] = useState(false);
   const [newTrayectoria, setNewTrayectoria] = useState({
     equipo_nombre: '',
@@ -191,7 +198,7 @@ export default function TeamDashboard() {
           trayectorias:trayectorias_deportivas(*)
         `)
         .or(`equipo_id.eq.${targetId},equipo_id_2.eq.${targetId},equipo_id_3.eq.${targetId}`)
-        .eq('estado', 'activo')
+        .in('estado', ['activo', 'pendiente_validacion', 'rechazado'])
         .order('nombre_completo');
 
       if (error) throw error;
@@ -204,6 +211,39 @@ export default function TeamDashboard() {
     }
   };
 
+  const handleApprovePlayer = async (athlete: any) => {
+    try {
+      setProcessingValidation(true);
+      await approveAthleteDocuments(athlete);
+      showToast("Deportista aprobado y cartera generada con éxito.", "success");
+      if (team?.id) fetchPlayers(team.id);
+    } catch (err: any) {
+      showToast(`Error al aprobar: ${err.message}`, "error");
+    } finally {
+      setProcessingValidation(false);
+    }
+  };
+
+  const handleRejectPlayer = async () => {
+    if (!validatingAthlete || !rejectionReason.trim()) {
+      showToast("Por favor ingresa un motivo de rechazo.", "error");
+      return;
+    }
+
+    try {
+      setProcessingValidation(true);
+      const athleteName = `${validatingAthlete.nombre_completo} ${validatingAthlete.apellidos || ''}`.trim();
+      await rejectAthleteDocuments(validatingAthlete.id, athleteName, rejectionReason);
+      showToast("Rechazo procesado y notificado.", "info");
+      setValidatingAthlete(null);
+      setRejectionReason('');
+      if (team?.id) fetchPlayers(team.id);
+    } catch (err: any) {
+      showToast(`Error al rechazar: ${err.message}`, "error");
+    } finally {
+      setProcessingValidation(false);
+    }
+  };
 
   const fetchEvents = async () => {
     if (!team?.id) return;
@@ -707,6 +747,26 @@ export default function TeamDashboard() {
                          <span className="font-medium truncate">{player.email_deportista || 'Sin Email'}</span>
                       </div>
                     </div>
+
+                    {canEdit && player.estado === 'pendiente_validacion' && (
+                      <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex gap-2">
+                        <Button 
+                          onClick={() => handleApprovePlayer(player)}
+                          disabled={processingValidation}
+                          className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5"
+                        >
+                          <CheckCircle2 size={12} /> Aprobar
+                        </Button>
+                        <Button 
+                          onClick={() => setValidatingAthlete(player)}
+                          disabled={processingValidation}
+                          variant="outline"
+                          className="flex-1 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5"
+                        >
+                          <X size={12} /> Rechazar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -866,6 +926,54 @@ export default function TeamDashboard() {
               >
                 <Share2 size={16} />
                 WhatsApp / Maps
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+ 
+      {/* Rejection Reason Modal */}
+      <Modal
+        isOpen={!!validatingAthlete}
+        onClose={() => { setValidatingAthlete(null); setRejectionReason(''); }}
+        title="Rechazar Documentación"
+      >
+        {validatingAthlete && (
+          <div className="space-y-6">
+            <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+              <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Deportista</p>
+              <p className="text-sm font-black text-gray-900 dark:text-white uppercase italic">
+                {validatingAthlete.nombre_completo} {validatingAthlete.apellidos}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Motivo del Rechazo (Obligatorio)</label>
+              <textarea
+                className="w-full px-5 py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all dark:text-white h-32 resize-none"
+                placeholder="Ej: El registro civil está borroso o incompleto..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => { setValidatingAthlete(null); setRejectionReason(''); }}
+                className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleRejectPlayer}
+                disabled={processingValidation || !rejectionReason.trim()}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest italic"
+              >
+                Confirmar Rechazo
               </Button>
             </div>
           </div>

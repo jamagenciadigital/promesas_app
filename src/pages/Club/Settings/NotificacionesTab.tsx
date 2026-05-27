@@ -26,7 +26,7 @@ const APP_EMAIL_CONFIG = {
   resend_from_email: 'replay-to@fichaje.com.co',
   template_id_registro: 'bienvenido-fichaje',
   template_id_recuperacion: 'restaurar_fichaje',
-  template_id_notificaciones: 'bienvenido-fichaje',
+  template_id_notificaciones: 'notification_fichaje',
   activar_correos: true
 };
 
