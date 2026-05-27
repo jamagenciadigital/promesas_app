@@ -330,6 +330,28 @@ async function hydrateRow(row: any, schemaName: string, tableName: string, selec
   }
 }
 
+function formatTimeValue(val: any): any {
+  if (val === null || val === undefined) return val;
+  if (val instanceof Date) {
+    const hh = String(val.getUTCHours()).padStart(2, '0');
+    const mm = String(val.getUTCMinutes()).padStart(2, '0');
+    const ss = String(val.getUTCSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }
+  if (typeof val === 'string') {
+    // If it's a full ISO string (e.g., 1970-01-01T11:00:00.000Z)
+    const isoMatch = val.match(/^1970-01-01T(\d{2}:\d{2}:\d{2})/);
+    if (isoMatch) {
+      return isoMatch[1];
+    }
+    const isoMatchShort = val.match(/^1970-01-01T(\d{2}:\d{2})/);
+    if (isoMatchShort) {
+      return `${isoMatchShort[1]}:00`;
+    }
+  }
+  return val;
+}
+
 // Column types cache to differentiate between JSON/JSONB columns and regular arrays/objects
 const tableColumnTypesCache: Record<string, Record<string, string>> = {};
 
@@ -532,6 +554,21 @@ async function executeQuery(table: string, method: string, args: any[], filters:
   console.log(`Executing SQL: ${queryText} with params:`, queryParams);
   
   const res = await prisma.$queryRawUnsafe<any[]>(queryText, ...queryParams);
+
+  // Post-process returned rows to format time fields properly
+  if (Array.isArray(res) && res.length > 0) {
+    for (const row of res) {
+      if (row) {
+        for (const [col, colType] of Object.entries(colTypes)) {
+          if (colType === 'time without time zone' || colType === 'time') {
+            if (row[col] !== undefined && row[col] !== null) {
+              row[col] = formatTimeValue(row[col]);
+            }
+          }
+        }
+      }
+    }
+  }
 
   let dataResult: any = res;
   if (single) {
