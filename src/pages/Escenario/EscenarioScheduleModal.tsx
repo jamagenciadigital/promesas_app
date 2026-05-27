@@ -40,6 +40,13 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const [horarios, setHorarios] = useState<any[]>([]);
   const [activeDay, setActiveDay] = useState(0);
 
+  // Estados para bloqueo avanzado (clubes/ligas/administración)
+  const [blockingSlot, setBlockingSlot] = useState<any>(null);
+  const [blockType, setBlockType] = useState<'admin' | 'club' | 'liga'>('admin');
+  const [selectedClubId, setSelectedClubId] = useState('');
+  const [selectedLigaName, setSelectedLigaName] = useState('');
+  const [clubsList, setClubsList] = useState<any[]>([]);
+
   // Estados para pestaña de Calendario
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -49,6 +56,18 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   useEffect(() => {
     fetchHorarios();
   }, [escenario.id]);
+
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const { data } = await supabase.from('clubes').select('id, nombre').order('nombre');
+        setClubsList(data || []);
+      } catch (err) {
+        console.error('Error fetching clubs:', err);
+      }
+    };
+    fetchClubs();
+  }, []);
 
   const fetchMonthBlocks = async () => {
     setLoadingMonthBlocks(true);
@@ -341,7 +360,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   };
 
   // Bloquear slot para fecha puntual
-  const handleBlockDateSlot = async (slot: any) => {
+  const handleBlockDateSlot = async (slot: any, entityName: string = 'Administración') => {
     if (!canEdit) return;
     try {
       const { error } = await supabase.from('reserva_escenario').insert([{
@@ -351,13 +370,29 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
         hora_inicio: slot.hora_inicio,
         hora_fin: slot.hora_fin,
         monto_total: 0,
-        estado: 'confirmada'
+        estado: 'confirmada',
+        atleta_nombre: entityName
       }]);
       if (error) throw error;
       fetchMonthBlocks();
     } catch (error: any) {
       alert('Error al bloquear fecha: ' + error.message);
     }
+  };
+
+  const handleConfirmBlockDateSlot = async (slot: any) => {
+    let entityName = 'Administración';
+    if (blockType === 'club') {
+      const club = clubsList.find(c => c.id === selectedClubId);
+      entityName = club ? `Club: ${club.nombre}` : 'Club Registrado';
+    } else if (blockType === 'liga') {
+      entityName = selectedLigaName.trim() ? `Liga: ${selectedLigaName.trim()}` : 'Liga Deportiva';
+    }
+    await handleBlockDateSlot(slot, entityName);
+    setBlockingSlot(null);
+    setBlockType('admin');
+    setSelectedClubId('');
+    setSelectedLigaName('');
   };
 
   // Desbloquear slot de fecha puntual
@@ -870,7 +905,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                 ) : (
                   <div className="space-y-3 max-h-[38vh] overflow-y-auto pr-1">
                     {activeDateSlots.map(slot => {
-                      const isDateBlocked = dateBlocks.some(b => b.hora_inicio.substring(0,5) === slot.hora_inicio.substring(0,5) && b.tipo_reserva === 'bloqueo');
+                      const blockRecord = dateBlocks.find(b => b.hora_inicio.substring(0,5) === slot.hora_inicio.substring(0,5) && b.tipo_reserva === 'bloqueo');
+                      const isDateBlocked = !!blockRecord;
                       const isDateReserved = dateBlocks.some(b => b.hora_inicio.substring(0,5) === slot.hora_inicio.substring(0,5) && b.tipo_reserva !== 'bloqueo');
                       const isBlocked = slot.es_bloqueado || isDateBlocked;
 
@@ -881,7 +917,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                             isDateReserved 
                               ? 'border-amber-200/50 bg-amber-50/10' 
                               : isBlocked 
-                                ? 'border-red-200/50 bg-red-50/10' 
+                                ? 'border-gray-200 dark:border-white/5 bg-gray-100/40 dark:bg-white/5 opacity-80' 
                                 : 'border-gray-100 dark:border-white/5'
                           }`}
                         >
@@ -891,7 +927,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                               isDateReserved 
                                 ? 'bg-amber-500/10 text-amber-500' 
                                 : isBlocked 
-                                  ? 'bg-red-500/10 text-red-500' 
+                                  ? 'bg-gray-400/20 text-gray-500 dark:text-gray-400' 
                                   : 'bg-emerald-500/10 text-emerald-500'
                             }`}>
                               {isBlocked ? <Lock className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -901,7 +937,17 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                                 {slot.hora_inicio.substring(0,5)} - {slot.hora_fin.substring(0,5)}
                               </p>
                               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
-                                {slot.es_gratis ? 'Gratis' : `$${slot.precio.toLocaleString()} COP`}
+                                {isDateBlocked ? (
+                                  <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">
+                                    Bloqueado por: {blockRecord.atleta_nombre || 'Administración'}
+                                  </span>
+                                ) : slot.es_bloqueado ? (
+                                  <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">
+                                    Bloqueado Fijo
+                                  </span>
+                                ) : (
+                                  slot.es_gratis ? 'Gratis' : `$${slot.precio.toLocaleString()} COP`
+                                )}
                               </p>
                             </div>
                           </div>
@@ -914,7 +960,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                               </span>
                             ) : isBlocked ? (
                               <>
-                                <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                                <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20">
                                   {slot.es_bloqueado ? 'Fijo' : 'Puntual'}
                                 </span>
                                 {canEdit && (
@@ -941,7 +987,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                                 {canEdit ? (
                                   <button 
                                     type="button"
-                                    onClick={() => handleBlockDateSlot(slot)}
+                                    onClick={() => setBlockingSlot(slot)}
                                     className="h-7 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border border-red-500/20 hover:border-transparent"
                                   >
                                     Bloquear
@@ -978,6 +1024,122 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
           </div>
         )}
       </div>
+
+      {/* Sub-modal para configurar el Bloqueo */}
+      {blockingSlot && (
+        <Modal 
+          isOpen={true} 
+          onClose={() => setBlockingSlot(null)} 
+          title="Bloquear Horario"
+          maxWidth="md"
+        >
+          <div className="space-y-6 p-4">
+            <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 space-y-1">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Fecha y Horario Seleccionado</p>
+              <p className="text-sm font-black text-[#182332] dark:text-white uppercase tracking-tight">
+                {selectedDate} | {blockingSlot.hora_inicio.substring(0, 5)} - {blockingSlot.hora_fin.substring(0, 5)}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
+                Motivo / Entidad del Bloqueo
+              </label>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBlockType('admin')}
+                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    blockType === 'admin'
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  Administración
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBlockType('club')}
+                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    blockType === 'club'
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  Club
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBlockType('liga')}
+                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    blockType === 'liga'
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  Liga
+                </button>
+              </div>
+            </div>
+
+            {blockType === 'club' && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
+                  Seleccionar Club Registrado
+                </label>
+                <select
+                  value={selectedClubId}
+                  onChange={(e) => setSelectedClubId(e.target.value)}
+                  className="w-full h-12 px-4 bg-gray-50 dark:bg-[#182332]/50 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613] transition-all"
+                >
+                  <option value="" className="text-gray-400">Seleccione un club...</option>
+                  {clubsList.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-white dark:bg-[#182332] text-[#182332] dark:text-white">
+                      {c.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {blockType === 'liga' && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
+                  Escribir Nombre de la Liga
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej. Liga de Baloncesto de Bogotá"
+                  value={selectedLigaName}
+                  onChange={(e) => setSelectedLigaName(e.target.value)}
+                  className="w-full h-12 px-4 bg-gray-50 dark:bg-[#182332]/50 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613] transition-all"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+              <button
+                type="button"
+                onClick={() => setBlockingSlot(null)}
+                className="flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-gray-700 dark:hover:text-white transition-all"
+              >
+                Cancelar
+              </button>
+              <Button
+                onClick={() => handleConfirmBlockDateSlot(blockingSlot)}
+                disabled={
+                  (blockType === 'club' && !selectedClubId) ||
+                  (blockType === 'liga' && !selectedLigaName.trim())
+                }
+                className="flex-[2] bg-[#E30613] hover:bg-red-700 text-white font-bold uppercase text-[10px] h-12 rounded-xl shadow-md transition-all flex items-center justify-center"
+              >
+                Confirmar Bloqueo
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 }
