@@ -6,7 +6,7 @@ import {
   CheckCircle2, ChevronRight, ChevronLeft, MapPin, 
   Trophy, Upload, AlertCircle, ShieldCheck, Shield,
   CalendarDays, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon,
-  ArrowLeft, X, User, FileText
+  ArrowLeft, X, User, FileText, Lock
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
@@ -112,6 +112,7 @@ export default function PublicReservation() {
   };
 
   const fetchReservasDeLaSemana = async () => {
+    if (!selectedCancha) return;
     const end = new Date(startOfWeek);
     end.setDate(end.getDate() + 7);
 
@@ -120,7 +121,7 @@ export default function PublicReservation() {
         .from('reserva_escenario')
         .select('*')
         .eq('escenario_id', id)
-        .eq('cancha_id', selectedCancha) // Filtro por cancha
+        .or(`cancha_id.eq.${selectedCancha},cancha_id.is.null`) // Filtro por cancha o bloqueos globales
         .gte('fecha', startOfWeek.toISOString().split('T')[0])
         .lte('fecha', end.toISOString().split('T')[0])
         .in('estado', ['pendiente', 'confirmada']); 
@@ -636,6 +637,12 @@ export default function PublicReservation() {
                                     
                                     <div className="flex flex-col gap-3">
                                         {dailySlots.length > 0 ? dailySlots.map(h => {
+                                            const blockRecord = reservasExistentes.find(res => 
+                                                res.fecha === dateStr && 
+                                                res.hora_inicio === h.hora_inicio && 
+                                                res.tipo_reserva === 'bloqueo'
+                                            );
+                                            const isBlocked = !!blockRecord;
                                             const occupied = isSlotOccupied(dateStr, h.hora_inicio);
                                             const isSelected = selectedSlots.some(s => s.id === h.id && s.date === dateStr);
 
@@ -651,18 +658,29 @@ export default function PublicReservation() {
                                                         }
                                                     }}
                                                     className={`group relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
+                                                        isBlocked ? 'bg-zinc-800/40 border-zinc-700/30 text-zinc-500 opacity-60 cursor-not-allowed' :
                                                         occupied ? 'bg-black/20 border-transparent opacity-20 cursor-not-allowed' :
                                                         isSelected ? 'bg-[#daff01] border-[#daff01] text-black shadow-[0_15px_30px_rgba(218,255,1,0.2)] scale-[1.05]' :
                                                         'bg-white/5 border-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
                                                     }`}
                                                 >
                                                     <div className="flex flex-col items-center">
-                                                        <Clock className={`w-3 h-3 mb-2 transition-colors ${isSelected ? 'text-black' : 'text-[#daff01]'}`} />
+                                                        {isBlocked ? (
+                                                            <Lock className="w-3 h-3 mb-2 text-zinc-500" />
+                                                        ) : (
+                                                            <Clock className={`w-3 h-3 mb-2 transition-colors ${isSelected ? 'text-black' : 'text-[#daff01]'}`} />
+                                                        )}
                                                         <p className="text-xs font-black uppercase italic leading-none">{h.hora_inicio.substring(0,5)}</p>
-                                                        {!occupied && <p className={`text-[9px] font-bold mt-2 tracking-tighter ${isSelected ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}>
-                                                            ${new Intl.NumberFormat().format(h.precio)}
-                                                        </p>}
-                                                        {occupied && (
+                                                        
+                                                        {isBlocked ? (
+                                                            <p className="text-[7px] font-black text-zinc-400 uppercase tracking-tighter mt-2 text-center leading-tight max-w-[80px] truncate" title={blockRecord?.atleta_nombre || 'Bloqueado'}>
+                                                                {blockRecord?.atleta_nombre || 'Bloqueado'}
+                                                            </p>
+                                                        ) : !occupied ? (
+                                                            <p className={`text-[9px] font-bold mt-2 tracking-tighter ${isSelected ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}>
+                                                                ${new Intl.NumberFormat().format(h.precio)}
+                                                            </p>
+                                                        ) : (
                                                             <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
                                                                 <X className="w-4 h-4 text-red-500" />
                                                             </div>

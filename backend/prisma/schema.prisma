@@ -636,6 +636,23 @@ model deportes {
   created_at             DateTime                 @default(now()) @db.Timestamptz(6)
   clubes                 clubes[]
   deportes_config_campos deportes_config_campos[]
+  ligas                  ligas[]
+  escenarios             escenarios[]
+
+  @@schema("public")
+}
+
+model ligas {
+  id          String   @id @default(uuid()) @db.Uuid
+  nombre      String   @db.Text
+  deporte_id  String?  @db.Uuid
+  presidente  String?  @db.Text
+  secretario  String?  @db.Text
+  direccion   String?  @db.Text
+  correo      String?  @db.Text
+  telefono    String?  @db.Text
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  deportes    deportes? @relation(fields: [deporte_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -792,15 +809,18 @@ model escenario_canchas {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model escenario_horarios {
-  id           String      @id @default(uuid()) @db.Uuid
-  escenario_id String?     @db.Uuid
-  dia_semana   Int?
-  hora_inicio  DateTime    @db.Time(6)
-  hora_fin     DateTime    @db.Time(6)
-  precio       Decimal?    @default(0.00) @db.Decimal(12, 2)
-  es_gratis    Boolean?    @default(false)
-  activo       Boolean?    @default(true)
-  escenarios   escenarios? @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id               String      @id @default(uuid()) @db.Uuid
+  escenario_id     String?     @db.Uuid
+  dia_semana       Int?
+  hora_inicio      DateTime    @db.Time(6)
+  hora_fin         DateTime    @db.Time(6)
+  precio           Decimal?    @default(0.00) @db.Decimal(12, 2)
+  es_gratis        Boolean?    @default(false)
+  es_bloqueado     Boolean?    @default(false)
+  bloqueado_por    String?     @db.Text
+  bloqueado_por_tipo String?   @db.Text
+  activo           Boolean?    @default(true)
+  escenarios       escenarios? @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -814,6 +834,7 @@ model escenarios {
   telefono                                       String?
   correo                                         String?
   deporte                                        String
+  deporte_id                                     String?              @db.Uuid
   configuracion_reserva                          Json?                @default("{\"permite_equipos\": true, \"permite_jugadores\": true}")
   created_at                                     DateTime             @default(now()) @db.Timestamptz(6)
   link_pago                                      String?
@@ -830,6 +851,7 @@ model escenarios {
   perfiles_escenarios_administrador_idToperfiles perfiles?            @relation("escenarios_administrador_idToperfiles", fields: [administrador_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   perfiles_escenarios_gestor_idToperfiles        perfiles?            @relation("escenarios_gestor_idToperfiles", fields: [gestor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reserva_escenario                              reserva_escenario[]
+  deportes                                       deportes?            @relation(fields: [deporte_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@schema("public")
 }

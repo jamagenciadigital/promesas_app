@@ -45,6 +45,11 @@ import EscenarioDashboard from './pages/Escenario/EscenarioDashboard';
 import JefaturaDashboard from './pages/Jefatura/JefaturaDashboard';
 import JefaturaSettings from './pages/Jefatura/JefaturaSettings';
 import JefaturaClubes from './pages/Jefatura/JefaturaClubes';
+import JefaturaLigas from './pages/Jefatura/JefaturaLigas';
+import JefaturaUsuarios from './pages/Jefatura/JefaturaUsuarios';
+import JefaturaPQRS from './pages/Jefatura/JefaturaPQRS';
+import JefaturaJugadores from './pages/Jefatura/JefaturaJugadores';
+import JefaturaEntrenadores from './pages/Jefatura/JefaturaEntrenadores';
 
 import DireccionDeportiva from './pages/Club/Pro/DireccionDeportiva';
 import RegisterElitePlayer from './pages/Club/RegisterElitePlayer';
@@ -198,8 +203,11 @@ function App() {
                   <Route path="/" element={<JefaturaDashboard />} />
                   <Route path="venues" element={<JefaturaDashboard defaultTab="venues" />} />
                   <Route path="clubes" element={<JefaturaClubes />} />
-                  <Route path="assignments" element={<JefaturaDashboard defaultTab="assignments" />} />
-                  <Route path="pqrs" element={<JefaturaDashboard defaultTab="pqrs" />} />
+        <Route path="ligas" element={<JefaturaLigas />} />
+        <Route path="usuarios" element={<JefaturaUsuarios />} />
+        <Route path="pqrs" element={<JefaturaPQRS />} />
+        <Route path="jugadores" element={<JefaturaJugadores />} />
+        <Route path="entrenadores" element={<JefaturaEntrenadores />} />
                   <Route path="settings" element={<JefaturaSettings />} />
                   <Route path="*" element={<Navigate to="/jefatura" replace />} />
                 </Routes>

@@ -1032,11 +1032,22 @@ app.all('/rest/v1/:table', async (req, res) => {
   const filters: any[] = [];
   let selectArgs: any[] = ['*'];
 
+  // Collect raw query entries, handling both single values and arrays (same key repeated)
+  const rawEntries: [string, string][] = [];
   for (const [key, value] of Object.entries(req.query)) {
-    if (!value) continue;
-    
-    const valStr = String(value);
+    if (value === undefined || value === null) continue;
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        if (v !== undefined && v !== null) {
+          rawEntries.push([key, String(v)]);
+        }
+      }
+    } else {
+      rawEntries.push([key, String(value)]);
+    }
+  }
 
+  for (const [key, valStr] of rawEntries) {
     if (key === 'select') {
       selectArgs = [valStr];
       continue;

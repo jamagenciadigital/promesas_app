@@ -147,9 +147,9 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         .select('*', { count: 'exact', head: true })
         .eq('tipo', 'evento');
 
-      // 3. Ligas (juegos_amistosos), Clubes, Deportistas
+      // 3. Ligas, Clubes, Deportistas
       const { count: ligasCount } = await supabase
-        .from('juegos_amistosos')
+        .from('ligas')
         .select('*', { count: 'exact', head: true });
 
       const { count: clubesCount } = await supabase
@@ -336,7 +336,7 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
             <IndicatorCard 
               title="Ligas" 
               value={stats.ligas} 
-              subtitle="Partidos registrados" 
+              subtitle="Registradas" 
               icon={<Trophy />} 
               color="text-purple-500"
               bg="bg-purple-500/10"

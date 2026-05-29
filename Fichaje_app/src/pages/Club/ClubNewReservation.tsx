@@ -6,7 +6,7 @@ import {
   CheckCircle2, ChevronRight, MapPin, 
   AlertCircle, ShieldCheck,
   ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon,
-  ArrowLeft, Shield, X
+  ArrowLeft, Shield, X, Lock
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -452,13 +452,19 @@ export default function ClubNewReservation() {
                                   
                                   <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                                       {dailySlots.length > 0 ? dailySlots.map(h => {
+                                          const blockRecord = reservasExistentes.find(res => 
+                                              res.fecha === dateStr && 
+                                              res.hora_inicio === h.hora_inicio && 
+                                              res.tipo_reserva === 'bloqueo'
+                                          );
+                                          const isBlocked = !!blockRecord;
                                           const occupied = isSlotOccupied(dateStr, h.hora_inicio);
                                           const isSelected = selectedSlots.some(s => s.id === h.id && s.date === dateStr);
 
                                           return (
                                               <button
                                                   key={h.id}
-                                                  disabled={occupied}
+                                                  disabled={occupied || isBlocked}
                                                   onClick={() => {
                                                       if (isSelected) {
                                                           setSelectedSlots(selectedSlots.filter(s => !(s.id === h.id && s.date === dateStr)));
@@ -467,19 +473,33 @@ export default function ClubNewReservation() {
                                                       }
                                                   }}
                                                   className={`relative p-3 rounded-xl border transition-all text-left overflow-hidden ${
+                                                      isBlocked ? 'bg-zinc-800/40 border-zinc-700/30 text-zinc-500 opacity-60 cursor-not-allowed' :
                                                       occupied ? 'bg-gray-100 dark:bg-white/5 border-transparent opacity-40 cursor-not-allowed' :
                                                       isSelected ? 'bg-black dark:bg-[#CCFF00] border-black dark:border-[#CCFF00] text-white dark:text-black shadow-md scale-105 z-10' :
                                                       'bg-white dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-600 dark:text-gray-400 hover:border-black dark:hover:border-[#CCFF00]/50 hover:bg-gray-50 dark:hover:bg-[#CCFF00]/5'
                                                   }`}
                                               >
                                                   <div className="flex items-center gap-2 mb-1">
-                                                      <Clock size={12} className={isSelected ? 'text-[#CCFF00] dark:text-black' : 'text-gray-400'} />
+                                                      {isBlocked ? (
+                                                          <Lock size={12} className="text-zinc-500" />
+                                                      ) : (
+                                                          <Clock size={12} className={isSelected ? 'text-[#CCFF00] dark:text-black' : 'text-gray-400'} />
+                                                      )}
                                                       <p className="text-[11px] font-black uppercase tracking-wide">{h.hora_inicio.substring(0,5)}</p>
                                                   </div>
-                                                  {!occupied && <p className={`text-[9px] font-bold tracking-wider ${isSelected ? 'text-gray-300 dark:text-gray-800' : 'text-gray-400'}`}>
-                                                      ${h.precio.toLocaleString()}
-                                                  </p>}
-                                                  {occupied && <div className="absolute top-0 right-0 w-6 h-6 bg-red-500/10 flex items-center justify-center rounded-bl-xl"><X size={10} className="text-red-500" /></div>}
+                                                  {isBlocked ? (
+                                                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter truncate max-w-[80px]" title={blockRecord?.atleta_nombre || 'Bloqueado'}>
+                                                          {blockRecord?.atleta_nombre || 'Bloqueado'}
+                                                      </p>
+                                                  ) : !occupied ? (
+                                                      <p className={`text-[9px] font-bold tracking-wider ${isSelected ? 'text-gray-300 dark:text-gray-800' : 'text-gray-400'}`}>
+                                                          ${h.precio.toLocaleString()}
+                                                      </p>
+                                                  ) : (
+                                                      <div className="absolute top-0 right-0 w-6 h-6 bg-red-500/10 flex items-center justify-center rounded-bl-xl">
+                                                          <X size={10} className="text-red-500" />
+                                                      </div>
+                                                  )}
                                               </button>
                                           );
                                       }) : (

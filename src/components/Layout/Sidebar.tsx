@@ -127,7 +127,10 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.dashboard'), icon: Home, path: '/jefatura' },
         { name: 'Escenarios', icon: MapPin, path: '/jefatura/venues' },
         { name: 'Clubes', icon: Building2, path: '/jefatura/clubes' },
-        { name: 'Asignaciones', icon: UserPlus, path: '/jefatura/assignments' },
+        { name: 'Ligas', icon: Trophy, path: '/jefatura/ligas' },
+        { name: 'Jugadores', icon: Users, path: '/jefatura/jugadores' },
+        { name: 'Entrenadores', icon: UserPlus, path: '/jefatura/entrenadores' },
+        { name: 'Gestión Usuarios', icon: Users, path: '/jefatura/usuarios' },
         { name: 'PQRS', icon: MessageCircle, path: '/jefatura/pqrs' },
         { name: t('nav.settings'), icon: Settings, path: '/jefatura/settings' },
       ];

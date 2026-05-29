@@ -24,6 +24,34 @@ const dbDayToUiDay = (dbDay: number): number => {
   return dbDay === 0 ? 6 : dbDay - 1;
 };
 
+// Helpers timezone-safe para manejo de fechas y horas
+const formatLocalDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getCleanDateStr = (fechaVal: any): string => {
+  if (!fechaVal) return '';
+  if (typeof fechaVal === 'string') {
+    return fechaVal.split('T')[0];
+  }
+  const d = new Date(fechaVal);
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getCleanTime = (t: string) => t ? t.substring(0, 5) : '';
+
+const getLocalWeekdayIndex = (dateStr: string): number => {
+  if (!dateStr) return -1;
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.getDay();
+};
+
 export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }: ScheduleModalProps) {
   const { profile, user } = useAuth();
 
@@ -40,15 +68,15 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const [horarios, setHorarios] = useState<any[]>([]);
   const [activeDay, setActiveDay] = useState(0);
 
-  // Estados para bloqueo avanzado (clubes/ligas/administración)
+  // Estados para bloqueo avanzado (Administrativo / Equipo)
   const [blockingSlot, setBlockingSlot] = useState<any>(null);
-  const [blockType, setBlockType] = useState<'admin' | 'club' | 'liga'>('admin');
-  const [selectedClubId, setSelectedClubId] = useState('');
-  const [selectedLigaName, setSelectedLigaName] = useState('');
-  const [clubsList, setClubsList] = useState<any[]>([]);
+  const [blockType, setBlockType] = useState<'admin' | 'team'>('admin');
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [teamsList, setTeamsList] = useState<any[]>([]);
+  const [blockFrequency, setBlockFrequency] = useState<'punctual' | 'weekly'>('punctual');
 
   // Estados para pestaña de Calendario
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatLocalDate(new Date()));
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthBlocks, setMonthBlocks] = useState<any[]>([]);
   const [loadingMonthBlocks, setLoadingMonthBlocks] = useState(false);
@@ -58,15 +86,18 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   }, [escenario.id]);
 
   useEffect(() => {
-    const fetchClubs = async () => {
+    const fetchTeams = async () => {
       try {
-        const { data } = await supabase.from('clubes').select('id, nombre').order('nombre');
-        setClubsList(data || []);
+        const { data } = await supabase
+          .from('equipos')
+          .select('id, nombre, clubes(nombre)')
+          .order('nombre');
+        setTeamsList(data || []);
       } catch (err) {
-        console.error('Error fetching clubs:', err);
+        console.error('Error fetching teams:', err);
       }
     };
-    fetchClubs();
+    fetchTeams();
   }, []);
 
   const fetchMonthBlocks = async () => {
@@ -77,8 +108,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
       const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
       
-      const firstDayStr = firstDay.toISOString().split('T')[0];
-      const lastDayStr = lastDay.toISOString().split('T')[0];
+      const firstDayStr = formatLocalDate(firstDay);
+      const lastDayStr = formatLocalDate(lastDay);
 
       const { data, error } = await supabase
         .from('reserva_escenario')
@@ -128,8 +159,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const dateBlocks = React.useMemo(() => {
     return monthBlocks.filter(b => {
       if (!b.fecha) return false;
-      const blockDateStr = typeof b.fecha === 'string' ? b.fecha.split('T')[0] : new Date(b.fecha).toISOString().split('T')[0];
-      return blockDateStr === selectedDate;
+      return getCleanDateStr(b.fecha) === selectedDate;
     });
   }, [monthBlocks, selectedDate]);
 
@@ -150,7 +180,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   });
 
   const getDayAvailability = (day: Date) => {
-    const dayString = day.toISOString().split('T')[0];
+    const dayString = formatLocalDate(day);
     const uiDay = dbDayToUiDay(day.getDay());
     const baseSlots = horarios.filter(h => h.ui_dia === uiDay);
 
@@ -160,24 +190,30 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
 
     const dayBlocks = monthBlocks.filter(b => {
       if (!b.fecha) return false;
-      const blockDateStr = typeof b.fecha === 'string' ? b.fecha.split('T')[0] : new Date(b.fecha).toISOString().split('T')[0];
-      return blockDateStr === dayString;
+      return getCleanDateStr(b.fecha) === dayString;
     });
 
     let freeCount = 0;
     let totalCount = baseSlots.length;
 
+    let blockedCount = 0;
     baseSlots.forEach(slot => {
-      if (slot.es_bloqueado) return;
+      if (slot.es_bloqueado) {
+        blockedCount++;
+        return;
+      }
 
       const isDateBlocked = dayBlocks.some(b => 
-        b.hora_inicio.substring(0, 5) === slot.hora_inicio.substring(0, 5) && 
+        getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && 
         b.tipo_reserva === 'bloqueo'
       );
-      if (isDateBlocked) return;
+      if (isDateBlocked) {
+        blockedCount++;
+        return;
+      }
 
       const isDateReserved = dayBlocks.some(b => 
-        b.hora_inicio.substring(0, 5) === slot.hora_inicio.substring(0, 5) && 
+        getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && 
         b.tipo_reserva !== 'bloqueo'
       );
       if (isDateReserved) return;
@@ -185,17 +221,19 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
       freeCount++;
     });
 
-    if (freeCount === 0) {
-      return { status: 'full', label: 'Agotado', freeCount: 0, totalCount };
+    if (freeCount === 0 && blockedCount === totalCount) {
+      return { status: 'blocked', label: 'Bloqueado', freeCount: 0, totalCount, blockedCount };
+    } else if (freeCount === 0) {
+      return { status: 'full', label: 'Agotado', freeCount: 0, totalCount, blockedCount };
     } else if (freeCount === totalCount) {
-      return { status: 'available', label: `${freeCount} Lib`, freeCount, totalCount };
+      return { status: 'available', label: `${freeCount} Lib`, freeCount, totalCount, blockedCount };
     } else {
-      return { status: 'partial', label: `${freeCount} Lib`, freeCount, totalCount };
+      return { status: 'partial', label: `${freeCount} Lib`, freeCount, totalCount, blockedCount };
     }
   };
 
   const handleSelectDay = (day: Date) => {
-    const dateStr = day.toISOString().split('T')[0];
+    const dateStr = formatLocalDate(day);
     setSelectedDate(dateStr);
     if (day.getMonth() !== currentMonth.getMonth() || day.getFullYear() !== currentMonth.getFullYear()) {
       setCurrentMonth(new Date(day.getFullYear(), day.getMonth(), 1));
@@ -359,11 +397,26 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
     }
   };
 
-  // Bloquear slot para fecha puntual
-  const handleBlockDateSlot = async (slot: any, entityName: string = 'Administración') => {
+  // Bloquear slot para fecha puntual o recurrente semanal
+  const handleConfirmBlockDateSlot = async (slot: any) => {
     if (!canEdit) return;
+
+    let entityName = 'Administración';
+    let teamId: string | null = null;
+    if (blockType === 'team') {
+      const team = teamsList.find(t => t.id === selectedTeamId);
+      if (team) {
+        teamId = team.id;
+        const clubName = team.clubes?.nombre;
+        entityName = clubName ? `${clubName} - ${team.nombre}` : `${team.nombre}`;
+      } else {
+        entityName = 'Equipo Registrado';
+      }
+    }
+
     try {
-      const { error } = await supabase.from('reserva_escenario').insert([{
+      // 1. Insertar bloqueo en reserva_escenario
+      const body = {
         escenario_id: escenario.id,
         tipo_reserva: 'bloqueo',
         fecha: selectedDate,
@@ -371,45 +424,67 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
         hora_fin: slot.hora_fin,
         monto_total: 0,
         estado: 'confirmada',
-        atleta_nombre: entityName
-      }]);
-      if (error) throw error;
-      fetchMonthBlocks();
+        atleta_nombre: entityName,
+        equipo_id: teamId,
+      };
+
+      const { error: insertError } = await supabase.from('reserva_escenario').insert([body]);
+      if (insertError) throw new Error('Error al insertar bloqueo: ' + insertError.message);
+
+      // 2. Si es semanal, actualizar escenario_horarios
+      if (blockFrequency === 'weekly') {
+        const { error: updateError } = await supabase
+          .from('escenario_horarios')
+          .update({ es_bloqueado: true, bloqueado_por: entityName, bloqueado_por_tipo: blockType })
+          .eq('id', slot.id);
+        if (updateError) throw new Error('Error al bloquear horario semanal: ' + updateError.message);
+        setHorarios(prev => prev.map(h => h.id === slot.id ? { ...h, es_bloqueado: true, bloqueado_por: entityName, bloqueado_por_tipo: blockType } : h));
+      }
+
+      // 3. Refrescar datos
+      await fetchMonthBlocks();
+
+      // 4. Feedback
+      alert(`Horario bloqueado exitosamente por: ${entityName}`);
+      onSuccess(`Horario bloqueado exitosamente por: ${entityName}`);
+      setBlockingSlot(null);
+      setBlockType('admin');
+      setSelectedTeamId('');
+      setBlockFrequency('punctual');
     } catch (error: any) {
-      alert('Error al bloquear fecha: ' + error.message);
+      console.error('Error en bloqueo:', error);
+      alert(error.message || 'Error al bloquear el horario');
     }
   };
 
-  const handleConfirmBlockDateSlot = async (slot: any) => {
-    let entityName = 'Administración';
-    if (blockType === 'club') {
-      const club = clubsList.find(c => c.id === selectedClubId);
-      entityName = club ? `Club: ${club.nombre}` : 'Club Registrado';
-    } else if (blockType === 'liga') {
-      entityName = selectedLigaName.trim() ? `Liga: ${selectedLigaName.trim()}` : 'Liga Deportiva';
-    }
-    await handleBlockDateSlot(slot, entityName);
-    setBlockingSlot(null);
-    setBlockType('admin');
-    setSelectedClubId('');
-    setSelectedLigaName('');
-  };
-
-  // Desbloquear slot de fecha puntual
-  const handleUnblockDateSlot = async (slot: any) => {
+  // Desbloquear slot de fecha puntual usando el ID del registro de bloqueo
+  const handleUnblockDateSlot = async (blockRecordId: string) => {
     if (!canEdit) return;
     try {
       const { error } = await supabase
         .from('reserva_escenario')
         .delete()
-        .eq('escenario_id', escenario.id)
-        .eq('fecha', selectedDate)
-        .eq('hora_inicio', slot.hora_inicio)
-        .eq('tipo_reserva', 'bloqueo');
+        .eq('id', blockRecordId);
       if (error) throw error;
       fetchMonthBlocks();
     } catch (error: any) {
       alert('Error al desbloquear fecha: ' + error.message);
+    }
+  };
+
+  // Desbloquear slot semanal (Fijo)
+  const handleUnblockWeeklySlot = async (slot: any) => {
+    if (!canEdit) return;
+    try {
+      const { error } = await supabase
+        .from('escenario_horarios')
+        .update({ es_bloqueado: false, bloqueado_por: null, bloqueado_por_tipo: null })
+        .eq('id', slot.id);
+      if (error) throw error;
+      setHorarios(prev => prev.map(h => h.id === slot.id ? { ...h, es_bloqueado: false, bloqueado_por: null, bloqueado_por_tipo: null } : h));
+      fetchMonthBlocks();
+    } catch (error: any) {
+      alert('Error al desbloquear: ' + error.message);
     }
   };
 
@@ -789,7 +864,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                     {calendarDays.map((day, idx) => {
                       const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
                       const isToday = day.toDateString() === new Date().toDateString();
-                      const dayStr = day.toISOString().split('T')[0];
+                      const dayStr = formatLocalDate(day);
                       const isSelected = dayStr === selectedDate;
                       
                       const availability = getDayAvailability(day);
@@ -842,6 +917,14 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                                 }`}>
                                   {availability.label}
                                 </div>
+                              ) : availability.status === 'blocked' ? (
+                                <div className={`text-[7px] font-extrabold uppercase tracking-tight text-center rounded py-0.5 leading-none transition-all ${
+                                  isSelected 
+                                    ? 'bg-white/20 text-white' 
+                                    : 'bg-gray-500/20 text-gray-600 dark:text-gray-400'
+                                }`}>
+                                  {availability.label}
+                                </div>
                               ) : (
                                 <div className={`text-[7px] font-extrabold uppercase tracking-tight text-center rounded py-0.5 leading-none transition-all ${
                                   isSelected 
@@ -874,8 +957,12 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                     <span className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Agotado</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                    <span className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Sin Horarios (Cerrado)</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                    <span className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Bloqueado</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Sin Horarios</span>
                   </div>
                 </div>
               </div>
@@ -905,9 +992,20 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                 ) : (
                   <div className="space-y-3 max-h-[38vh] overflow-y-auto pr-1">
                     {activeDateSlots.map(slot => {
-                      const blockRecord = dateBlocks.find(b => b.hora_inicio.substring(0,5) === slot.hora_inicio.substring(0,5) && b.tipo_reserva === 'bloqueo');
+                      let blockRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva === 'bloqueo');
+                      
+                      // Si no encontramos un registro en la fecha seleccionada pero el slot está bloqueado semanalmente (Fijo),
+                      // buscamos en todos los bloques del mes si hay algún bloqueo para este mismo horario y día de la semana
+                      if (!blockRecord && slot.es_bloqueado) {
+                        blockRecord = monthBlocks.find(b => 
+                          b.tipo_reserva === 'bloqueo' && 
+                          getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) &&
+                          getLocalWeekdayIndex(getCleanDateStr(b.fecha)) === getLocalWeekdayIndex(selectedDate)
+                        );
+                      }
+
                       const isDateBlocked = !!blockRecord;
-                      const isDateReserved = dateBlocks.some(b => b.hora_inicio.substring(0,5) === slot.hora_inicio.substring(0,5) && b.tipo_reserva !== 'bloqueo');
+                      const isDateReserved = dateBlocks.some(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva !== 'bloqueo');
                       const isBlocked = slot.es_bloqueado || isDateBlocked;
 
                       return (
@@ -917,7 +1015,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                             isDateReserved 
                               ? 'border-amber-200/50 bg-amber-50/10' 
                               : isBlocked 
-                                ? 'border-gray-200 dark:border-white/5 bg-gray-100/40 dark:bg-white/5 opacity-80' 
+                                ? 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 opacity-75' 
                                 : 'border-gray-100 dark:border-white/5'
                           }`}
                         >
@@ -933,7 +1031,9 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                               {isBlocked ? <Lock className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                             </div>
                             <div>
-                              <p className="text-[11px] font-bold text-[#182332] dark:text-white uppercase tracking-tight">
+                              <p className={`text-[11px] font-bold uppercase tracking-tight ${
+                                isBlocked ? 'text-gray-400 dark:text-gray-500' : 'text-[#182332] dark:text-white'
+                              }`}>
                                 {slot.hora_inicio.substring(0,5)} - {slot.hora_fin.substring(0,5)}
                               </p>
                               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
@@ -943,7 +1043,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                                   </span>
                                 ) : slot.es_bloqueado ? (
                                   <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">
-                                    Bloqueado Fijo
+                                    Bloqueado por: {slot.bloqueado_por || 'Administración'}
                                   </span>
                                 ) : (
                                   slot.es_gratis ? 'Gratis' : `$${slot.precio.toLocaleString()} COP`
@@ -968,9 +1068,9 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                                     type="button"
                                     onClick={() => {
                                       if (slot.es_bloqueado) {
-                                        alert('Este bloqueo es permanente desde la Plantilla Semanal. Por favor, modifícalo en esa pestaña.');
-                                      } else {
-                                        handleUnblockDateSlot(slot);
+                                        handleUnblockWeeklySlot(slot);
+                                      } else if (blockRecord) {
+                                        handleUnblockDateSlot(blockRecord.id);
                                       }
                                     }}
                                     className="h-7 px-2.5 bg-gray-100/80 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all"
@@ -1041,12 +1141,13 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
               </p>
             </div>
 
+            {/* Paso 1: Tipo de Bloqueo */}
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
-                Motivo / Entidad del Bloqueo
+                ¿Qué tipo de bloqueo deseas realizar?
               </label>
               
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setBlockType('admin')}
@@ -1056,67 +1157,78 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                       : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
                   }`}
                 >
-                  Administración
+                  Administrativo
                 </button>
                 <button
                   type="button"
-                  onClick={() => setBlockType('club')}
+                  onClick={() => setBlockType('team')}
                   className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    blockType === 'club'
+                    blockType === 'team'
                       ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
                       : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
                   }`}
                 >
-                  Club
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBlockType('liga')}
-                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    blockType === 'liga'
-                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
-                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
-                  }`}
-                >
-                  Liga
+                  Equipo
                 </button>
               </div>
             </div>
 
-            {blockType === 'club' && (
+            {/* Listado de Equipos si se selecciona "Equipo" */}
+            {blockType === 'team' && (
               <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
                 <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
-                  Seleccionar Club Registrado
+                  Seleccionar Equipo
                 </label>
                 <select
-                  value={selectedClubId}
-                  onChange={(e) => setSelectedClubId(e.target.value)}
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
                   className="w-full h-12 px-4 bg-gray-50 dark:bg-[#182332]/50 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613] transition-all"
                 >
-                  <option value="" className="text-gray-400">Seleccione un club...</option>
-                  {clubsList.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-white dark:bg-[#182332] text-[#182332] dark:text-white">
-                      {c.nombre}
-                    </option>
-                  ))}
+                  <option value="" className="text-gray-400">Seleccione un equipo...</option>
+                  {teamsList.map((t) => {
+                    const clubName = t.clubes?.nombre;
+                    const displayName = clubName ? `${clubName} - ${t.nombre}` : t.nombre;
+                    return (
+                      <option key={t.id} value={t.id} className="bg-white dark:bg-[#182332] text-[#182332] dark:text-white">
+                        {displayName}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}
 
-            {blockType === 'liga' && (
-              <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
-                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
-                  Escribir Nombre de la Liga
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Liga de Baloncesto de Bogotá"
-                  value={selectedLigaName}
-                  onChange={(e) => setSelectedLigaName(e.target.value)}
-                  className="w-full h-12 px-4 bg-gray-50 dark:bg-[#182332]/50 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613] transition-all"
-                />
+            {/* Paso 2: Frecuencia */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest italic">
+                ¿Con qué frecuencia bloquear?
+              </label>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBlockFrequency('punctual')}
+                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    blockFrequency === 'punctual'
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  Solo este día
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBlockFrequency('weekly')}
+                  className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    blockFrequency === 'weekly'
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  Replicar por semana
+                </button>
               </div>
-            )}
+            </div>
 
             <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
               <button
@@ -1128,10 +1240,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
               </button>
               <Button
                 onClick={() => handleConfirmBlockDateSlot(blockingSlot)}
-                disabled={
-                  (blockType === 'club' && !selectedClubId) ||
-                  (blockType === 'liga' && !selectedLigaName.trim())
-                }
+                disabled={blockType === 'team' && !selectedTeamId}
                 className="flex-[2] bg-[#E30613] hover:bg-red-700 text-white font-bold uppercase text-[10px] h-12 rounded-xl shadow-md transition-all flex items-center justify-center"
               >
                 Confirmar Bloqueo
