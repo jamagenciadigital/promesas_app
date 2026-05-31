@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Users, Search, UserPlus, Mail, Building2, RefreshCw,
-  Shield, ShieldAlert, Edit3, Trash2, Trophy
+  Shield, ShieldAlert, Edit3, Trash2, Trophy, Palette, Check, X
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Toast } from '../../components/ui/Toast';
+import { ClubTheme } from '../../types';
 
 interface UserProfile {
   id: string;
@@ -17,6 +18,7 @@ interface UserProfile {
   rol: string;
   estado: string;
   created_at: string;
+  theme: any;
 }
 
 interface Liga {
@@ -30,6 +32,49 @@ interface Club {
   nombre: string;
   deporte_id: string;
 }
+
+const THEME_PRESETS: { name: string; theme: ClubTheme; swatch: string }[] = [
+  {
+    name: 'Tradicional Rojo',
+    theme: {
+      sidebar_bg: '#bd0f10', sidebar_text: '#ffffff', sidebar_hover_bg: 'rgba(255,255,255,0.1)',
+      sidebar_active_bg: '#ffffff', sidebar_active_text: '#bd0f10',
+      button_bg: '#182332', button_text: '#ffffff', button_hover: '#202f43',
+      login_bg: '#000000', primary_color: '#CCFF00',
+    },
+    swatch: '#E30613',
+  },
+  {
+    name: 'Oceánico Azul',
+    theme: {
+      sidebar_bg: '#1e293b', sidebar_text: 'rgba(255,255,255,0.8)', sidebar_hover_bg: 'rgba(255,255,255,0.08)',
+      sidebar_active_bg: '#2563eb', sidebar_active_text: '#ffffff',
+      button_bg: '#2563eb', button_text: '#ffffff', button_hover: '#1d4ed8',
+      login_bg: '#0f172a', primary_color: '#3b82f6',
+    },
+    swatch: '#2563eb',
+  },
+  {
+    name: 'Bosque Verde',
+    theme: {
+      sidebar_bg: '#022c22', sidebar_text: 'rgba(255,255,255,0.85)', sidebar_hover_bg: 'rgba(255,255,255,0.1)',
+      sidebar_active_bg: '#10b981', sidebar_active_text: '#ffffff',
+      button_bg: '#10b981', button_text: '#ffffff', button_hover: '#059669',
+      login_bg: '#064e3b', primary_color: '#10b981',
+    },
+    swatch: '#10b981',
+  },
+  {
+    name: 'Elegancia Dorada',
+    theme: {
+      sidebar_bg: '#1a1a1a', sidebar_text: 'rgba(255,255,255,0.7)', sidebar_hover_bg: 'rgba(255,255,255,0.05)',
+      sidebar_active_bg: '#d97706', sidebar_active_text: '#ffffff',
+      button_bg: '#d97706', button_text: '#ffffff', button_hover: '#b45309',
+      login_bg: '#111111', primary_color: '#f59e0b',
+    },
+    swatch: '#d97706',
+  },
+];
 
 const ROLES_DISPONIBLES = [
   { id: 'admin_club', label: 'Administrador de Club', color: 'bg-emerald-50 text-emerald-600' },
@@ -62,8 +107,10 @@ export default function JefaturaUsuarios() {
   const [selectedEscenarios, setSelectedEscenarios] = useState<string[]>([]);
 
   const [newUser, setNewUser] = useState({
-    nombre: '', email: '', password: '', rol: 'jefatura', club_id: ''
+    nombre: '', email: '', password: '', rol: 'jefatura', club_id: '', theme: {} as ClubTheme
   });
+
+  const [selectedThemePreset, setSelectedThemePreset] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -95,6 +142,7 @@ export default function JefaturaUsuarios() {
         rol: p.rol || 'unassigned',
         estado: p.estado || 'activo',
         created_at: p.created_at,
+        theme: p.theme || {},
       })));
     } catch (err: any) {
       console.error(err);
@@ -112,11 +160,28 @@ export default function JefaturaUsuarios() {
 
     try {
       if (isEditMode && editingUserId) {
-        const { error: updErr } = await supabase
-          .from('perfiles')
-          .update({ nombre: newUser.nombre, rol: newUser.rol, club_id: newUser.club_id || null })
-          .eq('id', editingUserId);
-        if (updErr) throw updErr;
+        const themeJson = selectedThemePreset && selectedThemePreset !== 'custom'
+          ? THEME_PRESETS[parseInt(selectedThemePreset)].theme
+          : newUser.theme;
+        const updateBody: Record<string, any> = {
+          nombre: newUser.nombre,
+          rol: newUser.rol,
+          club_id: newUser.club_id || null,
+        };
+        if (Object.keys(themeJson).length > 0) {
+          updateBody.theme = themeJson;
+        } else {
+          updateBody.theme = {};
+        }
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/perfiles?id=eq.${editingUserId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify(updateBody),
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(errBody || 'Error al actualizar usuario');
+        }
 
         await supabase.from('escenarios').update({ gestor_id: null }).eq('gestor_id', editingUserId);
         if (newUser.rol === 'escenario_deportivo' && selectedEscenarios.length > 0) {
@@ -124,6 +189,9 @@ export default function JefaturaUsuarios() {
         }
         setSuccessMsg('Usuario actualizado exitosamente');
       } else {
+        const themeJson = selectedThemePreset && selectedThemePreset !== 'custom'
+          ? THEME_PRESETS[parseInt(selectedThemePreset)].theme
+          : newUser.theme;
         const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -139,6 +207,13 @@ export default function JefaturaUsuarios() {
 
         const uid = result.user?.id;
         if (!uid) throw new Error('No se pudo obtener el ID del nuevo usuario');
+
+        const themePatch = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/perfiles?id=eq.${uid}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ theme: Object.keys(themeJson).length > 0 ? themeJson : {} }),
+        });
+        if (!themePatch.ok) console.error('Error guardando theme:', await themePatch.text());
 
         if (newUser.rol === 'escenario_deportivo' && selectedEscenarios.length > 0) {
           await supabase.from('escenarios').update({ gestor_id: uid }).in('id', selectedEscenarios);
@@ -174,17 +249,25 @@ export default function JefaturaUsuarios() {
   const openEditModal = (user: UserProfile) => {
     setIsEditMode(true);
     setEditingUserId(user.id);
-    setNewUser({ nombre: user.nombre, email: user.email, password: '', rol: user.rol, club_id: user.club_id || '' });
+    const userTheme = user.theme || {};
+    setNewUser({ nombre: user.nombre, email: user.email, password: '', rol: user.rol, club_id: user.club_id || '', theme: userTheme });
     const vinculados = allEscenarios.filter(e => e.gestor_id === user.id).map(e => e.id);
     setSelectedEscenarios(vinculados);
+    const presetIdx = THEME_PRESETS.findIndex(p =>
+      p.theme.primary_color === userTheme.primary_color &&
+      p.theme.sidebar_bg === userTheme.sidebar_bg &&
+      p.theme.button_bg === userTheme.button_bg
+    );
+    setSelectedThemePreset(presetIdx >= 0 ? String(presetIdx) : 'custom');
     setIsCreateModalOpen(true);
   };
 
   const resetForm = () => {
     setIsEditMode(false);
     setEditingUserId(null);
-    setNewUser({ nombre: '', email: '', password: '', rol: 'jefatura', club_id: '' });
+    setNewUser({ nombre: '', email: '', password: '', rol: 'jefatura', club_id: '', theme: {} as ClubTheme });
     setSelectedEscenarios([]);
+    setSelectedThemePreset(null);
     setFormError(null);
   };
 
@@ -445,6 +528,49 @@ export default function JefaturaUsuarios() {
               </div>
             </div>
           )}
+
+          <div className="space-y-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <Palette size={14} className="text-gray-400" />
+              <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest">Personalización</h4>
+              {selectedThemePreset && (
+                <button
+                  type="button"
+                  onClick={() => { setSelectedThemePreset(null); setNewUser(prev => ({ ...prev, theme: {} as ClubTheme })); }}
+                  className="ml-auto text-[9px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wider"
+                >
+                  <X size={12} className="inline mr-1" />Quitar tema
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {THEME_PRESETS.map((preset, i) => {
+                const isActive = selectedThemePreset === String(i);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setSelectedThemePreset(String(i));
+                      setNewUser(prev => ({ ...prev, theme: preset.theme }));
+                    }}
+                    className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
+                      isActive
+                        ? 'border-[var(--primary)] bg-[var(--primary-10)]'
+                        : 'border-gray-100 hover:border-gray-300 bg-gray-50'
+                    }`}
+                  >
+                    <div className="w-full h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: preset.swatch }}>
+                      {isActive && <Check size={14} className="text-white drop-shadow" />}
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {preset.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="flex gap-3 pt-4 border-t border-gray-100">
             <Button type="button" variant="ghost" onClick={() => { setIsCreateModalOpen(false); resetForm(); }} className="flex-1 h-11 rounded-xl font-bold text-gray-500">

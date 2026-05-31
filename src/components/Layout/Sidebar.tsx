@@ -30,16 +30,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.teams'), icon: Users, path: '/club/teams', requiredMod: 'equipos' },
         { name: t('nav.calendar'), icon: Calendar, path: '/club/calendar', requiredMod: 'admin_club' },
         { name: t('nav.planning'), icon: FileText, path: '/club/planning', requiredMod: 'admin_club' },
-        { 
-          name: 'Reservas', 
-          icon: Calendar, 
-          path: '/club/reservations', 
-          requiredMod: 'admin_club',
-          submenu: [
-            { name: 'Aprobadas / Historial', path: '/club/reservations' },
-            { name: 'Agendar Nueva', path: '/club/reservations/new' }
-          ]
-        },
+        { name: 'Reservas', icon: Calendar, path: '/club/reservations', requiredMod: 'admin_club' },
         { name: t('nav.coaches'), icon: Users, path: '/club/coaches', requiredMod: 'entrenadores' },
         { name: 'Comunicaciones', icon: MessageCircle, path: '/club/comunicaciones', requiredMod: 'comunicaciones' },
         
@@ -58,15 +49,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
       const teamAdminItems = [
         { name: t('nav.dashboard'), icon: Home, path: '/coordinator' },
         { name: 'Mis Equipos', icon: Users, path: '/coordinator/teams' },
-        { 
-          name: 'Reservas', 
-          icon: Calendar, 
-          path: '/coordinator/reservations',
-          submenu: [
-            { name: 'Aprobadas / Historial', path: '/coordinator/reservations' },
-            { name: 'Agendar Nueva', path: '/coordinator/reservations/new' }
-          ]
-        },
+        { name: 'Reservas', icon: Calendar, path: '/coordinator/reservations' },
         { name: 'Logística', icon: Box, path: '/club/logistica', requiredMod: 'logistica' },
         { name: 'PQRS', icon: MessageCircle, path: '/coordinator/pqrs' },
       ];
@@ -76,16 +59,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.dashboard'), icon: Home, path: '/coach', requiredMod: 'admin_club' },
         { name: t('nav.calendar'), icon: Calendar, path: '/coach/calendar', requiredMod: 'admin_club' },
         { name: t('nav.planning'), icon: FileText, path: '/coach/planning', requiredMod: 'admin_club' },
-        { 
-          name: 'Reservas', 
-          icon: Calendar, 
-          path: '/coach/reservations',
-          requiredMod: 'admin_club',
-          submenu: [
-            { name: 'Aprobadas / Historial', path: '/coach/reservations' },
-            { name: 'Agendar Nueva', path: '/coach/reservations/new' }
-          ]
-        },
+        { name: 'Reservas', icon: Calendar, path: '/coach/reservations', requiredMod: 'admin_club' },
         { name: 'Gestión de Juegos', icon: Trophy, path: '/coach/games', requiredMod: 'juegos_amistosos' },
         { name: 'PQRS', icon: MessageCircle, path: '/coach/pqrs', requiredMod: 'admin_club' },
       ];
@@ -119,8 +93,18 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.dashboard'), icon: Home, path: '/escenario' },
         { name: 'Reservas', icon: Calendar, path: '/escenario/reservas' },
         { name: 'Logística', icon: Box, path: '/escenario/logistica' },
+        { name: 'Liga', icon: Trophy, path: '/escenario/liga' },
+        { name: 'Club', icon: Building2, path: '/escenario/club' },
+        { name: 'Jugadores', icon: Users, path: '/escenario/jugadores' },
+        { name: 'Entrenadores', icon: UserPlus, path: '/escenario/entrenadores' },
+        { name: 'Gestión Usuarios', icon: Users, path: '/escenario/usuarios' },
         { name: 'PQRS', icon: MessageCircle, path: '/escenario/pqrs' },
-        { name: t('nav.settings'), icon: Settings, path: '/escenario/settings' },
+      ];
+    case 'liga':
+      return [
+        { name: t('nav.dashboard'), icon: Home, path: '/liga' },
+        { name: 'Clubes', icon: Building2, path: '/liga/clubes' },
+        { name: 'Escenarios', icon: MapPin, path: '/liga/escenarios' },
       ];
     case 'jefatura':
       return [
@@ -299,7 +283,7 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
                 key={item.name}
                 to={item.path}
                 onClick={() => isMobile && onClose && onClose()}
-                end={item.path === `/${profile?.rol?.replace('admin_', '')}`}
+                end={item.path === navItems[0]?.path}
                 className={({ isActive }) =>
                   cn(
                     "group flex items-center py-2.5 font-medium rounded-xl transition-all px-3 text-sm",

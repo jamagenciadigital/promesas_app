@@ -16,6 +16,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { ImageUpload } from '../../components/ui/ImageUpload';
+import { FileUpload } from '../../components/ui/FileUpload';
 
 export default function TeamDashboard() {
   const { id } = useParams();
@@ -44,6 +45,8 @@ export default function TeamDashboard() {
   const [validatingAthlete, setValidatingAthlete] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [processingValidation, setProcessingValidation] = useState(false);
+  const [clubPlans, setClubPlans] = useState<any[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
   const [showTrayectoriaModal, setShowTrayectoriaModal] = useState(false);
   const [newTrayectoria, setNewTrayectoria] = useState({
@@ -106,6 +109,7 @@ export default function TeamDashboard() {
   useEffect(() => {
     if (team?.club_id) {
       fetchAllTeams();
+      fetchClubPlans();
     }
     if (team?.club?.deporte_id) {
       fetchPositions(team.club.deporte_id);
@@ -166,6 +170,20 @@ export default function TeamDashboard() {
     }
   };
 
+  const fetchClubPlans = async () => {
+    if (!team?.club_id) return;
+    try {
+      const { data, error } = await supabase
+        .from('planes_club')
+        .select('*')
+        .eq('club_id', team.club_id);
+      if (error) throw error;
+      setClubPlans(data || []);
+    } catch (err) {
+      console.error("Error fetching club plans:", err);
+    }
+  };
+
   const fetchPositions = async (deporteId: string) => {
     try {
       const { data, error } = await supabase
@@ -198,7 +216,7 @@ export default function TeamDashboard() {
           trayectorias:trayectorias_deportivas(*)
         `)
         .or(`equipo_id.eq.${targetId},equipo_id_2.eq.${targetId},equipo_id_3.eq.${targetId}`)
-        .in('estado', ['activo', 'pendiente_validacion', 'rechazado'])
+        .in('estado', ['activo', 'pendiente', 'pendiente_validacion', 'rechazado'])
         .order('nombre_completo');
 
       if (error) throw error;
@@ -212,9 +230,28 @@ export default function TeamDashboard() {
   };
 
   const handleApprovePlayer = async (athlete: any) => {
+    const enrollmentPlan = clubPlans.find(p => p.periodo === 'Único');
+    const autoInscPlanId = enrollmentPlan ? enrollmentPlan.id : athlete.plan_inscripcion_id;
+
+    let finalPlanId = athlete.plan_id;
+    if (!finalPlanId) {
+      const monthlyPlan = clubPlans.find(p => p.periodo !== 'Único');
+      if (monthlyPlan) {
+        finalPlanId = monthlyPlan.id;
+      } else {
+        showToast("El club no tiene planes configurados. Por favor valida desde Cartera para asignar un plan.", "error");
+        return;
+      }
+    }
+
     try {
       setProcessingValidation(true);
-      await approveAthleteDocuments(athlete);
+      const updatedAthlete = {
+        ...athlete,
+        plan_id: finalPlanId,
+        plan_inscripcion_id: autoInscPlanId
+      };
+      await approveAthleteDocuments(updatedAthlete);
       showToast("Deportista aprobado y cartera generada con éxito.", "success");
       if (team?.id) fetchPlayers(team.id);
     } catch (err: any) {
@@ -332,47 +369,55 @@ export default function TeamDashboard() {
         nombre: editingPlayer.nombre_completo
       });
 
+      const updatePayload: any = {
+        nombre_completo: editingPlayer.nombre_completo,
+        apellidos: editingPlayer.apellidos,
+        segundo_apellido: editingPlayer.segundo_apellido,
+        tipo_documento: editingPlayer.tipo_documento,
+        numero_documento: editingPlayer.numero_documento,
+        genero: editingPlayer.genero,
+        fecha_nacimiento: editingPlayer.fecha_nacimiento,
+        eps: editingPlayer.eps,
+        celular_deportista: editingPlayer.celular_deportista,
+        email_deportista: editingPlayer.email_deportista,
+        colegio: editingPlayer.colegio,
+        tutor_nombre: editingPlayer.tutor_nombre,
+        tutor_apellidos: editingPlayer.tutor_apellidos,
+        tutor_celular: editingPlayer.tutor_celular,
+        tutor_email: editingPlayer.tutor_email,
+        emergencia_nombre: editingPlayer.emergencia_nombre,
+        emergencia_celular: editingPlayer.emergencia_celular,
+        emergencia_email: editingPlayer.emergencia_email,
+        departamento: editingPlayer.departamento,
+        municipio: editingPlayer.municipio,
+        barrio: editingPlayer.barrio,
+        direccion: editingPlayer.direccion,
+        foto_url: editingPlayer.foto_url,
+        url_registro_civil: editingPlayer.url_registro_civil,
+        url_documento_id: editingPlayer.url_documento_id,
+        url_contrato: editingPlayer.url_contrato,
+        tutor_numero_documento: editingPlayer.tutor_numero_documento,
+        posicion_id: editingPlayer.posicion_id,
+        dorsal: editingPlayer.dorsal,
+        estatura: editingPlayer.estatura,
+        peso: editingPlayer.peso,
+        rh: editingPlayer.rh,
+        salario: editingPlayer.salario,
+        equipo_id_2: editingPlayer.equipo_id_2,
+        equipo_id_3: editingPlayer.equipo_id_3,
+        alias: editingPlayer.alias,
+        lugar_nacimiento: editingPlayer.lugar_nacimiento,
+      };
+
+      const hasDocs = editingPlayer.url_documento_id || editingPlayer.url_registro_civil || editingPlayer.url_contrato;
+      const originalEstado = players.find(p => p.id === editingPlayer.id)?.estado;
+      if (originalEstado === 'pendiente' && hasDocs) {
+        updatePayload.estado = 'pendiente_validacion';
+      }
+
       const { data: updatedData, error, status } = await supabase
         .from('deportistas')
-        .update({
-          nombre_completo: editingPlayer.nombre_completo,
-          apellidos: editingPlayer.apellidos,
-          segundo_apellido: editingPlayer.segundo_apellido,
-          tipo_documento: editingPlayer.tipo_documento,
-          numero_documento: editingPlayer.numero_documento,
-          genero: editingPlayer.genero,
-          fecha_nacimiento: editingPlayer.fecha_nacimiento,
-          eps: editingPlayer.eps,
-          celular_deportista: editingPlayer.celular_deportista,
-          email_deportista: editingPlayer.email_deportista,
-          colegio: editingPlayer.colegio,
-          tutor_nombre: editingPlayer.tutor_nombre,
-          tutor_apellidos: editingPlayer.tutor_apellidos,
-          tutor_celular: editingPlayer.tutor_celular,
-          tutor_email: editingPlayer.tutor_email,
-          emergencia_nombre: editingPlayer.emergencia_nombre,
-          emergencia_celular: editingPlayer.emergencia_celular,
-          emergencia_email: editingPlayer.emergencia_email,
-          departamento: editingPlayer.departamento,
-          municipio: editingPlayer.municipio,
-          barrio: editingPlayer.barrio,
-          direccion: editingPlayer.direccion,
-          foto_url: editingPlayer.foto_url,
-          url_registro_civil: editingPlayer.url_registro_civil,
-          url_documento_id: editingPlayer.url_documento_id,
-          url_contrato: editingPlayer.url_contrato,
-          tutor_numero_documento: editingPlayer.tutor_numero_documento,
-          posicion_id: editingPlayer.posicion_id,
-          dorsal: editingPlayer.dorsal,
-          estatura: editingPlayer.estatura,
-          peso: editingPlayer.peso,
-          rh: editingPlayer.rh,
-          salario: editingPlayer.salario,
-          equipo_id_2: editingPlayer.equipo_id_2,
-          equipo_id_3: editingPlayer.equipo_id_3,
-          alias: editingPlayer.alias,
-          lugar_nacimiento: editingPlayer.lugar_nacimiento,
-        })
+        .update(updatePayload)
         .eq('id', editingPlayer.id)
         .select();
 
@@ -534,7 +579,7 @@ export default function TeamDashboard() {
             <div className="flex items-center gap-6 text-sm font-medium">
               <div className="flex items-center gap-3 bg-black/10 px-5 py-3 rounded-2xl backdrop-blur-sm">
                 <Clock className="w-5 h-5 text-[var(--primary)]" />
-                <span className="text-base font-bold italic">{team.hora_inicio?.split('T')[1]?.split(':').slice(0,2).join(':') || '--:--'} - {team.hora_fin?.split('T')[1]?.split(':').slice(0,2).join(':') || '--:--'}</span>
+                <span className="text-base font-bold italic">{team.hora_inicio ? (team.hora_inicio.includes('T') ? team.hora_inicio.split('T')[1] : team.hora_inicio).split(':').slice(0,2).join(':') : '--:--'} - {team.hora_fin ? (team.hora_fin.includes('T') ? team.hora_fin.split('T')[1] : team.hora_fin).split(':').slice(0,2).join(':') : '--:--'}</span>
               </div>
               {team.dias_entrenamiento?.length > 0 && (
                 <div className="hidden lg:flex flex-wrap gap-2">
@@ -728,8 +773,11 @@ export default function TeamDashboard() {
                       <div className="flex items-center gap-2 mt-2">
                         <Badge variant="default" className="text-[9px] uppercase font-black">{player.tipo_documento}</Badge>
                         <span className="text-xs font-mono font-bold text-gray-400">{player.numero_documento}</span>
+                        {player.estado === 'pendiente' && (
+                          <Badge variant="warning" className="text-[8px] uppercase font-black ml-auto">SIN DOCUMENTOS</Badge>
+                        )}
                         {player.estado === 'pendiente_validacion' && (
-                          <Badge variant="warning" className="text-[8px] uppercase font-black ml-auto">Validación Pendiente</Badge>
+                          <Badge variant="info" className="text-[8px] uppercase font-black ml-auto">PENDIENTE APROBACIÓN</Badge>
                         )}
                         {player.estado === 'rechazado' && (
                           <Badge variant="error" className="text-[8px] uppercase font-black ml-auto">Documentos Rechazados</Badge>
@@ -747,6 +795,14 @@ export default function TeamDashboard() {
                          <span className="font-medium truncate">{player.email_deportista || 'Sin Email'}</span>
                       </div>
                     </div>
+
+                    {player.registrado_por && (
+                      <div className="pt-2 border-t border-gray-50 dark:border-white/5">
+                        <Badge variant="info" className="text-[8px] uppercase font-black">
+                          Registrado por: {player.registrado_por === 'jefatura' ? 'Jefatura' : player.registrado_por === 'liga' ? 'Liga' : 'Escenario'}
+                        </Badge>
+                      </div>
+                    )}
 
                     {canEdit && player.estado === 'pendiente_validacion' && (
                       <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex gap-2">
@@ -1355,8 +1411,8 @@ export default function TeamDashboard() {
                       </h4>
                    </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                      <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-[32px] border border-gray-100 dark:border-white/5">
+                   <div className="flex flex-col gap-6">
+                      <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 max-w-md mx-auto w-full">
                          <ImageUpload
                            value={editingPlayer.foto_url}
                            onChange={(url) => setEditingPlayer({...editingPlayer, foto_url: url})}
@@ -1365,55 +1421,63 @@ export default function TeamDashboard() {
                            label="Foto de Perfil del Deportista"
                          />
                       </div>
-                      <div className="space-y-4">
-                         <Input 
-                           label="URL Registro Civil"
-                           placeholder="Link del documento"
-                           disabled={isCoach}
-                           value={editingPlayer.url_registro_civil || ''}
-                           onChange={(e) => setEditingPlayer({...editingPlayer, url_registro_civil: e.target.value})}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FileUpload
+                           value={editingPlayer.url_registro_civil}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_registro_civil: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'registro'}
+                           label="Registro Civil"
                          />
-                         <Input 
-                           label="URL Documento Identidad"
-                           placeholder="Link del documento"
-                           disabled={isCoach}
-                           value={editingPlayer.url_documento_id || ''}
-                           onChange={(e) => setEditingPlayer({...editingPlayer, url_documento_id: e.target.value})}
+                         
+                         <FileUpload
+                           value={editingPlayer.url_documento_id}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_documento_id: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'documento'}
+                           label="Documento Identidad"
                          />
-                         <Input 
-                           label="URL Contrato Firmado"
-                           placeholder="Link del contrato"
-                           disabled={isCoach}
-                           value={editingPlayer.url_contrato || ''}
-                            onChange={(e) => setEditingPlayer({...editingPlayer, url_contrato: e.target.value})}
-                          />
-                          <Input 
-                            label="Certificado Salud"
-                            placeholder="Link del certificado"
-                            disabled={isCoach}
-                            value={editingPlayer.url_certificado_salud || ''}
-                            onChange={(e) => setEditingPlayer({...editingPlayer, url_certificado_salud: e.target.value})}
-                          />
-                          <div className="pt-2">
-                             <label className="flex items-center gap-2 cursor-pointer">
-                               <input 
-                                 type="checkbox"
-                                 checked={editingPlayer.viene_de_otro_club || false}
-                                 onChange={(e) => setEditingPlayer({...editingPlayer, viene_de_otro_club: e.target.checked})}
-                                 className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+
+                         <FileUpload
+                           value={editingPlayer.url_contrato}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_contrato: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'contrato'}
+                           label="Contrato Firmado"
+                         />
+
+                         <FileUpload
+                           value={editingPlayer.url_certificado_salud}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_certificado_salud: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'salud'}
+                           label="Certificado Salud"
+                         />
+
+                         <div className="md:col-span-2 flex flex-col gap-4">
+                            <div className="pt-2">
+                               <label className="flex items-center gap-2 cursor-pointer">
+                                 <input 
+                                   type="checkbox"
+                                   checked={editingPlayer.viene_de_otro_club || false}
+                                   onChange={(e) => setEditingPlayer({...editingPlayer, viene_de_otro_club: e.target.checked})}
+                                   className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                 />
+                                 <span className="text-[10px] font-black uppercase text-gray-400">¿Viene de otro club?</span>
+                               </label>
+                            </div>
+                            
+                            {editingPlayer.viene_de_otro_club && (
+                               <FileUpload
+                                 value={editingPlayer.url_carta_traspaso}
+                                 onChange={(url) => setEditingPlayer({...editingPlayer, url_carta_traspaso: url})}
+                                 bucket="deportista-documentos"
+                                 path={editingPlayer.numero_documento || editingPlayer.id || 'traspaso'}
+                                 label="Carta Traspaso"
                                />
-                               <span className="text-[10px] font-black uppercase text-gray-400">¿Viene de otro club?</span>
-                             </label>
-                          </div>
-                          {editingPlayer.viene_de_otro_club && (
-                            <Input 
-                              label="Carta Traspaso"
-                              placeholder="Link de la carta"
-                              disabled={isCoach}
-                              value={editingPlayer.url_carta_traspaso || ''}
-                              onChange={(e) => setEditingPlayer({...editingPlayer, url_carta_traspaso: e.target.value})}
-                            />
-                          )}
+                            )}
+                         </div>
                       </div>
                    </div>
                 </div>

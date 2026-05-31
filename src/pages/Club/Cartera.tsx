@@ -78,6 +78,8 @@ export default function Cartera() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionField, setShowRejectionField] = useState(false);
   const [processingValidation, setProcessingValidation] = useState(false);
+  const [clubPlans, setClubPlans] = useState<any[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [searchTermDoc, setSearchTermDoc] = useState('');
@@ -121,14 +123,17 @@ export default function Cartera() {
     try {
       setLoading(true);
       
-      // 1. Fetch Players and Teams first for robust naming
-      const [{ data: playersData, error: pError }, { data: teamsData, error: tError }] = await Promise.all([
-        supabase.from('deportistas').select('id, nombre_completo, apellidos, equipo_id').eq('club_id', activeClubId || profile?.club_id),
-        supabase.from('equipos').select('id, nombre').eq('club_id', activeClubId || profile?.club_id)
+      // 1. Fetch Players, Teams and Plans first for robust naming
+      const [{ data: playersData, error: pError }, { data: teamsData, error: tError }, { data: plansData, error: plError }] = await Promise.all([
+        supabase.from('deportistas').select('id, nombre_completo, apellidos, equipo_id, plan_id, plan_inscripcion_id').eq('club_id', activeClubId || profile?.club_id),
+        supabase.from('equipos').select('id, nombre').eq('club_id', activeClubId || profile?.club_id),
+        supabase.from('planes_club').select('*').eq('club_id', activeClubId || profile?.club_id)
       ]);
       
       if (pError) console.error("Error cargando deportistas (posible RLS):", pError);
       if (tError) console.error("Error cargando equipos:", tError);
+      if (plError) console.error("Error cargando planes del club:", plError);
+      if (plansData) setClubPlans(plansData);
       
       const tMap: Record<string, string> = {};
       if (teamsData) {
@@ -241,9 +246,22 @@ export default function Cartera() {
   }, [eventForm.equipos, creatingGroupEvent, fetchTeamPlayers]);
 
   const handleApproveDocs = async (athlete: any) => {
+    const enrollmentPlan = clubPlans.find(p => p.periodo === 'Único');
+    const autoInscPlanId = enrollmentPlan ? enrollmentPlan.id : athlete.plan_inscripcion_id;
+
+    if (!selectedPlanId) {
+      alert("Por favor selecciona un Plan de Mensualidad antes de aprobar.");
+      return;
+    }
+
     try {
       setProcessingValidation(true);
-      await approveAthleteDocuments(athlete);
+      const updatedAthlete = {
+        ...athlete,
+        plan_id: selectedPlanId,
+        plan_inscripcion_id: autoInscPlanId
+      };
+      await approveAthleteDocuments(updatedAthlete);
       setValidatingAthlete(null);
       fetchPendingAthletes();
       alert("Deportista activado y cartera generada con éxito.");
@@ -861,7 +879,10 @@ export default function Cartera() {
 
                     <div className="pt-4 border-t border-gray-50 dark:border-white/5">
                       <Button 
-                        onClick={() => setValidatingAthlete(athlete)}
+                        onClick={() => {
+                          setValidatingAthlete(athlete);
+                          setSelectedPlanId(athlete.plan_id || '');
+                        }}
                         className="w-full h-14 bg-black text-[var(--primary)] rounded-2xl font-black uppercase text-[10px] tracking-widest italic flex items-center justify-center gap-2"
                       >
                         Validar Documentos <FileText size={16} />
@@ -1194,7 +1215,41 @@ export default function Cartera() {
                </div>
              </div>
 
-             <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
+              <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                 {(() => {
+                   const enrollmentPlan = clubPlans.find(p => p.periodo === 'Único');
+                   return (
+                     <div className="space-y-2 p-5 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Suscripción / Pago Único</p>
+                       {enrollmentPlan ? (
+                         <div className="flex items-center justify-between mt-1">
+                           <span className="text-xs font-black uppercase italic text-gray-900 dark:text-white">{enrollmentPlan.nombre}</span>
+                           <span className="text-[9px] font-black text-[var(--primary)] uppercase bg-[var(--primary-10)] px-3 py-1 rounded-full italic tracking-wider">Asignado Automáticamente</span>
+                         </div>
+                       ) : (
+                         <p className="text-xs font-bold text-amber-500 uppercase mt-1">Sin Plan de Inscripción configurado para este Club</p>
+                       )}
+                     </div>
+                   );
+                 })()}
+
+                 <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Asignar Plan Mensual / Periódico</p>
+                    <select
+                      className="w-full bg-white dark:bg-[#1e1f24] border-2 border-gray-100 dark:border-white/5 rounded-3xl px-5 py-4 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-[var(--primary)] transition-all"
+                      value={selectedPlanId}
+                      onChange={(e) => setSelectedPlanId(e.target.value)}
+                      required
+                    >
+                      <option value="">Seleccionar plan mensual...</option>
+                      {clubPlans.filter(p => p.periodo !== 'Único').map(p => (
+                        <option key={p.id} value={p.id}>{p.nombre.toUpperCase()} ({formatCurrency(p.precio)} - {p.periodo.toUpperCase()})</option>
+                      ))}
+                    </select>
+                 </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Acciones de Validación</p>
                 <div className="grid grid-cols-2 gap-4">
                   <Button 

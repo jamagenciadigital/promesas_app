@@ -9,6 +9,7 @@ interface ScheduleModalProps {
   escenario: any;
   onClose: () => void;
   onSuccess: (msg: string) => void;
+  inline?: boolean;
 }
 
 const DIAS = [
@@ -52,7 +53,7 @@ const getLocalWeekdayIndex = (dateStr: string): number => {
   return d.getDay();
 };
 
-export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }: ScheduleModalProps) {
+export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, inline }: ScheduleModalProps) {
   const { profile, user } = useAuth();
 
   // Determinar si el usuario tiene privilegios de edición sobre los horarios
@@ -68,6 +69,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const [horarios, setHorarios] = useState<any[]>([]);
   const [activeDay, setActiveDay] = useState(0);
 
+  const [canchas, setCanchas] = useState<any[]>([]);
+
   // Estados para bloqueo avanzado (Administrativo / Equipo)
   const [blockingSlot, setBlockingSlot] = useState<any>(null);
   const [blockType, setBlockType] = useState<'admin' | 'team'>('admin');
@@ -80,9 +83,11 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthBlocks, setMonthBlocks] = useState<any[]>([]);
   const [loadingMonthBlocks, setLoadingMonthBlocks] = useState(false);
+  const [selectedCalendarCancha, setSelectedCalendarCancha] = useState('');
 
   useEffect(() => {
     fetchHorarios();
+    fetchCanchas();
   }, [escenario.id]);
 
   useEffect(() => {
@@ -119,7 +124,67 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
         .lte('fecha', lastDayStr);
 
       if (error) throw error;
-      setMonthBlocks(data || []);
+      const blocks = data || [];
+
+      // Fetch club/profile names for reservations with cliente_id
+      const clientIds = [...new Set(blocks.filter(b => b.cliente_id).map(b => b.cliente_id as string))];
+      if (clientIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('perfiles')
+          .select('id, nombre')
+          .in('id', clientIds);
+        const profileMap = new Map((profiles || []).map(p => [p.id, p.nombre]));
+        for (const b of blocks) {
+          if (b.cliente_id && profileMap.has(b.cliente_id)) {
+            b.cliente_nombre = profileMap.get(b.cliente_id);
+          }
+        }
+      }
+
+      // Fetch equipo names + club names via equipos.club_id
+      const equipoIds = [...new Set(blocks.filter(b => b.equipo_id).map(b => b.equipo_id as string))];
+      if (equipoIds.length > 0) {
+        const { data: equipos } = await supabase
+          .from('equipos')
+          .select('id, nombre, club_id')
+          .in('id', equipoIds);
+        const equipoMap = new Map((equipos || []).map(e => [e.id, e.nombre]));
+        const clubIdsFromEquipos = [...new Set((equipos || []).filter(e => e.club_id).map(e => e.club_id as string))];
+        let clubMap = new Map<string, string>();
+        if (clubIdsFromEquipos.length > 0) {
+          const { data: clubes } = await supabase
+            .from('clubes')
+            .select('id, nombre')
+            .in('id', clubIdsFromEquipos);
+          clubMap = new Map((clubes || []).map(c => [c.id, c.nombre]));
+        }
+        for (const b of blocks) {
+          if (b.equipo_id && equipoMap.has(b.equipo_id)) {
+            b.equipo_nombre = equipoMap.get(b.equipo_id);
+            const teamData = (equipos || []).find(e => e.id === b.equipo_id);
+            if (teamData?.club_id && clubMap.has(teamData.club_id)) {
+              b.equipo_club_nombre = clubMap.get(teamData.club_id);
+            }
+          }
+        }
+      }
+
+      // Fetch deportista names
+      const deportistaIds = [...new Set(blocks.filter(b => b.deportista_id).map(b => b.deportista_id as string))];
+      if (deportistaIds.length > 0) {
+        const { data: deportistas } = await supabase
+          .from('deportistas')
+          .select('id, nombre_completo')
+          .in('id', deportistaIds);
+        const depMap = new Map((deportistas || []).map(d => [d.id, d.nombre_completo]));
+        for (const b of blocks) {
+          if (b.deportista_id && depMap.has(b.deportista_id)) {
+            b.deportista_nombre = depMap.get(b.deportista_id);
+          }
+        }
+      }
+
+      setMonthBlocks(blocks);
     } catch (error) {
       console.error('Error fetching month blocks:', error);
     } finally {
@@ -154,6 +219,14 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchCanchas = async () => {
+    const { data } = await supabase
+      .from('escenario_canchas')
+      .select('*')
+      .eq('escenario_id', escenario.id);
+    setCanchas(data || []);
   };
 
   const dateBlocks = React.useMemo(() => {
@@ -256,7 +329,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
   const monthName = MESES[currentMonth.getMonth()];
   const yearName = currentMonth.getFullYear();
 
-  const addSlot = () => {
+  const addSlot = (prefilledCanchaId?: string) => {
     if (!canEdit) return;
     const newSlot = {
       escenario_id: escenario.id,
@@ -267,6 +340,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
       precio: 0,
       es_gratis: false,
       es_bloqueado: false,
+      cancha_id: prefilledCanchaId || '',
       isNew: true,
       tempId: Math.random()
     };
@@ -332,6 +406,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
         precio: slot.precio,
         es_gratis: slot.es_gratis,
         es_bloqueado: slot.es_bloqueado,
+        cancha_id: slot.cancha_id || '',
         isNew: true,
         tempId: Math.random()
       });
@@ -389,7 +464,11 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
       }
 
       onSuccess('Disponibilidad actualizada correctamente');
-      onClose();
+      if (inline) {
+        fetchHorarios();
+      } else {
+        onClose();
+      }
     } catch (error: any) {
       alert('Error al guardar: ' + error.message);
     } finally {
@@ -499,19 +578,29 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
     return dbDayToUiDay(d.getDay());
   };
 
-  const daySlots = horarios.filter(h => h.ui_dia === activeDay);
+  const daySlots = horarios
+    .filter(h => h.ui_dia === activeDay)
+    .sort((a, b) => {
+      const aCancha = a.cancha_id || '';
+      const bCancha = b.cancha_id || '';
+      if (aCancha !== bCancha) return aCancha.localeCompare(bCancha);
+      return (a.hora_inicio || '').localeCompare(b.hora_inicio || '');
+    });
   
   const activeDateUiDay = getSelectedDateUiDay();
-  const activeDateSlots = horarios.filter(h => h.ui_dia === activeDateUiDay);
+  const activeDateSlots = horarios
+    .filter(h => h.ui_dia === activeDateUiDay)
+    .sort((a, b) => {
+      const aCancha = a.cancha_id || '';
+      const bCancha = b.cancha_id || '';
+      if (aCancha !== bCancha) return aCancha.localeCompare(bCancha);
+      return (a.hora_inicio || '').localeCompare(b.hora_inicio || '');
+    })
+    .filter(s => !selectedCalendarCancha || s.cancha_id === selectedCalendarCancha);
 
-  return (
-    <Modal 
-      isOpen={true} 
-      onClose={onClose} 
-      title={canEdit ? "Horarios y Disponibilidad" : "Calendario de Disponibilidad"}
-      maxWidth="5xl"
-    >
-      <div className="space-y-6 p-1">
+  const content = (
+    <>
+      <div className={inline ? "space-y-6" : "space-y-6 p-1"}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 mb-1">
@@ -596,7 +685,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                     </button>
                   )}
                   <Button 
-                    onClick={addSlot}
+                    onClick={() => addSlot()}
                     className="flex-1 sm:flex-initial bg-[#E30613]/10 text-[#E30613] hover:bg-[#E30613] hover:text-white transition-all rounded-xl h-9 px-4 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -615,15 +704,30 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                     <Clock className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                   </div>
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">No hay bloques definidos para este día</p>
-                  <button type="button" onClick={addSlot} className="text-[#E30613] hover:text-red-700 text-[10px] font-bold uppercase tracking-wider mt-2 transition-colors flex items-center gap-1">
+                  <button type="button" onClick={() => addSlot()} className="text-[#E30613] hover:text-red-700 text-[10px] font-bold uppercase tracking-wider mt-2 transition-colors flex items-center gap-1">
                     <Plus className="w-3.5 h-3.5" /> Configurar ahora
                   </button>
                 </div>
               ) : (
                 <div className="space-y-4 max-h-[44vh] overflow-y-auto pr-1">
-                  {daySlots.map((slot) => {
+                  {daySlots.reduce((acc: React.ReactNode[], slot) => {
                     const isInvalid = slot.hora_inicio >= slot.hora_fin;
-                    return (
+                    const prevSlot = acc.length > 0 ? (acc[acc.length - 1] as any)?.__slot : null;
+                    const prevCanchaId = prevSlot?.cancha_id || '';
+                    const slotCanchaId = slot.cancha_id || '';
+                    if (slotCanchaId !== prevCanchaId) {
+                      const canchaName = canchas.find(c => c.id === slot.cancha_id)?.nombre || 'Sin cancha';
+                      acc.push(
+                        <div key={`header-${slotCanchaId || 'none'}-${slot.tempId}`} className="pt-2 first:pt-0">
+                          <div className="flex items-center gap-2 px-1 mb-3">
+                            <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+                            <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{canchaName}</span>
+                            <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+                          </div>
+                        </div>
+                      );
+                    }
+                    acc.push(
                       <div 
                         key={slot.id || slot.tempId} 
                         className={`relative bg-white dark:bg-[#182332]/20 p-5 rounded-2xl border transition-all duration-300 flex flex-col lg:flex-row gap-4 items-stretch lg:items-end ${
@@ -762,6 +866,23 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                               Dividir 1h
                             </button>
                           </div>
+
+                          {/* Cancha / Área */}
+                          {canchas.length > 0 && (
+                            <div className="w-full sm:w-auto min-w-[140px]">
+                              <span className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1 text-center sm:text-left">Cancha</span>
+                              <select
+                                value={slot.cancha_id || ''}
+                                onChange={e => updateSlot(slot.tempId, slot.id, { cancha_id: e.target.value })}
+                                className="w-full h-[44px] px-3 bg-gray-50/50 dark:bg-black/20 border border-gray-200/80 dark:border-white/10 rounded-xl text-[10px] font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613] focus:ring-2 focus:ring-[#E30613]/10 transition-all"
+                              >
+                                <option value="">Sin asignar</option>
+                                {canchas.map(c => (
+                                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
 
                         {/* Delete Action Button */}
@@ -784,7 +905,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                         )}
                       </div>
                     );
-                  })}
+                    return acc;
+                  }, [])}
                 </div>
               )}
             </div>
@@ -981,6 +1103,37 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                   </p>
                 </div>
 
+                {/* Cancha tabs */}
+                {canchas.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCalendarCancha('')}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-all border ${
+                        !selectedCalendarCancha
+                          ? 'bg-[var(--primary)] text-black border-transparent shadow-sm'
+                          : 'bg-white dark:bg-black/30 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10 hover:border-[var(--primary)]'
+                      }`}
+                    >
+                      Todas
+                    </button>
+                    {canchas.map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setSelectedCalendarCancha(c.id)}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-all border ${
+                          selectedCalendarCancha === c.id
+                            ? 'bg-[var(--primary)] text-black border-transparent shadow-sm'
+                            : 'bg-white dark:bg-black/30 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10 hover:border-[var(--primary)]'
+                        }`}
+                      >
+                        {c.nombre}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {activeDateSlots.length === 0 ? (
                   <div className="bg-gray-50/50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-10 text-center flex flex-col items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-3">
@@ -1005,7 +1158,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                       }
 
                       const isDateBlocked = !!blockRecord;
-                      const isDateReserved = dateBlocks.some(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva !== 'bloqueo');
+                      const reservationRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva !== 'bloqueo');
+                      const isDateReserved = !!reservationRecord;
                       const isBlocked = slot.es_bloqueado || isDateBlocked;
 
                       return (
@@ -1056,7 +1210,11 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
                           <div className="flex items-center gap-2">
                             {isDateReserved ? (
                               <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                Ocupado
+                                {(() => {
+                                  const club = reservationRecord?.cliente_nombre || reservationRecord?.equipo_club_nombre;
+                                  const sub = reservationRecord?.equipo_nombre || reservationRecord?.deportista_nombre || reservationRecord?.atleta_nombre;
+                                  return club ? `${club} / ${sub || 'Ocupado'}` : sub || 'Ocupado';
+                                })()}
                               </span>
                             ) : isBlocked ? (
                               <>
@@ -1249,6 +1407,18 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess }
           </div>
         </Modal>
       )}
+    </>
+  );
+
+  if (inline) return content;
+  return (
+    <Modal 
+      isOpen={true} 
+      onClose={onClose} 
+      title={canEdit ? "Horarios y Disponibilidad" : "Calendario de Disponibilidad"}
+      maxWidth="5xl"
+    >
+      {content}
     </Modal>
   );
 }

@@ -225,7 +225,28 @@ function parseSelectString(selectStr: string): string[] {
 }
 
 async function hydrateRelation(row: any, fieldName: string, selectFields: string, aliasName: string | undefined, fks: any[], reverseFks: any[], schemaName: string) {
-  const fk = fks.find(f => f.foreign_table === fieldName || f.column_name === fieldName || f.column_name === `${fieldName}_id`);
+  // Support explicit FK syntax: table!fk_name
+  let explicitFkName: string | undefined;
+  let baseFieldName = fieldName;
+  const bangIdx = fieldName.indexOf('!');
+  if (bangIdx !== -1) {
+    explicitFkName = fieldName.substring(bangIdx + 1);
+    baseFieldName = fieldName.substring(0, bangIdx);
+  }
+  // Sort FKs: prefer column_name that matches the table name in singular form
+  const sortedFks = [...fks].sort((a, b) => {
+    const singular = baseFieldName.replace(/es$/, '').replace(/s$/, '');
+    const expectedCol = singular + '_id';
+    const aScore = a.column_name === expectedCol ? 2 : a.column_name.startsWith(singular + '_id') ? 1 : 0;
+    const bScore = b.column_name === expectedCol ? 2 : b.column_name.startsWith(singular + '_id') ? 1 : 0;
+    return bScore - aScore;
+  });
+  const fk = sortedFks.find(f => 
+    (explicitFkName && f.constraint_name === explicitFkName) ||
+    f.foreign_table === baseFieldName || 
+    f.column_name === baseFieldName || 
+    f.column_name === `${baseFieldName}_id`
+  );
   if (fk) {
     const localValue = row[fk.column_name];
     if (localValue) {
@@ -235,27 +256,27 @@ async function hydrateRelation(row: any, fieldName: string, selectFields: string
       if (val && selectFields !== '*') {
         await hydrateRow(val, fk.foreign_schema, fk.foreign_table, selectFields);
       }
-      row[aliasName || fieldName] = val;
+      row[aliasName || baseFieldName] = val;
     } else {
-      row[aliasName || fieldName] = null;
+      row[aliasName || baseFieldName] = null;
     }
   } else {
-    const revFk = reverseFks.find(r => r.foreign_table_name === fieldName);
+    const revFk = reverseFks.find(r => r.foreign_table_name === baseFieldName);
     if (revFk) {
       const localValue = row['id'];
       if (localValue) {
         const joinQuery = `SELECT * FROM "${revFk.foreign_schema}"."${revFk.foreign_table_name}" WHERE "${revFk.foreign_column_name}" = $1`;
         const joinRes = await prisma.$queryRawUnsafe<any[]>(joinQuery, localValue);
         
-        const isOneToOne = (fieldName === 'perfiles' || fieldName === 'users');
+        const isOneToOne = (baseFieldName === 'perfiles' || baseFieldName === 'users');
         if (selectFields !== '*') {
           for (let i = 0; i < joinRes.length; i++) {
             await hydrateRow(joinRes[i], revFk.foreign_schema, revFk.foreign_table_name, selectFields);
           }
         }
-        row[aliasName || fieldName] = isOneToOne ? (joinRes.length > 0 ? joinRes[0] : null) : joinRes;
+        row[aliasName || baseFieldName] = isOneToOne ? (joinRes.length > 0 ? joinRes[0] : null) : joinRes;
       } else {
-        row[aliasName || fieldName] = [];
+        row[aliasName || baseFieldName] = [];
       }
     }
   }
@@ -290,7 +311,8 @@ async function hydrateRow(row: any, schemaName: string, tableName: string, selec
         kcu.column_name, 
         ccu.table_name AS foreign_table, 
         ccu.column_name AS foreign_col,
-        ccu.table_schema AS foreign_schema
+        ccu.table_schema AS foreign_schema,
+        tc.constraint_name
       FROM information_schema.table_constraints AS tc 
       JOIN information_schema.key_column_usage AS kcu 
         ON tc.constraint_name = kcu.constraint_name 
@@ -468,6 +490,52 @@ async function executeQuery(table: string, method: string, args: any[], filters:
     } else if (type === 'containedBy') {
       const [col, val] = filterArgs;
       whereClauses.push(`"${col}" <@ ${addParam(val)}`);
+    } else if (type === 'or') {
+      const [parsedConditions] = filterArgs;
+      if (Array.isArray(parsedConditions) && parsedConditions.length > 0) {
+        const clauses: string[] = [];
+        for (const cond of parsedConditions) {
+          const { col, op, val } = cond;
+          if (op === 'eq') {
+            if (val === 'null') {
+              clauses.push(`"${col}" IS NULL`);
+            } else {
+              clauses.push(`"${col}" = ${addParam(val)}`);
+            }
+          } else if (op === 'neq') {
+            if (val === 'null') {
+              clauses.push(`"${col}" IS NOT NULL`);
+            } else {
+              clauses.push(`"${col}" != ${addParam(val)}`);
+            }
+          } else if (op === 'gt') {
+            clauses.push(`"${col}" > ${addParam(val)}`);
+          } else if (op === 'gte') {
+            clauses.push(`"${col}" >= ${addParam(val)}`);
+          } else if (op === 'lt') {
+            clauses.push(`"${col}" < ${addParam(val)}`);
+          } else if (op === 'lte') {
+            clauses.push(`"${col}" <= ${addParam(val)}`);
+          } else if (op === 'like') {
+            clauses.push(`"${col}" LIKE ${addParam(val)}`);
+          } else if (op === 'ilike') {
+            clauses.push(`"${col}" ILIKE ${addParam(val)}`);
+          } else if (op === 'is') {
+            if (val === 'null') {
+              clauses.push(`"${col}" IS NULL`);
+            } else if (val === 'true') {
+              clauses.push(`"${col}" IS TRUE`);
+            } else if (val === 'false') {
+              clauses.push(`"${col}" IS NOT TRUE`);
+            } else {
+              clauses.push(`"${col}" IS ${val}`);
+            }
+          }
+        }
+        if (clauses.length > 0) {
+          whereClauses.push(`(${clauses.join(' OR ')})`);
+        }
+      }
     } else if (type === 'order') {
       const [col, options] = filterArgs;
       const asc = options?.ascending !== false;
@@ -503,7 +571,7 @@ async function executeQuery(table: string, method: string, args: any[], filters:
       }
     }
     
-    const cols = Object.keys(dataRows[0]);
+    const cols = Object.keys(dataRows[0]).filter(c => c in colTypes);
     const colStrings = cols.map(c => `"${c}"`).join(', ');
     
     const valueStrings: string[] = [];
@@ -531,7 +599,7 @@ async function executeQuery(table: string, method: string, args: any[], filters:
     const data = args[0];
     const updateClauses: string[] = [];
     
-    for (const col of Object.keys(data)) {
+    for (const col of Object.keys(data).filter(c => c in colTypes)) {
       let val = data[col];
       const isJsonCol = colTypes[col] === 'json' || colTypes[col] === 'jsonb';
       if (isJsonCol) {
@@ -1063,6 +1131,25 @@ app.all('/rest/v1/:table', async (req, res) => {
     
     if (key === 'limit') {
       filters.push({ type: 'limit', args: [parseInt(valStr)] });
+      continue;
+    }
+
+    if (key === 'or') {
+      const inner = valStr.substring(1, valStr.length - 1);
+      const conditions = inner.split(',');
+      const parsedConditions = [];
+      for (const cond of conditions) {
+        const parts = cond.split('.');
+        if (parts.length >= 3) {
+          const col = parts[0];
+          const op = parts[1];
+          const val = parts.slice(2).join('.');
+          parsedConditions.push({ col, op, val });
+        }
+      }
+      if (parsedConditions.length > 0) {
+        filters.push({ type: 'or', args: [parsedConditions] });
+      }
       continue;
     }
 

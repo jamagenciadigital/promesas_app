@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MapPin, Phone, Trophy, Users, Calendar as CalendarIcon, X, Building2, Edit2, Link as LinkIcon, QrCode, ShieldCheck, Share2, User, LayoutGrid, ChevronLeft, Mail, Clock, DollarSign, MessageCircle } from 'lucide-react';
+import { Plus, MapPin, Phone, Trophy, Users, Calendar as CalendarIcon, X, Building2, Edit2, Link as LinkIcon, QrCode, ShieldCheck, Share2, User, LayoutGrid, ChevronLeft, Mail, Clock, DollarSign, MessageCircle, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/ui/Input';
@@ -7,12 +8,12 @@ import { Button } from '../../components/ui/Button';
 import { Toast } from '../../components/ui/Toast';
 import { Badge } from '../../components/ui/Badge'; // IMPORTACIÓN CORREGIDA
 import EscenarioScheduleModal from './EscenarioScheduleModal';
-import EscenarioReservations from './EscenarioReservations';
 import { Modal } from '../../components/ui/Modal';
 
-const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | 'reservations' | 'settings' }) => {
+const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | 'settings' }) => {
   const { user, profile } = useAuth();
-  const [view, setView] = useState<'list' | 'reservations' | 'settings'>(defaultView === 'settings' ? 'list' : defaultView);
+  const navigate = useNavigate();
+  const [view, setView] = useState<'list' | 'settings'>(defaultView === 'settings' ? 'list' : defaultView);
   
   const [escenarios, setEscenarios] = useState<any[]>([]);
   const [gestores, setGestores] = useState<any[]>([]);
@@ -249,28 +250,14 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
             >
               {profile?.rol === 'deportista' || profile?.rol === 'admin_club' ? 'Sedes Disponibles' : 'Mis Sedes'}
             </button>
-            <button 
-              onClick={() => setView('reservations')}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${view === 'reservations' ? 'bg-[#E30613] text-white shadow-sm' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-gray-700'}`}
-            >
-              Bitácora {view === 'reservations' && selectedEscenario ? `- ${selectedEscenario.nombre}` : 'Global'}
-            </button>
           </div>
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
-          {view === 'reservations' && (
-            <button 
-              onClick={() => { setView('list'); setSelectedEscenario(null); }}
-              className="h-10 px-4 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-center gap-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-all text-xs font-semibold"
-            >
-              <ChevronLeft size={14} /> Volver
-            </button>
-          )}
           {(profile?.rol === 'admin_club' || profile?.rol === 'superadmin' || profile?.rol === 'jefatura') && view === 'list' && (
             <Button 
               onClick={() => handleOpenModal()}
-              className="bg-[#E30613] hover:bg-red-700 text-white font-bold uppercase text-[10px] rounded-xl h-10 px-5 transition-all shadow-md shadow-red-600/10"
+              className="bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-[10px] rounded-xl h-10 px-5 transition-all hover:scale-105 active:scale-95"
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />Nueva Sede
             </Button>
@@ -320,7 +307,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         </div>
       )}
 
-      {view === 'list' ? (
+      {view === 'list' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
           {loading ? (
               Array.from({length: 3}).map((_, i) => <div key={i} className="h-[380px] bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl animate-pulse" />)
@@ -358,26 +345,33 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
                           <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 tracking-wider truncate">{esc.direccion || 'Ubicación no declarada'}</span>
                       </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => { setSelectedEscenario(esc); setIsScheduleModalOpen(true); }} className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 border border-gray-200 dark:border-white/5 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all">Horarios</button>
-                    {(profile?.rol === 'admin_club' || profile?.rol === 'deportista') ? (
-                        <button 
-                            onClick={() => window.open(`${window.location.origin}/reservar/${esc.id}`, '_blank')}
-                            className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-[#E30613] hover:bg-red-700 py-3 rounded-xl transition-all shadow-md shadow-red-600/10"
-                        >
-                            Reservar Ahora
-                        </button>
-                    ) : (
-                        <button onClick={() => { setSelectedEscenario(esc); setView('reservations'); }} className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-[#182332] dark:bg-white/10 hover:bg-[#E30613] py-3 rounded-xl transition-all">Reservas</button>
-                    )}
-                  </div>
+                  {profile?.rol === 'admin_escenario' || profile?.rol === 'escenario_deportivo' ? (
+                    <Button
+                      onClick={() => navigate(`/escenario/${esc.id}`)}
+                      className="w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase italic tracking-wider text-black bg-[var(--primary)] hover:scale-[1.02] active:scale-95 py-3 rounded-xl transition-all"
+                    >
+                      <Eye size={14} /> Ver Escenario
+                    </Button>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button onClick={() => { setSelectedEscenario(esc); setIsScheduleModalOpen(true); }} variant="outline" size="sm" className="text-[10px] font-bold uppercase tracking-wider h-11 rounded-xl">Horarios</Button>
+                      {(profile?.rol === 'admin_club' || profile?.rol === 'deportista') ? (
+                          <Button 
+                              onClick={() => window.open(`${window.location.origin}/reservar/${esc.id}`, '_blank')}
+                              className="flex items-center justify-center gap-1 text-[10px] font-black italic uppercase tracking-wider text-black bg-[var(--primary)] hover:scale-105 active:scale-95 py-3 rounded-xl transition-all shadow-md shadow-[var(--primary)]/20"
+                          >
+                              Reservar Ahora
+                          </Button>
+                      ) : (
+                          <Button onClick={() => navigate(`/escenario/${esc.id}`)} className="flex items-center justify-center gap-1 text-[10px] font-black italic uppercase tracking-wider text-black bg-[var(--primary)] hover:scale-105 active:scale-95 py-3 rounded-xl transition-all">Reservas</Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
-      ) : (
-        <EscenarioReservations scenarioId={selectedEscenario?.id} />
       )}
 
 
@@ -461,7 +455,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
                 onChange={(e) => setNewCanchaName(e.target.value)} 
                 className="flex-1 bg-white/5 h-10 rounded-xl"
               />
-              <Button type="button" onClick={(e) => handleAddCancha(e)} className="bg-[#E30613] text-white hover:bg-red-700 h-10 rounded-xl px-4 text-xs font-semibold">Agregar</Button>
+              <Button type="button" onClick={(e) => handleAddCancha(e)} className="bg-[var(--primary)] text-black h-10 rounded-xl px-4 text-[10px] font-black uppercase italic">Agregar</Button>
             </div>
 
             <div className="grid grid-cols-1 gap-2">
@@ -480,12 +474,12 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
           </div>
 
           <div className="pt-4 flex gap-3">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 font-bold uppercase text-[10px] text-gray-500">Cancelar</button>
+            <Button type="button" onClick={() => setIsModalOpen(false)} variant="ghost" size="sm" className="flex-1 font-bold uppercase text-[10px] h-12 rounded-xl">Cancelar</Button>
             <Button 
               disabled={saving} 
               type="submit" 
               isLoading={saving} 
-              className="flex-[2] bg-[#E30613] hover:bg-red-700 text-white font-bold uppercase text-[10px] rounded-xl h-12 transition-all shadow-md shadow-red-600/10"
+              className="flex-[2] h-12 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-[10px] rounded-xl"
             >
               Confirmar Cambios
             </Button>

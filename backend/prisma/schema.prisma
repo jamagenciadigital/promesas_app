@@ -653,6 +653,7 @@ model ligas {
   telefono    String?  @db.Text
   created_at  DateTime @default(now()) @db.Timestamptz(6)
   deportes    deportes? @relation(fields: [deporte_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  perfiles    perfiles[]
 
   @@schema("public")
 }
@@ -725,6 +726,7 @@ model deportistas {
   url_certificado_salud                                    String?
   url_carta_traspaso                                       String?
   viene_de_otro_club                                       Boolean?                  @default(false)
+  registrado_por                                           String?
   asistencia                                               asistencia[]
   cartera                                                  cartera[]
   clubes                                                   clubes?                   @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -802,15 +804,17 @@ model escenario_canchas {
   created_at        DateTime            @default(now()) @db.Timestamptz(6)
   escenarios        escenarios?         @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   reserva_escenario reserva_escenario[]
+  escenario_horarios escenario_horarios[]
 
   @@schema("public")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model escenario_horarios {
   id               String      @id @default(uuid()) @db.Uuid
   escenario_id     String?     @db.Uuid
+  cancha_id        String?     @db.Uuid
   dia_semana       Int?
   hora_inicio      DateTime    @db.Time(6)
   hora_fin         DateTime    @db.Time(6)
@@ -821,6 +825,7 @@ model escenario_horarios {
   bloqueado_por_tipo String?   @db.Text
   activo           Boolean?    @default(true)
   escenarios       escenarios? @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  escenario_canchas escenario_canchas? @relation(fields: [cancha_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -852,6 +857,7 @@ model escenarios {
   perfiles_escenarios_gestor_idToperfiles        perfiles?            @relation("escenarios_gestor_idToperfiles", fields: [gestor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reserva_escenario                              reserva_escenario[]
   deportes                                       deportes?            @relation(fields: [deporte_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  incidencias                                    incidencias[]
 
   @@schema("public")
 }
@@ -870,6 +876,19 @@ model inventario {
   pertenece_a_id      String    @db.Uuid
   created_at          DateTime? @default(now()) @db.Timestamptz(6)
   updated_at          DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model incidencias {
+  id            String      @id @default(uuid()) @db.Uuid
+  escenario_id  String      @db.Uuid
+  tipo          tipo_incidencia
+  observaciones String
+  fecha         DateTime    @db.Date
+  created_at    DateTime?   @default(now()) @db.Timestamptz(6)
+  escenarios    escenarios  @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -985,12 +1004,15 @@ model perfiles {
   tipo_documento                                   String?
   numero_documento                                 String?
   deportista_id                                    String?               @db.Uuid
+  liga_id                                          String?               @db.Uuid
   documento                                        String?
+  theme                                            Json?                 @default("{}") @db.JsonB
   equipo_entrenadores                              equipo_entrenadores[]
   equipos                                          equipos[]
   escenarios_escenarios_administrador_idToperfiles escenarios[]          @relation("escenarios_administrador_idToperfiles")
   escenarios_escenarios_gestor_idToperfiles        escenarios[]          @relation("escenarios_gestor_idToperfiles")
   clubes                                           clubes?               @relation(fields: [club_id], references: [id], onUpdate: NoAction)
+  liga_relacion                                    ligas?                @relation(fields: [liga_id], references: [id], onUpdate: NoAction)
   deportistas                                      deportistas?          @relation(fields: [deportista_id], references: [id], onUpdate: NoAction)
   users                                            users                 @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   pqrs_pqrs_respondido_porToperfiles               pqrs[]                @relation("pqrs_respondido_porToperfiles")
@@ -1240,6 +1262,14 @@ enum feedback_pqrs {
   @@schema("public")
 }
 
+enum tipo_incidencia {
+  actualizacion
+  reparacion
+  nuevo
+
+  @@schema("public")
+}
+
 enum tipo_pqrs {
   pregunta
   queja
@@ -1261,6 +1291,7 @@ enum user_role {
   escenario_deportivo
   admin_escenario
   jefatura
+  liga
 
   @@schema("public")
 }

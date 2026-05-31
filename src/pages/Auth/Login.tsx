@@ -97,6 +97,7 @@ export default function Login() {
       case 'admin_escenario': 
           navigate('/escenario', { replace: true }); break;
       case 'jefatura': navigate('/jefatura', { replace: true }); break;
+      case 'liga': navigate('/liga', { replace: true }); break;
       default: 
           setError(`Acceso restringido para el rol: ${rol}`);
           signOut(); 

@@ -15,6 +15,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { ImageUpload } from '../../components/ui/ImageUpload';
+import { FileUpload } from '../../components/ui/FileUpload';
 
 export default function TeamDashboard() {
   const { id } = useParams();
@@ -494,7 +495,7 @@ export default function TeamDashboard() {
             <div className="flex items-center gap-6 text-sm font-medium">
               <div className="flex items-center gap-3 bg-black/10 px-5 py-3 rounded-2xl backdrop-blur-sm">
                 <Clock className="w-5 h-5 text-[#CCFF00]" />
-                <span className="text-base font-bold italic">{team.hora_inicio || '--:--'} - {team.hora_fin || '--:--'}</span>
+                <span className="text-base font-bold italic">{team.hora_inicio ? (team.hora_inicio.includes('T') ? team.hora_inicio.split('T')[1] : team.hora_inicio).split(':').slice(0,2).join(':') : '--:--'} - {team.hora_fin ? (team.hora_fin.includes('T') ? team.hora_fin.split('T')[1] : team.hora_fin).split(':').slice(0,2).join(':') : '--:--'}</span>
               </div>
               {team.dias_entrenamiento?.length > 0 && (
                 <div className="hidden lg:flex flex-wrap gap-2">
@@ -1247,8 +1248,8 @@ export default function TeamDashboard() {
                       </h4>
                    </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                      <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-[32px] border border-gray-100 dark:border-white/5">
+                   <div className="flex flex-col gap-6">
+                      <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-[32px] border border-gray-100 dark:border-white/5 max-w-md mx-auto w-full">
                          <ImageUpload
                            value={editingPlayer.foto_url}
                            onChange={(url) => setEditingPlayer({...editingPlayer, foto_url: url})}
@@ -1257,55 +1258,63 @@ export default function TeamDashboard() {
                            label="Foto de Perfil del Deportista"
                          />
                       </div>
-                      <div className="space-y-4">
-                         <Input 
-                           label="URL Registro Civil"
-                           placeholder="Link del documento"
-                           disabled={isCoach}
-                           value={editingPlayer.url_registro_civil || ''}
-                           onChange={(e) => setEditingPlayer({...editingPlayer, url_registro_civil: e.target.value})}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FileUpload
+                           value={editingPlayer.url_registro_civil}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_registro_civil: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'registro'}
+                           label="Registro Civil"
                          />
-                         <Input 
-                           label="URL Documento Identidad"
-                           placeholder="Link del documento"
-                           disabled={isCoach}
-                           value={editingPlayer.url_documento_id || ''}
-                           onChange={(e) => setEditingPlayer({...editingPlayer, url_documento_id: e.target.value})}
+                         
+                         <FileUpload
+                           value={editingPlayer.url_documento_id}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_documento_id: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'documento'}
+                           label="Documento Identidad"
                          />
-                         <Input 
-                           label="URL Contrato Firmado"
-                           placeholder="Link del contrato"
-                           disabled={isCoach}
-                           value={editingPlayer.url_contrato || ''}
-                            onChange={(e) => setEditingPlayer({...editingPlayer, url_contrato: e.target.value})}
-                          />
-                          <Input 
-                            label="Certificado Salud"
-                            placeholder="Link del certificado"
-                            disabled={isCoach}
-                            value={editingPlayer.url_certificado_salud || ''}
-                            onChange={(e) => setEditingPlayer({...editingPlayer, url_certificado_salud: e.target.value})}
-                          />
-                          <div className="pt-2">
-                             <label className="flex items-center gap-2 cursor-pointer">
-                               <input 
-                                 type="checkbox"
-                                 checked={editingPlayer.viene_de_otro_club || false}
-                                 onChange={(e) => setEditingPlayer({...editingPlayer, viene_de_otro_club: e.target.checked})}
-                                 className="w-4 h-4 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00]"
+
+                         <FileUpload
+                           value={editingPlayer.url_contrato}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_contrato: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'contrato'}
+                           label="Contrato Firmado"
+                         />
+
+                         <FileUpload
+                           value={editingPlayer.url_certificado_salud}
+                           onChange={(url) => setEditingPlayer({...editingPlayer, url_certificado_salud: url})}
+                           bucket="deportista-documentos"
+                           path={editingPlayer.numero_documento || editingPlayer.id || 'salud'}
+                           label="Certificado Salud"
+                         />
+
+                         <div className="md:col-span-2 flex flex-col gap-4">
+                            <div className="pt-2">
+                               <label className="flex items-center gap-2 cursor-pointer">
+                                 <input 
+                                   type="checkbox"
+                                   checked={editingPlayer.viene_de_otro_club || false}
+                                   onChange={(e) => setEditingPlayer({...editingPlayer, viene_de_otro_club: e.target.checked})}
+                                   className="w-4 h-4 rounded border-gray-300 text-[#CCFF00] focus:ring-[#CCFF00]"
+                                 />
+                                 <span className="text-[10px] font-black uppercase text-gray-400">¿Viene de otro club?</span>
+                               </label>
+                            </div>
+                            
+                            {editingPlayer.viene_de_otro_club && (
+                               <FileUpload
+                                 value={editingPlayer.url_carta_traspaso}
+                                 onChange={(url) => setEditingPlayer({...editingPlayer, url_carta_traspaso: url})}
+                                 bucket="deportista-documentos"
+                                 path={editingPlayer.numero_documento || editingPlayer.id || 'traspaso'}
+                                 label="Carta Traspaso"
                                />
-                               <span className="text-[10px] font-black uppercase text-gray-400">¿Viene de otro club?</span>
-                             </label>
-                          </div>
-                          {editingPlayer.viene_de_otro_club && (
-                            <Input 
-                              label="Carta Traspaso"
-                              placeholder="Link de la carta"
-                              disabled={isCoach}
-                              value={editingPlayer.url_carta_traspaso || ''}
-                              onChange={(e) => setEditingPlayer({...editingPlayer, url_carta_traspaso: e.target.value})}
-                            />
-                          )}
+                            )}
+                         </div>
                       </div>
                    </div>
                 </div>

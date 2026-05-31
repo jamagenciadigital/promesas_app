@@ -52,6 +52,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
         return <Navigate to="/coach" replace />;
       case 'jefatura':
         return <Navigate to="/jefatura" replace />;
+      case 'liga':
+        return <Navigate to="/liga" replace />;
       default:
         // En lugar de bucle infinito, volvemos a login con error
         console.error("Acceso denegado: Rol no configurado", profile.rol);

@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Search, Users, Plus, RefreshCw, Pencil, Trash2, Building2, Calendar, Phone, Mail, User
+  Search, Users, Plus, RefreshCw, Pencil, Trash2, Building2, Calendar, Phone, Mail
 } from 'lucide-react';
 
 interface Deportista {
@@ -30,19 +30,13 @@ interface Deportista {
 interface ClubOption { id: string; nombre: string; }
 interface EquipoOption { id: string; nombre: string; }
 
-const getRegistradoPorFromRole = (rol?: string) => {
-  if (rol === 'jefatura') return 'jefatura';
-  if (rol === 'admin_escenario' || rol === 'escenario_deportivo') return 'escenario';
-  return 'jefatura';
-};
-
 const INITIAL_FORM = {
   nombre_completo: '', apellidos: '', tipo_documento: 'CC', numero_documento: '',
   email_deportista: '', celular_deportista: '', genero: '', fecha_nacimiento: '',
   club_id: '', equipo_id: ''
 };
 
-export default function JefaturaJugadores() {
+export default function EscenarioJugadores() {
   const { profile } = useAuth();
   const [jugadores, setJugadores] = useState<Deportista[]>([]);
   const [clubes, setClubes] = useState<ClubOption[]>([]);
@@ -108,7 +102,7 @@ export default function JefaturaJugadores() {
 
       if (!editId) {
         payload.estado = 'pendiente';
-        payload.registrado_por = getRegistradoPorFromRole(profile?.rol);
+        payload.registrado_por = 'escenario';
       }
 
       if (editId) {
@@ -200,7 +194,7 @@ export default function JefaturaJugadores() {
             <RefreshCw className="w-3.5 h-3.5" />
             Actualizar
           </Button>
-          <Button onClick={() => { resetForm(); setIsModalOpen(true); }} className="h-10 px-5 bg-[#182332] text-white rounded-xl text-xs font-bold hover:bg-[#bd0f10] transition-all flex items-center gap-2">
+          <Button onClick={() => { resetForm(); setIsModalOpen(true); }} className="h-10 px-5 bg-[var(--primary)] text-black font-bold hover:brightness-90 transition-all flex items-center gap-2">
             <Plus className="w-3.5 h-3.5" />
             Agregar Jugador
           </Button>
@@ -436,7 +430,7 @@ export default function JefaturaJugadores() {
             <Button type="button" variant="ghost" onClick={() => { setIsModalOpen(false); resetForm(); }} className="flex-1 h-12 rounded-xl font-bold text-gray-500">
               Cancelar
             </Button>
-            <Button isLoading={saving} disabled={saving} className="flex-[2] h-12 bg-[#182332] text-white font-bold rounded-xl hover:bg-[#182332]/90 transition-all">
+            <Button isLoading={saving} disabled={saving} className="flex-[2] h-12 bg-[var(--primary)] text-black font-bold hover:brightness-90 transition-all">
               {editId ? 'Guardar Cambios' : 'Crear Jugador'}
             </Button>
           </div>

@@ -1,10 +1,11 @@
-export type Role = 'superadmin' | 'admin_club' | 'direccion_deportiva' | 'admin_equipo' | 'entrenador' | 'cartera' | 'comunicaciones' | 'padre' | 'escenario_deportivo' | 'admin_escenario' | 'atleta' | 'deportista' | 'jefatura';
+export type Role = 'superadmin' | 'admin_club' | 'direccion_deportiva' | 'admin_equipo' | 'entrenador' | 'cartera' | 'comunicaciones' | 'padre' | 'escenario_deportivo' | 'admin_escenario' | 'atleta' | 'deportista' | 'jefatura' | 'liga';
 
 export interface UserProfile {
   id: string;
   email: string;
   rol: Role;
   club_id?: string;
+  liga_id?: string;
   deportista_id?: string;
   nombre?: string;
   apellido?: string;
@@ -220,4 +221,15 @@ export interface InventarioItem {
   pertenece_a_id: string;
   created_at: string;
   updated_at: string;
+}
+
+export type TipoIncidencia = 'actualizacion' | 'reparacion' | 'nuevo';
+
+export interface Incidencia {
+  id: string;
+  escenario_id: string;
+  tipo: TipoIncidencia;
+  observaciones: string;
+  fecha: string;
+  created_at: string;
 }

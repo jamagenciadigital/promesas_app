@@ -28,35 +28,42 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ClubTheme>(DEFAULT_THEME);
 
   useEffect(() => {
-    if (!profile?.club_id) {
-      (async () => {
-        try {
-          const { data } = await supabase
+    if (!profile?.id) return;
+    (async () => {
+      try {
+        let t = { ...DEFAULT_THEME };
+
+        if (profile?.club_id) {
+          const { data: club } = await supabase
+            .from('clubes')
+            .select('theme')
+            .eq('id', profile.club_id)
+            .single();
+          t = { ...t, ...(club?.theme as ClubTheme | undefined) };
+        } else {
+          const { data: sys } = await supabase
             .from('configuracion_sistema')
             .select('theme')
             .limit(1)
             .single();
-          const t = { ...DEFAULT_THEME, ...(data?.theme as ClubTheme | undefined) };
-          setTheme(t);
-          applyTheme(t);
-        } catch {
-          applyTheme(DEFAULT_THEME);
+          t = { ...t, ...(sys?.theme as ClubTheme | undefined) };
         }
-      })();
-      return;
-    }
-    const fetchTheme = async () => {
-      const { data } = await supabase
-        .from('clubes')
-        .select('theme')
-        .eq('id', profile.club_id)
-        .single();
-      const t = { ...DEFAULT_THEME, ...(data?.theme as ClubTheme | undefined) };
-      setTheme(t);
-      applyTheme(t);
-    };
-    fetchTheme();
-  }, [profile?.club_id]);
+
+        // Per-user theme overrides everything
+        const { data: per } = await supabase
+          .from('perfiles')
+          .select('theme')
+          .eq('id', profile?.id)
+          .single();
+        t = { ...t, ...(per?.theme as ClubTheme | undefined) };
+
+        setTheme(t);
+        applyTheme(t);
+      } catch {
+        applyTheme(DEFAULT_THEME);
+      }
+    })();
+  }, [profile?.club_id, profile?.id]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -111,17 +118,29 @@ export function applyTheme(theme: ClubTheme) {
   const style = document.createElement('style');
   style.id = 'theme-btn-styles';
   style.textContent = `
+button[class*="bg-blue-"][class*="bg-blue-600"],
+a[class*="bg-blue-"][class*="bg-blue-600"],
 .theme-btn-primary,
 button[class*="bg-black"]:not([class*="bg-transparent"]),
 a[class*="bg-black"]:not([class*="bg-transparent"]),
-[type="submit"][class*="bg-black"]:not([class*="bg-transparent"]) {
+[type="submit"][class*="bg-black"]:not([class*="bg-transparent"]),
+button[class*="bg-\\[var\\(--primary\\)\\]"],
+a[class*="bg-\\[var\\(--primary\\)\\]"],
+button[class*="bg-\\[\\#E30613\\]"],
+a[class*="bg-\\[\\#E30613\\]"] {
   background-color: ${theme.button_bg || '#182332'} !important;
   color: ${theme.button_text || '#ffffff'} !important;
 }
+button[class*="bg-blue-"][class*="bg-blue-600"]:hover,
+a[class*="bg-blue-"][class*="bg-blue-600"]:hover,
 .theme-btn-primary:hover,
 button[class*="bg-black"]:not([class*="bg-transparent"]):hover,
 a[class*="bg-black"]:not([class*="bg-transparent"]):hover,
-[type="submit"][class*="bg-black"]:not([class*="bg-transparent"]):hover {
+[type="submit"][class*="bg-black"]:not([class*="bg-transparent"]):hover,
+button[class*="bg-\\[var\\(--primary\\)\\]"]:hover,
+a[class*="bg-\\[var\\(--primary\\)\\]"]:hover,
+button[class*="bg-\\[\\#E30613\\]"]:hover,
+a[class*="bg-\\[\\#E30613\\]"]:hover {
   background-color: ${theme.button_hover || '#202f43'} !important;
 }
   `.trim();

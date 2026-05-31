@@ -52,9 +52,8 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
         if (profile.rol === 'admin_club' || profile.rol === 'superadmin') {
           query = query.eq('destino_tipo', 'club').eq('destino_id', profile.club_id);
         } else if (profile.rol === 'admin_escenario' || profile.rol === 'escenario_deportivo') {
-          // Necesitaríamos el ID del escenario asociado al usuario. 
-          // Asumiremos que el administrador_id del escenario es auth.uid()
-          const { data: escenarios } = await supabase.from('escenarios').select('id').eq('administrador_id', profile.id);
+          const { data: escenarios } = await supabase.from('escenarios').select('id')
+            .or(`administrador_id.eq.${profile.id},gestor_id.eq.${profile.id}`);
           const ids = escenarios?.map(e => e.id) || [];
           query = query.eq('destino_tipo', 'escenario').in('destino_id', ids);
         }
@@ -150,7 +149,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
                     </Badge>
                   </div>
                   <h4 className="text-sm font-bold text-white truncate group-hover:text-[var(--primary)] transition-colors uppercase italic">
-                    {item.tipo}: {item.descripcion}
+                      {item.tipo}: {item.descripcion}
                   </h4>
                   <div className="flex items-center gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
                     <span className="flex items-center gap-1">

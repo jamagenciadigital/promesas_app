@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -42,9 +9,12 @@ const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const pg_1 = require("pg");
 const adapter_pg_1 = require("@prisma/adapter-pg");
 const prisma_1 = require("../generated/prisma");
+const email_service_1 = require("./services/email.service");
 console.log("DATABASE_URL in backend:", process.env.DATABASE_URL);
 const pool = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new adapter_pg_1.PrismaPg(pool);
@@ -55,8 +25,146 @@ const JWT_SECRET = process.env.JWT_SECRET || '5qkGYgq4OsMFS0Ii';
 app.use((0, cors_1.default)({
     origin: '*',
     methods: '*',
-    allowedHeaders: '*'
+    allowedHeaders: '*',
+    exposedHeaders: ['Content-Range']
 }));
+// Local file storage (replaces Supabase Storage)
+const UPLOADS_DIR = path_1.default.resolve(__dirname, '..', 'uploads');
+if (!fs_1.default.existsSync(UPLOADS_DIR))
+    fs_1.default.mkdirSync(UPLOADS_DIR, { recursive: true });
+function safePath(bucket, filePath) {
+    const clean = path_1.default.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+    const full = path_1.default.resolve(UPLOADS_DIR, bucket, clean);
+    const base = path_1.default.resolve(UPLOADS_DIR, bucket);
+    if (!full.startsWith(base))
+        return null;
+    return full;
+}
+/** Extract file body from multipart/form-data or return raw body */
+function extractFileBody(contentType, body) {
+    if (!contentType || !contentType.includes('multipart/form-data'))
+        return body;
+    const boundaryMatch = contentType.match(/boundary=([^;\s]+)/);
+    if (!boundaryMatch)
+        return body;
+    const boundaryStr = `--${boundaryMatch[1]}`;
+    const boundaryBuf = Buffer.from(boundaryStr);
+    const crlf = Buffer.from('\r\n');
+    const doubleCrlf = Buffer.from('\r\n\r\n');
+    let pos = 0;
+    let bestPart = Buffer.alloc(0);
+    while (pos < body.length) {
+        const boundaryStart = body.indexOf(boundaryBuf, pos);
+        if (boundaryStart === -1)
+            break;
+        const afterBoundary = boundaryStart + boundaryBuf.length;
+        // Check if this is the closing boundary (ends with --)
+        if (afterBoundary + 1 < body.length && body[afterBoundary] === 45 && body[afterBoundary + 1] === 45)
+            break;
+        let eol = body.indexOf(Buffer.from('\n'), afterBoundary);
+        if (eol === -1)
+            break;
+        const partStart = eol + 1;
+        let headersEnd = body.indexOf(doubleCrlf, partStart);
+        if (headersEnd === -1)
+            break;
+        const dataStart = headersEnd + 4;
+        const nextBoundary = body.indexOf(boundaryBuf, dataStart);
+        if (nextBoundary === -1)
+            break;
+        let dataEnd = nextBoundary;
+        if (dataEnd >= 2 && body[dataEnd - 2] === 13 && body[dataEnd - 1] === 10)
+            dataEnd -= 2;
+        if (dataEnd >= 1 && body[dataEnd - 1] === 10)
+            dataEnd -= 1;
+        const part = body.subarray(dataStart, dataEnd);
+        if (part.length > bestPart.length) {
+            bestPart = part;
+        }
+        pos = nextBoundary;
+    }
+    return bestPart.length > 0 ? bestPart : body;
+}
+app.all(/\/storage\/v1\/.*/, async (req, res) => {
+    const relativePath = req.path.replace(/^\/storage\/v1\//, '');
+    const parts = relativePath.split('/');
+    const method = req.method.toUpperCase();
+    console.log(`[local storage] ${method} ${req.path}`);
+    // Collect body
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    await new Promise(resolve => req.on('end', resolve));
+    const rawBody = chunks.length > 0 ? Buffer.concat(chunks) : Buffer.alloc(0);
+    const fileBody = extractFileBody(req.headers['content-type'], rawBody);
+    try {
+        // POST /storage/v1/object/list/:bucket — list objects
+        if (parts[0] === 'object' && parts[1] === 'list' && method === 'POST') {
+            const bucket = parts[2];
+            const dir = path_1.default.resolve(UPLOADS_DIR, bucket);
+            if (!fs_1.default.existsSync(dir))
+                return res.json([]);
+            const files = fs_1.default.readdirSync(dir, { recursive: true }).filter(f => fs_1.default.statSync(path_1.default.join(dir, f.toString())).isFile());
+            const result = files.map((f) => {
+                const stat = fs_1.default.statSync(path_1.default.join(dir, f.toString()));
+                return {
+                    name: f.toString(),
+                    id: crypto_1.default.randomUUID(),
+                    updated_at: stat.mtime.toISOString(),
+                    created_at: stat.birthtime.toISOString(),
+                    last_accessed_at: stat.atime.toISOString(),
+                    metadata: { size: stat.size, mimetype: 'application/octet-stream' },
+                };
+            });
+            return res.json(result);
+        }
+        // GET /storage/v1/object/public/:bucket/:path — serve public file
+        if (parts[0] === 'object' && parts[1] === 'public' && (method === 'GET' || method === 'HEAD')) {
+            const bucket = parts[2];
+            const fileRelPath = parts.slice(3).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full || !fs_1.default.existsSync(full))
+                return res.status(404).json({ error: 'File not found' });
+            return res.sendFile(full);
+        }
+        // GET /storage/v1/bucket/:id — bucket info
+        if (parts[0] === 'bucket' && method === 'GET') {
+            const bucketId = parts[1];
+            const dir = path_1.default.resolve(UPLOADS_DIR, bucketId);
+            if (!fs_1.default.existsSync(dir))
+                return res.status(404).json({ error: 'Bucket not found' });
+            return res.json({ id: bucketId, name: bucketId, public: true });
+        }
+        // POST or PUT /storage/v1/object/:bucket/:path — upload file
+        if (parts[0] === 'object' && !parts[1]?.startsWith('public') && !parts[1]?.startsWith('list') && (method === 'POST' || method === 'PUT')) {
+            const bucket = parts[1];
+            const fileRelPath = parts.slice(2).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full)
+                return res.status(403).json({ error: 'Invalid path' });
+            const dir = path_1.default.dirname(full);
+            if (!fs_1.default.existsSync(dir))
+                fs_1.default.mkdirSync(dir, { recursive: true });
+            fs_1.default.writeFileSync(full, fileBody);
+            const fileId = crypto_1.default.randomUUID();
+            return res.status(200).json({ Key: `${bucket}/${fileRelPath}`, Id: fileId });
+        }
+        // DELETE /storage/v1/object/:bucket/:path — delete file
+        if (parts[0] === 'object' && method === 'DELETE') {
+            const bucket = parts[1];
+            const fileRelPath = parts.slice(2).join('/');
+            const full = safePath(bucket, fileRelPath);
+            if (!full || !fs_1.default.existsSync(full))
+                return res.status(404).json({ error: 'File not found' });
+            fs_1.default.unlinkSync(full);
+            return res.status(200).json({ message: 'Deleted' });
+        }
+        return res.status(404).json({ error: 'Not found', path: req.path });
+    }
+    catch (err) {
+        console.error('[local storage] error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 app.use(express_1.default.json());
 // Log incoming requests
 app.use((req, res, next) => {
@@ -78,6 +186,176 @@ app.use((req, res, next) => {
     }
     next();
 });
+function parseSelectString(selectStr) {
+    const parts = [];
+    let current = '';
+    let parenDepth = 0;
+    for (let i = 0; i < selectStr.length; i++) {
+        const char = selectStr[i];
+        if (char === '(') {
+            parenDepth++;
+            current += char;
+        }
+        else if (char === ')') {
+            parenDepth--;
+            current += char;
+        }
+        else if (char === ',' && parenDepth === 0) {
+            parts.push(current.trim());
+            current = '';
+        }
+        else {
+            current += char;
+        }
+    }
+    if (current.trim()) {
+        parts.push(current.trim());
+    }
+    return parts;
+}
+async function hydrateRelation(row, fieldName, selectFields, aliasName, fks, reverseFks, schemaName) {
+    // Support explicit FK syntax: table!fk_name
+    let explicitFkName;
+    let baseFieldName = fieldName;
+    const bangIdx = fieldName.indexOf('!');
+    if (bangIdx !== -1) {
+        explicitFkName = fieldName.substring(bangIdx + 1);
+        baseFieldName = fieldName.substring(0, bangIdx);
+    }
+    // Sort FKs: prefer column_name that matches the table name in singular form
+    const sortedFks = [...fks].sort((a, b) => {
+        const singular = baseFieldName.replace(/es$/, '').replace(/s$/, '');
+        const expectedCol = singular + '_id';
+        const aScore = a.column_name === expectedCol ? 2 : a.column_name.startsWith(singular + '_id') ? 1 : 0;
+        const bScore = b.column_name === expectedCol ? 2 : b.column_name.startsWith(singular + '_id') ? 1 : 0;
+        return bScore - aScore;
+    });
+    const fk = sortedFks.find(f => (explicitFkName && f.constraint_name === explicitFkName) ||
+        f.foreign_table === baseFieldName ||
+        f.column_name === baseFieldName ||
+        f.column_name === `${baseFieldName}_id`);
+    if (fk) {
+        const localValue = row[fk.column_name];
+        if (localValue) {
+            const joinQuery = `SELECT * FROM "${fk.foreign_schema}"."${fk.foreign_table}" WHERE "${fk.foreign_col}" = $1 LIMIT 1`;
+            const joinRes = await prisma.$queryRawUnsafe(joinQuery, localValue);
+            let val = joinRes.length > 0 ? joinRes[0] : null;
+            if (val && selectFields !== '*') {
+                await hydrateRow(val, fk.foreign_schema, fk.foreign_table, selectFields);
+            }
+            row[aliasName || baseFieldName] = val;
+        }
+        else {
+            row[aliasName || baseFieldName] = null;
+        }
+    }
+    else {
+        const revFk = reverseFks.find(r => r.foreign_table_name === baseFieldName);
+        if (revFk) {
+            const localValue = row['id'];
+            if (localValue) {
+                const joinQuery = `SELECT * FROM "${revFk.foreign_schema}"."${revFk.foreign_table_name}" WHERE "${revFk.foreign_column_name}" = $1`;
+                const joinRes = await prisma.$queryRawUnsafe(joinQuery, localValue);
+                const isOneToOne = (baseFieldName === 'perfiles' || baseFieldName === 'users');
+                if (selectFields !== '*') {
+                    for (let i = 0; i < joinRes.length; i++) {
+                        await hydrateRow(joinRes[i], revFk.foreign_schema, revFk.foreign_table_name, selectFields);
+                    }
+                }
+                row[aliasName || baseFieldName] = isOneToOne ? (joinRes.length > 0 ? joinRes[0] : null) : joinRes;
+            }
+            else {
+                row[aliasName || baseFieldName] = [];
+            }
+        }
+    }
+}
+async function hydrateRow(row, schemaName, tableName, selectStr) {
+    if (!row || selectStr === '*')
+        return;
+    const parsedParts = parseSelectString(selectStr);
+    const joinsToHydrate = [];
+    for (const part of parsedParts) {
+        const firstParen = part.indexOf('(');
+        if (firstParen !== -1 && part.endsWith(')')) {
+            const relationPart = part.substring(0, firstParen);
+            const selectFields = part.substring(firstParen + 1, part.length - 1);
+            let aliasName = undefined;
+            let relationName = relationPart;
+            const colonIdx = relationPart.indexOf(':');
+            if (colonIdx !== -1) {
+                aliasName = relationPart.substring(0, colonIdx);
+                relationName = relationPart.substring(colonIdx + 1);
+            }
+            joinsToHydrate.push({ fieldName: relationName, selectFields, aliasName });
+        }
+    }
+    if (joinsToHydrate.length > 0) {
+        const fkQuery = `
+      SELECT 
+        kcu.column_name, 
+        ccu.table_name AS foreign_table, 
+        ccu.column_name AS foreign_col,
+        ccu.table_schema AS foreign_schema,
+        tc.constraint_name
+      FROM information_schema.table_constraints AS tc 
+      JOIN information_schema.key_column_usage AS kcu 
+        ON tc.constraint_name = kcu.constraint_name 
+        AND tc.table_schema = kcu.table_schema 
+      JOIN information_schema.constraint_column_usage AS ccu 
+        ON ccu.constraint_name = tc.constraint_name 
+        AND ccu.table_schema = tc.table_schema 
+      WHERE tc.constraint_type = 'FOREIGN KEY' 
+        AND tc.table_schema = $1 
+        AND tc.table_name = $2
+    `;
+        const fks = await prisma.$queryRawUnsafe(fkQuery, schemaName, tableName);
+        const reverseFkQuery = `
+      SELECT 
+        kcu.column_name AS foreign_col, 
+        tc.table_name AS foreign_table, 
+        kcu.table_name AS foreign_table_name,
+        kcu.column_name AS foreign_column_name,
+        tc.table_schema AS foreign_schema
+      FROM information_schema.table_constraints AS tc 
+      JOIN information_schema.key_column_usage AS kcu 
+        ON tc.constraint_name = kcu.constraint_name 
+        AND tc.table_schema = kcu.table_schema 
+      JOIN information_schema.constraint_column_usage AS ccu 
+        ON ccu.constraint_name = tc.constraint_name 
+        AND ccu.table_schema = tc.table_schema 
+      WHERE tc.constraint_type = 'FOREIGN KEY' 
+        AND ccu.table_schema = $1 
+        AND ccu.table_name = $2
+    `;
+        const reverseFks = await prisma.$queryRawUnsafe(reverseFkQuery, schemaName, tableName);
+        for (const join of joinsToHydrate) {
+            await hydrateRelation(row, join.fieldName, join.selectFields, join.aliasName, fks, reverseFks, schemaName);
+        }
+    }
+}
+function formatTimeValue(val) {
+    if (val === null || val === undefined)
+        return val;
+    if (val instanceof Date) {
+        const hh = String(val.getUTCHours()).padStart(2, '0');
+        const mm = String(val.getUTCMinutes()).padStart(2, '0');
+        const ss = String(val.getUTCSeconds()).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+    }
+    if (typeof val === 'string') {
+        // If it's a full ISO string (e.g., 1970-01-01T11:00:00.000Z)
+        const isoMatch = val.match(/^1970-01-01T(\d{2}:\d{2}:\d{2})/);
+        if (isoMatch) {
+            return isoMatch[1];
+        }
+        const isoMatchShort = val.match(/^1970-01-01T(\d{2}:\d{2})/);
+        if (isoMatchShort) {
+            return `${isoMatchShort[1]}:00`;
+        }
+    }
+    return val;
+}
 // Column types cache to differentiate between JSON/JSONB columns and regular arrays/objects
 const tableColumnTypesCache = {};
 async function getTableColumnTypes(schemaName, tableName) {
@@ -204,6 +482,66 @@ async function executeQuery(table, method, args, filters) {
             const [col, val] = filterArgs;
             whereClauses.push(`"${col}" <@ ${addParam(val)}`);
         }
+        else if (type === 'or') {
+            const [parsedConditions] = filterArgs;
+            if (Array.isArray(parsedConditions) && parsedConditions.length > 0) {
+                const clauses = [];
+                for (const cond of parsedConditions) {
+                    const { col, op, val } = cond;
+                    if (op === 'eq') {
+                        if (val === 'null') {
+                            clauses.push(`"${col}" IS NULL`);
+                        }
+                        else {
+                            clauses.push(`"${col}" = ${addParam(val)}`);
+                        }
+                    }
+                    else if (op === 'neq') {
+                        if (val === 'null') {
+                            clauses.push(`"${col}" IS NOT NULL`);
+                        }
+                        else {
+                            clauses.push(`"${col}" != ${addParam(val)}`);
+                        }
+                    }
+                    else if (op === 'gt') {
+                        clauses.push(`"${col}" > ${addParam(val)}`);
+                    }
+                    else if (op === 'gte') {
+                        clauses.push(`"${col}" >= ${addParam(val)}`);
+                    }
+                    else if (op === 'lt') {
+                        clauses.push(`"${col}" < ${addParam(val)}`);
+                    }
+                    else if (op === 'lte') {
+                        clauses.push(`"${col}" <= ${addParam(val)}`);
+                    }
+                    else if (op === 'like') {
+                        clauses.push(`"${col}" LIKE ${addParam(val)}`);
+                    }
+                    else if (op === 'ilike') {
+                        clauses.push(`"${col}" ILIKE ${addParam(val)}`);
+                    }
+                    else if (op === 'is') {
+                        if (val === 'null') {
+                            clauses.push(`"${col}" IS NULL`);
+                        }
+                        else if (val === 'true') {
+                            clauses.push(`"${col}" IS TRUE`);
+                        }
+                        else if (val === 'false') {
+                            clauses.push(`"${col}" IS NOT TRUE`);
+                        }
+                        else {
+                            clauses.push(`"${col}" IS ${val}`);
+                        }
+                    }
+                }
+                if (clauses.length > 0) {
+                    whereClauses.push(`(${clauses.join(' OR ')})`);
+                }
+            }
+        }
         else if (type === 'order') {
             const [col, options] = filterArgs;
             const asc = options?.ascending !== false;
@@ -238,7 +576,7 @@ async function executeQuery(table, method, args, filters) {
                 }
             }
         }
-        const cols = Object.keys(dataRows[0]);
+        const cols = Object.keys(dataRows[0]).filter(c => c in colTypes);
         const colStrings = cols.map(c => `"${c}"`).join(', ');
         const valueStrings = [];
         for (const row of dataRows) {
@@ -266,7 +604,7 @@ async function executeQuery(table, method, args, filters) {
     else if (method === 'update') {
         const data = args[0];
         const updateClauses = [];
-        for (const col of Object.keys(data)) {
+        for (const col of Object.keys(data).filter(c => c in colTypes)) {
             let val = data[col];
             const isJsonCol = colTypes[col] === 'json' || colTypes[col] === 'jsonb';
             if (isJsonCol) {
@@ -289,6 +627,20 @@ async function executeQuery(table, method, args, filters) {
     }
     console.log(`Executing SQL: ${queryText} with params:`, queryParams);
     const res = await prisma.$queryRawUnsafe(queryText, ...queryParams);
+    // Post-process returned rows to format time fields properly
+    if (Array.isArray(res) && res.length > 0) {
+        for (const row of res) {
+            if (row) {
+                for (const [col, colType] of Object.entries(colTypes)) {
+                    if (colType === 'time without time zone' || colType === 'time') {
+                        if (row[col] !== undefined && row[col] !== null) {
+                            row[col] = formatTimeValue(row[col]);
+                        }
+                    }
+                }
+            }
+        }
+    }
     let dataResult = res;
     if (single) {
         dataResult = res.length > 0 ? res[0] : null;
@@ -303,92 +655,10 @@ async function executeQuery(table, method, args, filters) {
     if (method === 'select' && args && args.length > 0) {
         const selectStr = args[0];
         if (typeof selectStr === 'string' && selectStr !== '*') {
-            const complexJoinRegex = /(?:(\w+):)?(\w+)\(([^)]+)\)/g;
-            const joinsToHydrate = [];
-            let match;
-            while ((match = complexJoinRegex.exec(selectStr)) !== null) {
-                const aliasName = match[1];
-                const relationName = match[2];
-                const selectFields = match[3];
-                joinsToHydrate.push({ fieldName: relationName, selectFields, aliasName });
-            }
-            if (joinsToHydrate.length > 0 && res.length > 0) {
-                const fkQuery = `
-          SELECT 
-            kcu.column_name, 
-            ccu.table_name AS foreign_table, 
-            ccu.column_name AS foreign_col,
-            ccu.table_schema AS foreign_schema
-          FROM information_schema.table_constraints AS tc 
-          JOIN information_schema.key_column_usage AS kcu 
-            ON tc.constraint_name = kcu.constraint_name 
-            AND tc.table_schema = kcu.table_schema 
-          JOIN information_schema.constraint_column_usage AS ccu 
-            ON ccu.constraint_name = tc.constraint_name 
-            AND ccu.table_schema = tc.table_schema 
-          WHERE tc.constraint_type = 'FOREIGN KEY' 
-            AND tc.table_schema = $1 
-            AND tc.table_name = $2
-        `;
-                const fks = await prisma.$queryRawUnsafe(fkQuery, schemaName, table);
-                const reverseFkQuery = `
-          SELECT 
-            kcu.column_name AS foreign_col, 
-            tc.table_name AS foreign_table, 
-            kcu.table_name AS foreign_table_name,
-            kcu.column_name AS foreign_column_name,
-            tc.table_schema AS foreign_schema
-          FROM information_schema.table_constraints AS tc 
-          JOIN information_schema.key_column_usage AS kcu 
-            ON tc.constraint_name = kcu.constraint_name 
-            AND tc.table_schema = kcu.table_schema 
-          JOIN information_schema.constraint_column_usage AS ccu 
-            ON ccu.constraint_name = tc.constraint_name 
-            AND ccu.table_schema = tc.table_schema 
-          WHERE tc.constraint_type = 'FOREIGN KEY' 
-            AND ccu.table_schema = $1 
-            AND ccu.table_name = $2
-        `;
-                const reverseFks = await prisma.$queryRawUnsafe(reverseFkQuery, schemaName, table);
-                const rows = Array.isArray(dataResult) ? dataResult : [dataResult];
-                for (const row of rows) {
-                    if (!row)
-                        continue;
-                    for (const join of joinsToHydrate) {
-                        const { fieldName, selectFields, aliasName } = join;
-                        // Check direct FK
-                        const fk = fks.find(f => f.foreign_table === fieldName || f.column_name === fieldName || f.column_name === `${fieldName}_id`);
-                        if (fk) {
-                            const localValue = row[fk.column_name];
-                            if (localValue) {
-                                const selectPart = selectFields === '*' ? '*' : selectFields.split(',').map(f => `"${f.trim()}"`).join(', ');
-                                const joinQuery = `SELECT ${selectPart} FROM "${fk.foreign_schema}"."${fk.foreign_table}" WHERE "${fk.foreign_col}" = $1 LIMIT 1`;
-                                const joinRes = await prisma.$queryRawUnsafe(joinQuery, localValue);
-                                const val = joinRes.length > 0 ? joinRes[0] : null;
-                                row[aliasName || fieldName] = val;
-                            }
-                            else {
-                                row[aliasName || fieldName] = null;
-                            }
-                        }
-                        else {
-                            // Check reverse FK
-                            const revFk = reverseFks.find(r => r.foreign_table_name === fieldName);
-                            if (revFk) {
-                                const localValue = row['id'];
-                                if (localValue) {
-                                    const selectPart = selectFields === '*' ? '*' : selectFields.split(',').map(f => `"${f.trim()}"`).join(', ');
-                                    const joinQuery = `SELECT ${selectPart} FROM "${revFk.foreign_schema}"."${revFk.foreign_table_name}" WHERE "${revFk.foreign_column_name}" = $1`;
-                                    const joinRes = await prisma.$queryRawUnsafe(joinQuery, localValue);
-                                    const isOneToOne = (fieldName === 'perfiles' || fieldName === 'users');
-                                    row[aliasName || fieldName] = isOneToOne ? (joinRes.length > 0 ? joinRes[0] : null) : joinRes;
-                                }
-                                else {
-                                    row[aliasName || fieldName] = [];
-                                }
-                            }
-                        }
-                    }
+            const rows = Array.isArray(dataResult) ? dataResult : [dataResult];
+            for (const row of rows) {
+                if (row) {
+                    await hydrateRow(row, schemaName, table, selectStr);
                 }
             }
         }
@@ -428,11 +698,15 @@ app.post('/auth/v1/signup', async (req, res) => {
         created_at, updated_at, email_confirmed_at, confirmed_at, role, aud
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `, userId, email, hashedPassword, JSON.stringify(userMetadata), JSON.stringify({ provider: 'email', providers: ['email'] }), now, now, now, now, 'authenticated', 'authenticated');
-        await prisma.$executeRawUnsafe(`
-      INSERT INTO public.perfiles (
-        id, email, nombre, rol, club_id, telefono, created_at
-      ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7)
-    `, userId, email, userMetadata.nombre || userMetadata.nombre_completo || '', userMetadata.rol || 'entrenador', userMetadata.club_id || null, userMetadata.telefono || '', now);
+        // Insert profile (skip if already exists — Supabase trigger may have created it)
+        const existingProfile = await prisma.$queryRawUnsafe('SELECT id FROM public.perfiles WHERE id = $1 LIMIT 1', userId);
+        if (existingProfile.length === 0) {
+            await prisma.$executeRawUnsafe(`
+        INSERT INTO public.perfiles (
+          id, email, nombre, rol, club_id, telefono, deportista_id, estado, created_at
+        ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7, $8, $9)
+      `, userId, email, userMetadata.nombre || userMetadata.nombre_completo || '', userMetadata.rol || 'entrenador', userMetadata.club_id || null, userMetadata.telefono || '', userMetadata.deportista_id || null, userMetadata.estado || 'activo', now);
+        }
         const access_token = jsonwebtoken_1.default.sign({ sub: userId, email, role: 'authenticated', aud: 'authenticated' }, JWT_SECRET, { expiresIn: '7d' });
         const refresh_token = crypto_1.default.randomUUID();
         await prisma.$executeRawUnsafe(`
@@ -451,27 +725,27 @@ app.post('/auth/v1/signup', async (req, res) => {
             last_sign_in_at: now,
             raw_app_meta_data: { provider: 'email', providers: ['email'] },
             raw_user_meta_data: userMetadata,
+            app_metadata: { provider: 'email', providers: ['email'] },
+            user_metadata: userMetadata,
             created_at: now,
             updated_at: now
         };
         // Enviar correo de bienvenida/registro
         const clubId = userMetadata.club_id || null;
-        Promise.resolve().then(() => __importStar(require('./services/email.service'))).then(({ sendEmail }) => {
-            let clubNombre = 'Nuestra Plataforma';
-            if (clubId) {
-                prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId)
-                    .then(res => {
-                    if (res.length > 0)
-                        clubNombre = res[0].nombre;
-                    sendEmail(prisma, email, 'registro', {
-                        nombre: userMetadata.nombre || userMetadata.nombre_completo || 'Usuario',
-                        email: email,
-                        club: clubNombre
-                    }, clubId || undefined);
-                })
-                    .catch(e => console.error("Error fetching club info for email", e));
+        if (clubId) {
+            try {
+                const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+                const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Nuestra Plataforma';
+                await (0, email_service_1.sendEmail)(prisma, email, 'registro', {
+                    nombre: userMetadata.nombre || userMetadata.nombre_completo || 'Usuario',
+                    email: email,
+                    club: clubNombre
+                }, clubId);
             }
-        });
+            catch (e) {
+                console.error("Error enviando correo de bienvenida:", e);
+            }
+        }
         return res.status(200).json({
             access_token,
             refresh_token,
@@ -492,16 +766,15 @@ app.post('/auth/v1/signup', async (req, res) => {
         return res.status(500).json({ error: error.message || 'Signup failed' });
     }
 });
-// AUTH LOGIN / TOKEN
 app.post('/auth/v1/token', async (req, res) => {
-    const grantType = req.query.grant_type;
+    const grantType = req.query.grant_type || req.body?.grant_type;
     if (grantType === 'password') {
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
         try {
-            const users = await prisma.$queryRawUnsafe('SELECT * FROM auth.users WHERE email = $1 LIMIT 1', email);
+            const users = await prisma.$queryRawUnsafe('SELECT * FROM auth.users WHERE LOWER(email) = LOWER($1) LIMIT 1', email);
             if (users.length === 0) {
                 return res.status(400).json({ error: 'Invalid login credentials' });
             }
@@ -525,6 +798,8 @@ app.post('/auth/v1/token', async (req, res) => {
                 last_sign_in_at: now,
                 raw_app_meta_data: dbUser.raw_app_meta_data || {},
                 raw_user_meta_data: dbUser.raw_user_meta_data || {},
+                app_metadata: dbUser.raw_app_meta_data || {},
+                user_metadata: dbUser.raw_user_meta_data || {},
                 created_at: dbUser.created_at,
                 updated_at: dbUser.updated_at
             };
@@ -621,6 +896,8 @@ app.get('/auth/v1/user', async (req, res) => {
             last_sign_in_at: dbUser.last_sign_in_at,
             raw_app_meta_data: dbUser.raw_app_meta_data,
             raw_user_meta_data: dbUser.raw_user_meta_data,
+            app_metadata: dbUser.raw_app_meta_data,
+            user_metadata: dbUser.raw_user_meta_data,
             created_at: dbUser.created_at,
             updated_at: dbUser.updated_at
         });
@@ -647,13 +924,22 @@ app.post('/auth/v1/recover', async (req, res) => {
             const nombre = meta.nombre || meta.nombre_completo || 'Usuario';
             const clubId = meta.club_id || null;
             const resetLink = `https://fichaje.pro/reset-password?email=${encodeURIComponent(email)}`;
-            Promise.resolve().then(() => __importStar(require('./services/email.service'))).then(({ sendEmail }) => {
-                sendEmail(prisma, email, 'recuperacion', {
+            try {
+                let clubNombre = 'Club';
+                if (clubId) {
+                    const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', clubId);
+                    if (clubRes.length > 0)
+                        clubNombre = clubRes[0].nombre;
+                }
+                await (0, email_service_1.sendEmail)(prisma, email, 'recuperacion', {
                     nombre: nombre,
                     link_recuperacion: resetLink,
-                    club: 'Club'
+                    club: clubNombre
                 }, clubId || undefined);
-            });
+            }
+            catch (e) {
+                console.error("Error enviando correo de recuperación:", e);
+            }
         }
         // Siempre retornamos 200 aunque el correo no exista, por seguridad
         return res.status(200).json({ message: 'If the email exists, a recovery link was sent.' });
@@ -705,20 +991,35 @@ app.all('/rest/v1/:table', async (req, res) => {
     const method = req.method.toLowerCase();
     const actionMap = {
         get: 'select',
+        head: 'select',
         post: 'insert',
         patch: 'update',
         delete: 'delete'
     };
+    const isHead = method === 'head';
     const action = actionMap[method];
     if (!action) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
     const filters = [];
     let selectArgs = ['*'];
+    // Collect raw query entries, handling both single values and arrays (same key repeated)
+    const rawEntries = [];
     for (const [key, value] of Object.entries(req.query)) {
-        if (!value)
+        if (value === undefined || value === null)
             continue;
-        const valStr = String(value);
+        if (Array.isArray(value)) {
+            for (const v of value) {
+                if (v !== undefined && v !== null) {
+                    rawEntries.push([key, String(v)]);
+                }
+            }
+        }
+        else {
+            rawEntries.push([key, String(value)]);
+        }
+    }
+    for (const [key, valStr] of rawEntries) {
         if (key === 'select') {
             selectArgs = [valStr];
             continue;
@@ -732,6 +1033,24 @@ app.all('/rest/v1/:table', async (req, res) => {
         }
         if (key === 'limit') {
             filters.push({ type: 'limit', args: [parseInt(valStr)] });
+            continue;
+        }
+        if (key === 'or') {
+            const inner = valStr.substring(1, valStr.length - 1);
+            const conditions = inner.split(',');
+            const parsedConditions = [];
+            for (const cond of conditions) {
+                const parts = cond.split('.');
+                if (parts.length >= 3) {
+                    const col = parts[0];
+                    const op = parts[1];
+                    const val = parts.slice(2).join('.');
+                    parsedConditions.push({ col, op, val });
+                }
+            }
+            if (parsedConditions.length > 0) {
+                filters.push({ type: 'or', args: [parsedConditions] });
+            }
             continue;
         }
         const dotIdx = valStr.indexOf('.');
@@ -811,6 +1130,12 @@ app.all('/rest/v1/:table', async (req, res) => {
             res.setHeader('Content-Range', `0-${Array.isArray(result.data) ? result.data.length : 1}/${result.count}`);
         }
         const statusCode = action === 'insert' ? 201 : 200;
+        if (isHead) {
+            return res.status(statusCode).end();
+        }
+        if (acceptHeader.includes('vnd.pgrst.object+json') && result.data === null) {
+            return res.status(404).json({ error: 'JSON object requested, but 0 rows were returned' });
+        }
         return res.status(statusCode).json(result.data);
     }
     catch (error) {
@@ -828,8 +1153,7 @@ app.post('/api/notifications/send', async (req, res) => {
         return res.status(400).json({ error: 'Faltan campos requeridos: to, tipo, club_id' });
     }
     try {
-        const { sendNotificationEmail } = await Promise.resolve().then(() => __importStar(require('./services/email.service')));
-        const result = await sendNotificationEmail(prisma, to, tipo, variables || {}, club_id);
+        const result = await (0, email_service_1.sendNotificationEmail)(prisma, to, tipo, variables || {}, club_id);
         if (result) {
             return res.status(200).json({ success: true, message: 'Notificación enviada' });
         }
@@ -842,6 +1166,103 @@ app.post('/api/notifications/send', async (req, res) => {
         return res.status(500).json({ error: error.message || 'Error interno' });
     }
 });
+// SEND WELCOME EMAIL (registration template) — called after user creation from Club panel
+app.post('/api/notifications/welcome', async (req, res) => {
+    const { to, nombre, club_id } = req.body;
+    if (!to || !nombre || !club_id) {
+        return res.status(400).json({ error: 'Faltan campos requeridos: to, nombre, club_id' });
+    }
+    try {
+        const clubRes = await prisma.$queryRawUnsafe('SELECT nombre FROM public.clubes WHERE id = $1 LIMIT 1', club_id);
+        const clubNombre = clubRes.length > 0 ? clubRes[0].nombre : 'Club';
+        const result = await (0, email_service_1.sendEmail)(prisma, to, 'registro', {
+            nombre,
+            email: to,
+            club: clubNombre
+        }, club_id);
+        if (result) {
+            return res.status(200).json({ success: true, message: 'Correo de bienvenida enviado' });
+        }
+        else {
+            return res.status(400).json({ success: false, message: 'No se pudo enviar el correo de bienvenida' });
+        }
+    }
+    catch (error) {
+        console.error('Error sending welcome email:', error);
+        return res.status(500).json({ error: error.message || 'Error interno' });
+    }
+});
+// AUTOMATED MONTHLY PORTFOLIO NOTIFICATIONS ON THE 5TH
+async function runMonthlyCarteraNotifications() {
+    console.log("Checking monthly cartera notifications (on the 5th of each month)...");
+    try {
+        const charges = await prisma.$queryRawUnsafe(`SELECT c.id, c.club_id, c.deportista_id, c.monto, c.titulo, c.last_notified_at, cl.moneda
+       FROM public.cartera c
+       JOIN public.clubes cl ON cl.id = c.club_id
+       WHERE c.estado IN ('pendiente', 'vencido')`);
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        for (const charge of charges) {
+            if (charge.last_notified_at) {
+                const lastNotified = new Date(charge.last_notified_at);
+                if (lastNotified.getMonth() === currentMonth && lastNotified.getFullYear() === currentYear) {
+                    continue; // Already notified this month
+                }
+            }
+            const athletes = await prisma.$queryRawUnsafe(`SELECT id, nombre_completo, apellidos, email_deportista 
+         FROM public.deportistas 
+         WHERE id = $1 LIMIT 1`, charge.deportista_id);
+            if (!athletes || athletes.length === 0)
+                continue;
+            const athlete = athletes[0];
+            const athleteName = `${athlete.nombre_completo || ''} ${athlete.apellidos || ''}`.trim();
+            const parents = await prisma.$queryRawUnsafe(`SELECT id, nombre, email 
+         FROM public.perfiles 
+         WHERE deportista_id = $1 AND rol = 'padre' LIMIT 1`, charge.deportista_id);
+            const currency = charge.moneda ? charge.moneda.split(' ')[0] : 'COP';
+            const formattedMonto = new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency,
+                minimumFractionDigits: 0
+            }).format(Number(charge.monto));
+            if (athlete.email_deportista) {
+                try {
+                    await (0, email_service_1.sendNotificationEmail)(prisma, athlete.email_deportista, 'cartera', { nombre: athleteName, monto: formattedMonto }, charge.club_id);
+                }
+                catch (e) {
+                    console.error(`Error notifying athlete ${athlete.email_deportista}:`, e);
+                }
+            }
+            if (parents && parents.length > 0) {
+                const parent = parents[0];
+                if (parent.email) {
+                    try {
+                        await (0, email_service_1.sendNotificationEmail)(prisma, parent.email, 'cartera', { nombre: parent.nombre || athleteName, monto: formattedMonto }, charge.club_id);
+                    }
+                    catch (e) {
+                        console.error(`Error notifying parent ${parent.email}:`, e);
+                    }
+                }
+            }
+            await prisma.$executeRawUnsafe(`UPDATE public.cartera SET last_notified_at = NOW() WHERE id = $1`, charge.id);
+        }
+    }
+    catch (error) {
+        console.error("Error running monthly cartera notifications:", error);
+    }
+}
+// Check every hour
+let lastRunDayString = "";
+setInterval(() => {
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+    const dateStr = today.toISOString().split('T')[0];
+    if (dayOfMonth === 5 && lastRunDayString !== dateStr) {
+        lastRunDayString = dateStr;
+        runMonthlyCarteraNotifications();
+    }
+}, 60 * 60 * 1000); // 1 hour
 app.listen(port, () => {
     console.log(`🚀 Fichaje Backend running on port ${port}`);
 });

@@ -50,42 +50,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const clubId = activeClubId || profile?.club_id;
 
   useEffect(() => {
-    if (!clubId) {
-      (async () => {
-        try {
+    async function loadTheme() {
+      try {
+        let base: ClubTheme = {};
+
+        if (clubId) {
+          const { data } = await supabase
+            .from('clubes')
+            .select('theme')
+            .eq('id', clubId)
+            .single();
+          if (data?.theme && typeof data.theme === 'object') {
+            base = data.theme as ClubTheme;
+          }
+        } else {
           const { data } = await supabase
             .from('configuracion_sistema')
             .select('theme')
             .limit(1)
             .single();
           if (data?.theme && typeof data.theme === 'object') {
-            applyTheme(data.theme as ClubTheme);
-          } else {
-            resetTheme();
+            base = data.theme as ClubTheme;
           }
-        } catch {
-          resetTheme();
         }
-      })();
-      return;
-    }
 
-    async function loadTheme() {
-      try {
-        const { data, error } = await supabase
-          .from('clubes')
-          .select('theme')
-          .eq('id', clubId)
-          .single();
-
-        if (error) throw error;
-        if (data && data.theme && typeof data.theme === 'object') {
-          applyTheme(data.theme as ClubTheme);
+        // Per-user theme overrides everything
+        if (profile?.id) {
+          const { data: per } = await supabase
+            .from('perfiles')
+            .select('theme')
+            .eq('id', profile.id)
+            .single();
+          const userTheme = per?.theme as ClubTheme | undefined;
+          if (userTheme && Object.keys(userTheme).length > 0) {
+            applyTheme({ ...base, ...userTheme });
+          } else {
+            applyTheme(base);
+          }
         } else {
-          resetTheme();
+          applyTheme(base);
         }
-      } catch (err) {
-        console.error('Error loading club theme:', err);
+      } catch {
         resetTheme();
       }
     }
@@ -112,7 +117,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       window.removeEventListener('club-theme-updated', handleThemeUpdate);
       window.removeEventListener('system-theme-updated', handleSystemThemeUpdate);
     };
-  }, [clubId]);
+  }, [clubId, profile?.id]);
 
   const showViewOnlyBanner = isViewOnly && profile?.rol === 'superadmin';
 

@@ -42,6 +42,8 @@ import PlayerMyProfile from './pages/Player/PlayerMyProfile';
 import PlayerNewReservation from './pages/Player/PlayerNewReservation';
 import RegisterParent from './pages/Public/RegisterParent';
 import EscenarioDashboard from './pages/Escenario/EscenarioDashboard';
+import EscenarioDetail from './pages/Escenario/EscenarioDetail';
+import EscenarioReservations from './pages/Escenario/EscenarioReservations';
 import JefaturaDashboard from './pages/Jefatura/JefaturaDashboard';
 import JefaturaSettings from './pages/Jefatura/JefaturaSettings';
 import JefaturaClubes from './pages/Jefatura/JefaturaClubes';
@@ -57,8 +59,14 @@ import PublicReservation from './pages/Escenario/PublicReservation';
 import PlayerPQRS from './pages/Player/PlayerPQRS';
 import ClubPQRS from './pages/Club/ClubPQRS';
 import EscenarioPQRS from './pages/Escenario/EscenarioPQRS';
+import EscenarioLigas from './pages/Escenario/EscenarioLigas';
+import EscenarioUsuarios from './pages/Escenario/EscenarioUsuarios';
+import EscenarioClubes from './pages/Escenario/EscenarioClubes';
+import EscenarioJugadores from './pages/Escenario/EscenarioJugadores';
+import EscenarioEntrenadores from './pages/Escenario/EscenarioEntrenadores';
 import CoachPQRS from './pages/Coach/CoachPQRS';
 import InventoryDashboard from './pages/Logistica/InventoryDashboard';
+import LigaDashboard from './pages/Liga/LigaDashboard';
 
 function App() {
   return (
@@ -167,12 +175,30 @@ function App() {
               <DashboardLayout>
                 <Routes>
                   <Route path="/" element={<EscenarioDashboard />} />
-                  <Route path="/reservas" element={<EscenarioDashboard defaultView="reservations" />} />
+                  <Route path="/reservas" element={<EscenarioReservations />} />
                   <Route path="/config" element={<EscenarioDashboard defaultView="list" />} />
                   <Route path="/settings" element={<EscenarioDashboard defaultView="settings" />} />
                   <Route path="/pqrs" element={<EscenarioPQRS />} />
                   <Route path="/logistica" element={<InventoryDashboard />} />
+                  <Route path="/liga" element={<EscenarioLigas />} />
+                  <Route path="/club" element={<EscenarioClubes />} />
+                  <Route path="/jugadores" element={<EscenarioJugadores />} />
+                  <Route path="/entrenadores" element={<EscenarioEntrenadores />} />
+                  <Route path="/usuarios" element={<EscenarioUsuarios />} />
+                  <Route path=":id" element={<EscenarioDetail />} />
                   <Route path="*" element={<Navigate to="/escenario" replace />} />
+                </Routes>
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* LIGA DASHBOARD */}
+          <Route path="/liga/*" element={
+            <ProtectedRoute allowedRoles={['liga', 'jefatura', 'superadmin']}>
+              <DashboardLayout>
+                <Routes>
+                  <Route path="/" element={<LigaDashboard />} />
+                  <Route path="*" element={<Navigate to="/liga" replace />} />
                 </Routes>
               </DashboardLayout>
             </ProtectedRoute>
@@ -234,7 +260,7 @@ function App() {
 
           {/* Profile Route for all logged in users */}
           <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={['superadmin', 'admin_club', 'admin_equipo', 'entrenador', 'cartera', 'padre', 'direccion_deportiva', 'admin_escenario', 'escenario_deportivo', 'jefatura']}>
+            <ProtectedRoute allowedRoles={['superadmin', 'admin_club', 'admin_equipo', 'entrenador', 'cartera', 'padre', 'direccion_deportiva', 'admin_escenario', 'escenario_deportivo', 'jefatura', 'liga']}>
               <DashboardLayout>
                 <Profile />
               </DashboardLayout>

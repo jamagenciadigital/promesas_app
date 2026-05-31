@@ -98,7 +98,9 @@ export const approveAthleteDocuments = async (athlete: {
     const { error } = await supabase
       .from('deportistas')
       .update({ 
-        estado: 'activo'
+        estado: 'activo',
+        plan_id: athlete.plan_id,
+        plan_inscripcion_id: athlete.plan_inscripcion_id
       })
       .eq('id', athlete.id);
 
