@@ -105,6 +105,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.dashboard'), icon: Home, path: '/liga' },
         { name: 'Clubes', icon: Building2, path: '/liga/clubes' },
         { name: 'Escenarios', icon: MapPin, path: '/liga/escenarios' },
+        { name: 'Deportes', icon: Shield, path: '/liga/deportes' },
       ];
     case 'jefatura':
       return [

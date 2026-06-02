@@ -67,6 +67,8 @@ import EscenarioEntrenadores from './pages/Escenario/EscenarioEntrenadores';
 import CoachPQRS from './pages/Coach/CoachPQRS';
 import InventoryDashboard from './pages/Logistica/InventoryDashboard';
 import LigaDashboard from './pages/Liga/LigaDashboard';
+import LigaClubes from './pages/Liga/LigaClubes';
+import LigaDeportes from './pages/Liga/LigaDeportes';
 
 function App() {
   return (
@@ -198,6 +200,8 @@ function App() {
               <DashboardLayout>
                 <Routes>
                   <Route path="/" element={<LigaDashboard />} />
+                  <Route path="clubes" element={<LigaClubes />} />
+                  <Route path="deportes" element={<LigaDeportes />} />
                   <Route path="*" element={<Navigate to="/liga" replace />} />
                 </Routes>
               </DashboardLayout>
