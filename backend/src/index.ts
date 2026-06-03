@@ -18,6 +18,18 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const app = express();
+
+// Strip /api prefix for Vercel serverless routing
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api')) {
+    req.url = req.url.substring(4);
+    if (!req.url.startsWith('/')) {
+      req.url = '/' + req.url;
+    }
+  }
+  next();
+});
+
 const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || '5qkGYgq4OsMFS0Ii';
 
@@ -1395,6 +1407,10 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000); // 1 hour
 
-app.listen(port, () => {
-  console.log(`🚀 Fichaje Backend running on port ${port}`);
-});
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`🚀 Fichaje Backend running on port ${port}`);
+  });
+}
+
+export default app;
