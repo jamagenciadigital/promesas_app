@@ -5,3 +5,4 @@ uploads/
 .env.production.local
 .env.development.local
 *.local
+api/index.js
