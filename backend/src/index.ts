@@ -41,7 +41,9 @@ app.use(cors({
 }));
 
 // Local file storage (replaces Supabase Storage)
-const UPLOADS_DIR = path.resolve(__dirname, '..', 'uploads');
+const UPLOADS_DIR = process.env.VERCEL
+  ? path.resolve('/tmp', 'uploads')
+  : path.resolve(__dirname, '..', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 function safePath(bucket: string, filePath: string): string | null {
