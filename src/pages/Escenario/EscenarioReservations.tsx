@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, {   useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { 
   CheckCircle2, XCircle, Eye, Calendar, Clock, 
   DollarSign, User, Users, AlertCircle, Search, 
-  ExternalLink, FileText, Filter, LayoutGrid, Shield, ShieldCheck, Mail, QrCode, Camera
+  ExternalLink, FileText, Filter, LayoutGrid, Shield, ShieldCheck, Mail, QrCode, Camera, ChevronDown, ChevronUp, Info
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from '../../components/ui/Button';
@@ -17,8 +17,9 @@ interface Reservation {
   hora_fin: string;
   monto_total: number;
   estado: 'pendiente' | 'confirmada' | 'rechazada';
-  tipo_reserva: 'equipo' | 'jugador';
+  tipo_reserva: 'equipo' | 'jugador' | 'particular';
   link_pago: string;
+  codigo_seguimiento?: string;
   ingreso_fecha?: string;
   salida_fecha?: string;
   ingreso_observacion?: string;
@@ -26,6 +27,7 @@ interface Reservation {
   equipo?: { id: string; nombre: string; club_id: string };
   deportista?: { id: string; nombre_completo: string };
   cancha?: { id: string; nombre: string };
+  datos_particular?: Record<string, any>;
   escenarios?: { 
     id: string;
     nombre: string; 
@@ -47,6 +49,8 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [selectedScenarioInfo, setSelectedScenarioInfo] = useState<any | null>(null);
+  const [selectedParticularData, setSelectedParticularData] = useState<Reservation | null>(null);
+  const [selectedClubInfo, setSelectedClubInfo] = useState<any | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   
   // SCANNER STATES
@@ -147,6 +151,20 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
       alert('Error al actualizar: ' + error.message);
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const fetchClubInfo = async (clubId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('clubes')
+        .select('*')
+        .eq('id', clubId)
+        .single();
+      if (error) throw error;
+      setSelectedClubInfo(data);
+    } catch (err: any) {
+      alert('Error al obtener información del club: ' + err.message);
     }
   };
 
@@ -288,7 +306,7 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                 
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                    res.tipo_reserva === 'equipo' ? 'bg-[var(--primary)] text-black' : 'bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300'
+                    res.tipo_reserva === 'equipo' ? 'bg-[var(--primary)] text-black' : res.tipo_reserva === 'particular' ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' : 'bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300'
                   }`}>
                     {(res as any).atleta_foto ? (
                       <img src={(res as any).atleta_foto} alt="Atleta" className="w-full h-full object-cover rounded-2xl" />
@@ -297,14 +315,27 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{res.tipo_reserva === 'equipo' ? 'Club' : 'Atleta'}</p>
-                    <h3 className="text-sm font-black text-gray-900 dark:text-white truncate">
-                      {res.tipo_reserva === 'equipo' ? res.equipo?.nombre : res.deportista?.nombre_completo}
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{res.tipo_reserva === 'equipo' ? 'Club' : res.tipo_reserva === 'particular' ? 'Cliente Particular' : 'Atleta'}</p>
+                    <h3 className="text-sm font-black text-gray-900 dark:text-white truncate flex items-center gap-1.5">
+                      {res.tipo_reserva === 'equipo' ? (
+                        <>
+                          <span className="truncate">{res.equipo?.nombre}</span>
+                          {res.equipo?.id && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); fetchClubInfo(res.equipo!.club_id); }}
+                              className="shrink-0 p-0.5 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                              title="Ver información del club"
+                            >
+                              <Eye size={14} />
+                            </button>
+                          )}
+                        </>
+                      ) : res.tipo_reserva === 'particular' ? (res as any).atleta_nombre : res.deportista?.nombre_completo}
                     </h3>
                     {res.cancha && (
                       <div className="flex items-center gap-1 mt-0.5">
                         <LayoutGrid size={10} className="text-[var(--primary)]" />
-                        <span className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-wider">{res.cancha.nombre}</span>
+                        <span className="text-[9px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{res.cancha.nombre}</span>
                       </div>
                     )}
                   </div>
@@ -334,21 +365,13 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                   </div>
                 )}
 
-                {(res as any).atleta_documento && (
+                {((res as any).atleta_documento || res.tipo_reserva === 'particular') && (
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 space-y-2">
                     <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Ficha Técnica</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
                         <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Documento</p>
-                        <p className="text-[10px] font-bold text-gray-900 dark:text-white">{(res as any).atleta_documento}</p>
-                      </div>
-                      <div>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">RH</p>
-                        <p className="text-[10px] font-bold text-[var(--primary)]">{(res as any).atleta_rh || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Edad</p>
-                        <p className="text-[10px] font-bold text-gray-900 dark:text-white">{(res as any).atleta_edad || 'N/A'}</p>
+                        <p className="text-[10px] font-bold text-gray-900 dark:text-white">{(res as any).atleta_documento || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Contacto</p>
@@ -359,6 +382,22 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                       <Mail size={10} className="text-gray-400" />
                       <span className="text-[9px] font-bold text-gray-600 dark:text-gray-400 truncate">{(res as any).atleta_email || 'sin email'}</span>
                     </div>
+                    {res.codigo_seguimiento && (
+                      <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-500/10">
+                        <Info size={10} className="text-purple-500" />
+                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400">Código: {res.codigo_seguimiento}</span>
+                      </div>
+                    )}
+                    {res.tipo_reserva === 'particular' && res.datos_particular && Object.keys(res.datos_particular).length > 0 && (
+                      <div className="pt-2 space-y-1.5">
+                        {Object.entries(res.datos_particular).map(([key, value]) => (
+                          <div key={key} className="flex justify-between items-center py-1 px-2 bg-white dark:bg-black/20 rounded-lg">
+                            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                            <span className="text-[10px] font-bold text-gray-900 dark:text-white text-right">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -390,6 +429,15 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                         className="h-10 px-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-all flex items-center gap-2 text-gray-600 dark:text-gray-400 text-[10px] font-bold"
                       >
                         <Shield size={14} /> Sede
+                      </button>
+                    )}
+
+                    {res.tipo_reserva === 'particular' && res.datos_particular && (
+                      <button 
+                        onClick={() => setSelectedParticularData(res)}
+                        className="h-10 px-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all flex items-center gap-2 text-purple-600 dark:text-purple-400 text-[10px] font-bold"
+                      >
+                        <User size={14} /> Particulares
                       </button>
                     )}
 
@@ -540,6 +588,113 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
         </div>
       )}
 
+      {/* MODAL DATOS PARTICULAR */}
+      {selectedParticularData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+              <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Datos del Particular</h2>
+              <button onClick={() => setSelectedParticularData(null)} className="p-2 bg-gray-100 dark:bg-white/5 hover:bg-red-500 hover:text-white rounded-xl transition-all"><XCircle size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Nombre</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{(selectedParticularData as any).atleta_nombre}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Documento</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{(selectedParticularData as any).atleta_documento || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Email</p>
+                  <p className="text-sm font-bold text-[var(--primary)]">{(selectedParticularData as any).atleta_email || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Celular</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{(selectedParticularData as any).atleta_celular || 'N/A'}</p>
+                </div>
+              </div>
+              {selectedParticularData.codigo_seguimiento && (
+                <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-2xl border border-purple-100 dark:border-purple-500/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">Código de Seguimiento</p>
+                    <p className="text-lg font-black text-purple-600 dark:text-purple-400">{selectedParticularData.codigo_seguimiento}</p>
+                  </div>
+                  <Info size={24} className="text-purple-500" />
+                </div>
+              )}
+              {selectedParticularData.datos_particular && Object.keys(selectedParticularData.datos_particular).length > 0 && (
+                <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-2xl border border-gray-100 dark:border-white/5 space-y-3">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Campos Adicionales</p>
+                  {Object.entries(selectedParticularData.datos_particular).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                      <span className="text-xs font-bold text-gray-900 dark:text-white text-right">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL INFO CLUB */}
+      {selectedClubInfo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden">
+            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+              <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Club: {selectedClubInfo.nombre}</h2>
+              <button onClick={() => setSelectedClubInfo(null)} className="p-2 bg-gray-100 dark:bg-white/5 hover:bg-red-500 hover:text-white rounded-xl transition-all"><XCircle size={18} /></button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4">
+                {selectedClubInfo.logo_url ? (
+                  <img src={selectedClubInfo.logo_url} alt={selectedClubInfo.nombre} className="w-16 h-16 rounded-2xl object-cover border border-gray-200 dark:border-white/10" />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--primary)] text-black flex items-center justify-center text-xl font-black">{selectedClubInfo.nombre?.charAt(0)}</div>
+                )}
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white">{selectedClubInfo.nombre}</h3>
+                  <p className="text-[10px] font-bold text-gray-500">{selectedClubInfo.deporte?.nombre || selectedClubInfo.deporte_id || 'Sin deporte'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Email</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedClubInfo.email_corporativo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Teléfono</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedClubInfo.telefono || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">País</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedClubInfo.pais || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Ciudad</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedClubInfo.ciudad || 'N/A'}</p>
+                </div>
+              </div>
+              {selectedClubInfo.direccion && (
+                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Dirección</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white mt-1">{selectedClubInfo.direccion}</p>
+                </div>
+              )}
+              {selectedClubInfo.descripcion && (
+                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Descripción</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{selectedClubInfo.descripcion}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL SCANNER */}
       {scannerOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -564,7 +719,7 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
               <div className="space-y-4">
                 <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-2xl text-center border border-gray-100 dark:border-white/5">
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titular</p>
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white">{scanResult.tipo_reserva === 'equipo' ? scanResult.equipo?.nombre : scanResult.deportista?.nombre_completo}</h3>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white">{scanResult.tipo_reserva === 'equipo' ? scanResult.equipo?.nombre : scanResult.tipo_reserva === 'particular' ? (scanResult as any).atleta_nombre : scanResult.deportista?.nombre_completo}</h3>
                   <p className="text-[10px] font-bold text-[var(--primary)] mt-2">ID: {scanResult.id.substring(0,8)}...</p>
                 </div>
 

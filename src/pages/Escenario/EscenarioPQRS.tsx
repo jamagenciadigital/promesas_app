@@ -69,15 +69,17 @@ export default function EscenarioPQRS() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-[var(--primary-10)] rounded-2xl">
-          <MessageSquare className="w-6 h-6 text-[var(--primary)]" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-black text-white uppercase italic tracking-tight">PQRS Escenario</h1>
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Solicitudes de equipos y deportistas</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-xl shadow-sm">
+            <MessageSquare className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[#182332] dark:text-white tracking-tight">PQRS</h2>
+            <p className="text-xs text-gray-500">Solicitudes de equipos y deportistas.</p>
+          </div>
         </div>
       </div>
 

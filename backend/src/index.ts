@@ -389,12 +389,15 @@ function formatTimeValue(val: any): any {
 }
 
 // Column types cache to differentiate between JSON/JSONB columns and regular arrays/objects
-const tableColumnTypesCache: Record<string, Record<string, string>> = {};
+// Uses a TTL so new columns added via migration are picked up without server restart
+const tableColumnTypesCache: Record<string, { types: Record<string, string>; ts: number }> = {};
+const CACHE_TTL_MS = 60_000;
 
 async function getTableColumnTypes(schemaName: string, tableName: string): Promise<Record<string, string>> {
   const cacheKey = `${schemaName}.${tableName}`;
-  if (tableColumnTypesCache[cacheKey]) {
-    return tableColumnTypesCache[cacheKey];
+  const cached = tableColumnTypesCache[cacheKey];
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    return cached.types;
   }
   
   try {
@@ -408,7 +411,13 @@ async function getTableColumnTypes(schemaName: string, tableName: string): Promi
     for (const row of res) {
       types[row.column_name] = row.data_type;
     }
-    tableColumnTypesCache[cacheKey] = types;
+    if (cached) {
+      const added = Object.keys(types).filter(k => !(k in cached.types));
+      if (added.length > 0) {
+        console.log(`New columns detected for ${cacheKey}: ${added.join(', ')}`);
+      }
+    }
+    tableColumnTypesCache[cacheKey] = { types, ts: Date.now() };
     return types;
   } catch (err) {
     console.error(`Error fetching column types for ${cacheKey}:`, err);
@@ -627,6 +636,9 @@ async function executeQuery(table: string, method: string, args: any[], filters:
       }
     }
     
+    if (updateClauses.length === 0) {
+      return { data: null, count: 0 };
+    }
     queryText = `UPDATE "${schemaName}"."${table}" SET ${updateClauses.join(', ')} ${whereString} RETURNING *`;
   }
   else if (method === 'delete') {

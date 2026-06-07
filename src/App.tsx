@@ -56,6 +56,7 @@ import JefaturaEntrenadores from './pages/Jefatura/JefaturaEntrenadores';
 import DireccionDeportiva from './pages/Club/Pro/DireccionDeportiva';
 import RegisterElitePlayer from './pages/Club/RegisterElitePlayer';
 import PublicReservation from './pages/Escenario/PublicReservation';
+import ConsultaReserva from './pages/Escenario/ConsultaReserva';
 import PlayerPQRS from './pages/Player/PlayerPQRS';
 import ClubPQRS from './pages/Club/ClubPQRS';
 import EscenarioPQRS from './pages/Escenario/EscenarioPQRS';
@@ -85,6 +86,7 @@ function App() {
           <Route path="/registro-deportista" element={<RegisterPlayer />} />
           <Route path="/registro-padre" element={<RegisterParent />} />
           <Route path="/reservar/:id" element={<PublicReservation />} />
+          <Route path="/mi-reserva" element={<ConsultaReserva />} />
           
           {/* Protected Routes by Role */}
           {/* SUPERADMIN DASHBOARD */}

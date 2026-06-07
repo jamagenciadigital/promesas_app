@@ -211,7 +211,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
       // Mapeamos los días de la base de datos a los índices del UI
       const mapped = (data || []).map(h => ({
         ...h,
-        ui_dia: dbDayToUiDay(h.dia_semana ?? 0)
+        ui_dia: dbDayToUiDay(h.dia_semana ?? 0),
+        precio_particular: h.precio_particular ?? 0
       }));
       setHorarios(mapped);
     } catch (error) {
@@ -338,6 +339,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
       hora_inicio: '08:00',
       hora_fin: '09:00',
       precio: 0,
+      precio_particular: 0,
       es_gratis: false,
       es_bloqueado: false,
       cancha_id: prefilledCanchaId || '',
@@ -404,6 +406,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
         hora_inicio: `${sh}:${sm}`,
         hora_fin: `${eh}:${em}`,
         precio: slot.precio,
+        precio_particular: slot.precio_particular,
         es_gratis: slot.es_gratis,
         es_bloqueado: slot.es_bloqueado,
         cancha_id: slot.cancha_id || '',
@@ -454,7 +457,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
 
       if (toUpdate.length > 0) {
         for (const h of toUpdate) {
-            await supabase.from('escenario_horarios').update(h).eq('id', (h as any).id);
+            const { error: updErr } = await supabase.from('escenario_horarios').update(h).eq('id', (h as any).id);
+            if (updErr) throw updErr;
         }
       }
 
@@ -774,9 +778,9 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
 
                         {/* Pricing and Action Toggles Group */}
                         <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-end gap-3 w-full lg:w-auto">
-                          {/* Precio (COP) */}
+                          {/* Precio Club/Jugador (COP) */}
                           <div className="flex-1 min-w-[120px]">
-                            <span className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1">Tarifa (COP)</span>
+                            <span className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1">Club/Jugador (COP)</span>
                             <div className="relative">
                               <DollarSign className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
                               <input 
@@ -786,6 +790,22 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
                                 className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200/80 dark:border-white/10 rounded-xl text-xs font-bold py-3 pl-10 pr-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613] focus:ring-2 focus:ring-[#E30613]/10 disabled:opacity-30 disabled:bg-gray-100 dark:disabled:bg-white/5 transition-all duration-200"
                                 value={slot.precio || ''}
                                 onChange={e => updateSlot(slot.tempId, slot.id, { precio: parseFloat(e.target.value) || 0 })}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Precio Particular (COP) */}
+                          <div className="flex-1 min-w-[120px]">
+                            <span className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1">Particular (COP)</span>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
+                              <input 
+                                disabled={slot.es_gratis || slot.es_bloqueado}
+                                type="number" 
+                                placeholder="0.00"
+                                className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200/80 dark:border-white/10 rounded-xl text-xs font-bold py-3 pl-10 pr-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613] focus:ring-2 focus:ring-[#E30613]/10 disabled:opacity-30 disabled:bg-gray-100 dark:disabled:bg-white/5 transition-all duration-200"
+                                value={slot.precio_particular || ''}
+                                onChange={e => updateSlot(slot.tempId, slot.id, { precio_particular: parseFloat(e.target.value) || 0 })}
                               />
                             </div>
                           </div>
@@ -800,7 +820,8 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
                                 const nextGratis = !slot.es_gratis;
                                 updateSlot(slot.tempId, slot.id, { 
                                   es_gratis: nextGratis, 
-                                  precio: nextGratis ? 0 : slot.precio 
+                                  precio: nextGratis ? 0 : slot.precio,
+                                  precio_particular: nextGratis ? 0 : slot.precio_particular
                                 });
                               }}
                               className={`w-full sm:w-auto h-[44px] px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-1.5 border disabled:opacity-30 ${
@@ -1200,7 +1221,7 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
                                     Bloqueado por: {slot.bloqueado_por || 'Administración'}
                                   </span>
                                 ) : (
-                                  slot.es_gratis ? 'Gratis' : `$${slot.precio.toLocaleString()} COP`
+                                  slot.es_gratis ? 'Gratis' : `Club: $${slot.precio.toLocaleString()} / Part: $${(slot.precio_particular || 0).toLocaleString()} COP`
                                 )}
                               </p>
                             </div>

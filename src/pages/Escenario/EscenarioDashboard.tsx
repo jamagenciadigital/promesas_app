@@ -10,6 +10,45 @@ import { Badge } from '../../components/ui/Badge'; // IMPORTACIÓN CORREGIDA
 import EscenarioScheduleModal from './EscenarioScheduleModal';
 import { Modal } from '../../components/ui/Modal';
 
+const AVAILABLE_WIDGETS = [
+  {
+    id: 'clubes',
+    name: 'Reporte de Clubes',
+    description: 'Proporción de clubes activos vs inactivos.',
+    icon: Building2
+  },
+  {
+    id: 'jugadores',
+    name: 'Reporte de Jugadores',
+    description: 'Proporción de jugadores activos vs inactivos.',
+    icon: Users
+  },
+  {
+    id: 'entrenadores',
+    name: 'Reporte de Entrenadores',
+    description: 'Proporción de entrenadores activos vs inactivos.',
+    icon: User
+  },
+  {
+    id: 'ligas',
+    name: 'Reporte de Ligas',
+    description: 'Resumen de ligas registradas en el sistema.',
+    icon: Trophy
+  },
+  {
+    id: 'reservas',
+    name: 'Reporte de Reservas',
+    description: 'Control de reservas: por validar, aprobadas y rechazadas.',
+    icon: CalendarIcon
+  },
+  {
+    id: 'pqrs',
+    name: 'Reporte de PQRS',
+    description: 'Control de PQRS: pendientes vs resueltas.',
+    icon: MessageCircle
+  }
+];
+
 const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | 'settings' }) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +72,16 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
   const [canchas, setCanchas] = useState<any[]>([]);
   const [newCanchaName, setNewCanchaName] = useState('');
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const [isWidgetsOpen, setIsWidgetsOpen] = useState(false);
+  const [clubStats, setClubStats] = useState({ active: 0, inactive: 0, total: 0 });
+  const [playerStats, setPlayerStats] = useState({ active: 0, inactive: 0, total: 0 });
+  const [coachStats, setCoachStats] = useState({ active: 0, inactive: 0, total: 0 });
+  const [ligaStats, setLigaStats] = useState({ active: 0, inactive: 0, total: 0 });
+  const [pqrsStats, setPqrsStats] = useState({ pending: 0, resolved: 0, total: 0 });
+  const [activeWidgets, setActiveWidgets] = useState<string[]>(() => {
+    const saved = localStorage.getItem('escenario_active_widgets');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     if (user) {
@@ -40,6 +89,11 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
       fetchGestores();
       fetchStats();
       fetchDeportes();
+      fetchClubStats();
+      fetchPlayerStats();
+      fetchCoachStats();
+      fetchLigaStats();
+      fetchPqrsStats();
     }
   }, [user]);
 
@@ -48,6 +102,124 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
       const { data } = await supabase.from('deportes').select('nombre').order('nombre');
       setDeportes(data || []);
     } catch (e) { console.error(e); }
+  };
+
+  const fetchClubStats = async () => {
+    try {
+      const { data, error } = await supabase.from('clubes').select('estado');
+      if (error) throw error;
+      let active = 0;
+      let inactive = 0;
+      data?.forEach((c: any) => {
+        if (c.estado === 'activo' || !c.estado) {
+          active++;
+        } else {
+          inactive++;
+        }
+      });
+      setClubStats({ active, inactive, total: data?.length || 0 });
+    } catch (e) {
+      console.error('Error fetching club stats:', e);
+    }
+  };
+
+  const fetchPlayerStats = async () => {
+    try {
+      const { data, error } = await supabase.from('deportistas').select('estado');
+      if (error) throw error;
+      let active = 0;
+      let inactive = 0;
+      data?.forEach((p: any) => {
+        if (p.estado === 'activo') {
+          active++;
+        } else {
+          inactive++;
+        }
+      });
+      setPlayerStats({ active, inactive, total: data?.length || 0 });
+    } catch (e) {
+      console.error('Error fetching player stats:', e);
+    }
+  };
+
+  const fetchCoachStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('perfiles')
+        .select('estado')
+        .eq('rol', 'entrenador');
+      if (error) throw error;
+      let active = 0;
+      let inactive = 0;
+      data?.forEach((c: any) => {
+        if (c.estado === 'activo' || !c.estado) {
+          active++;
+        } else {
+          inactive++;
+        }
+      });
+      setCoachStats({ active, inactive, total: data?.length || 0 });
+    } catch (e) {
+      console.error('Error fetching coach stats:', e);
+    }
+  };
+
+  const fetchLigaStats = async () => {
+    try {
+      const { data, error } = await supabase.from('ligas').select('id');
+      if (error) throw error;
+      let active = data?.length || 0;
+      let inactive = 0;
+      setLigaStats({ active, inactive, total: data?.length || 0 });
+    } catch (e) {
+      console.error('Error fetching liga stats:', e);
+    }
+  };
+
+  const fetchPqrsStats = async () => {
+    try {
+      let query = supabase.from('escenarios').select('id');
+      if (profile?.rol === 'escenario_deportivo') {
+        query = query.eq('gestor_id', user?.id);
+      } else if (profile?.rol !== 'superadmin' && profile?.rol !== 'jefatura') {
+        query = query.eq('administrador_id', user?.id);
+      }
+      const { data: ownEsc } = await query;
+      const ids = ownEsc?.map(e => e.id) || [];
+      
+      if (ids.length === 0) {
+        setPqrsStats({ pending: 0, resolved: 0, total: 0 });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('pqrs')
+        .select('estado')
+        .eq('destino_tipo', 'escenario')
+        .in('destino_id', ids);
+
+      if (error) throw error;
+      let pending = 0;
+      let resolved = 0;
+      data?.forEach((p: any) => {
+        if (p.estado === 'pendiente') {
+          pending++;
+        } else {
+          resolved++;
+        }
+      });
+      setPqrsStats({ pending, resolved, total: data?.length || 0 });
+    } catch (e) {
+      console.error('Error fetching PQRS stats:', e);
+    }
+  };
+
+  const toggleWidget = (widgetId: string) => {
+    const updated = activeWidgets.includes(widgetId)
+      ? activeWidgets.filter(id => id !== widgetId)
+      : [...activeWidgets, widgetId];
+    setActiveWidgets(updated);
+    localStorage.setItem('escenario_active_widgets', JSON.stringify(updated));
   };
 
   const fetchStats = async () => {
@@ -265,6 +437,579 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         </div>
       </div>
       
+      {/* WIDGETS ACTIVOS (MOSTRAR AL INICIO) */}
+      {view === 'list' && (
+        activeWidgets.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-4 duration-500 mb-6">
+            {/* Widget de Clubes */}
+            {activeWidgets.includes('clubes') && (
+              <div 
+                onClick={() => navigate('/escenario/club')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <Building2 size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Clubes</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Activos vs. inactivos</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#E30613] text-[10px] font-bold flex items-center gap-1">
+                      Ver listado <ChevronLeft size={10} className="transform rotate-180" />
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('clubes');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Gráfica de Torta/Dona SVG */}
+                <div className="flex justify-center py-2">
+                  <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+                    <svg width={110} height={110} viewBox="0 0 110 110" className="transform -rotate-90">
+                      <circle
+                        cx="55"
+                        cy="55"
+                        r="40"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="9"
+                      />
+                      {clubStats.total > 0 && clubStats.active > 0 && (
+                        <circle
+                          cx="55"
+                          cy="55"
+                          r="40"
+                          fill="transparent"
+                          stroke="var(--primary, #E30613)"
+                          strokeWidth="9"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * (clubStats.active / clubStats.total))}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-black text-white leading-none">{clubStats.total}</span>
+                      <span className="text-[7px] uppercase font-bold tracking-widest text-gray-400 mt-0.5">Total</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bloques de Indicadores */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Activos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{clubStats.active}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {clubStats.total > 0 ? ((clubStats.active / clubStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="bg-slate-500/10 border border-slate-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                      Inactivos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{clubStats.inactive}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {clubStats.total > 0 ? ((clubStats.inactive / clubStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Widget de Jugadores */}
+            {activeWidgets.includes('jugadores') && (
+              <div 
+                onClick={() => navigate('/escenario/jugadores')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <Users size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Jugadores</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Activos vs. inactivos</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#E30613] text-[10px] font-bold flex items-center gap-1">
+                      Ver listado <ChevronLeft size={10} className="transform rotate-180" />
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('jugadores');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Gráfica de Torta/Dona SVG */}
+                <div className="flex justify-center py-2">
+                  <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+                    <svg width={110} height={110} viewBox="0 0 110 110" className="transform -rotate-90">
+                      <circle
+                        cx="55"
+                        cy="55"
+                        r="40"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="9"
+                      />
+                      {playerStats.total > 0 && playerStats.active > 0 && (
+                        <circle
+                          cx="55"
+                          cy="55"
+                          r="40"
+                          fill="transparent"
+                          stroke="var(--primary, #E30613)"
+                          strokeWidth="9"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * (playerStats.active / playerStats.total))}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-black text-white leading-none">{playerStats.total}</span>
+                      <span className="text-[7px] uppercase font-bold tracking-widest text-gray-400 mt-0.5">Total</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bloques de Indicadores */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Activos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{playerStats.active}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {playerStats.total > 0 ? ((playerStats.active / playerStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="bg-slate-500/10 border border-slate-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                      Inactivos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{playerStats.inactive}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {playerStats.total > 0 ? ((playerStats.inactive / playerStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Widget de Entrenadores */}
+            {activeWidgets.includes('entrenadores') && (
+              <div 
+                onClick={() => navigate('/escenario/entrenadores')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <User size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Entrenadores</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Activos vs. inactivos</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#E30613] text-[10px] font-bold flex items-center gap-1">
+                      Ver listado <ChevronLeft size={10} className="transform rotate-180" />
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('entrenadores');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Gráfica de Torta/Dona SVG */}
+                <div className="flex justify-center py-2">
+                  <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+                    <svg width={110} height={110} viewBox="0 0 110 110" className="transform -rotate-90">
+                      <circle
+                        cx="55"
+                        cy="55"
+                        r="40"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="9"
+                      />
+                      {coachStats.total > 0 && coachStats.active > 0 && (
+                        <circle
+                          cx="55"
+                          cy="55"
+                          r="40"
+                          fill="transparent"
+                          stroke="var(--primary, #E30613)"
+                          strokeWidth="9"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * (coachStats.active / coachStats.total))}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-black text-white leading-none">{coachStats.total}</span>
+                      <span className="text-[7px] uppercase font-bold tracking-widest text-gray-400 mt-0.5">Total</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bloques de Indicadores */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Activos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{coachStats.active}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {coachStats.total > 0 ? ((coachStats.active / coachStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="bg-slate-500/10 border border-slate-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                      Inactivos
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{coachStats.inactive}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {coachStats.total > 0 ? ((coachStats.inactive / coachStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Widget de Ligas */}
+            {activeWidgets.includes('ligas') && (
+              <div 
+                onClick={() => navigate('/escenario/liga')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <Trophy size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Ligas</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Activas vs. inactivas</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#E30613] text-[10px] font-bold flex items-center gap-1">
+                      Ver listado <ChevronLeft size={10} className="transform rotate-180" />
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('ligas');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Gráfica de Torta/Dona SVG */}
+                <div className="flex justify-center py-2">
+                  <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+                    <svg width={110} height={110} viewBox="0 0 110 110" className="transform -rotate-90">
+                      <circle
+                        cx="55"
+                        cy="55"
+                        r="40"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="9"
+                      />
+                      {ligaStats.total > 0 && ligaStats.active > 0 && (
+                        <circle
+                          cx="55"
+                          cy="55"
+                          r="40"
+                          fill="transparent"
+                          stroke="var(--primary, #E30613)"
+                          strokeWidth="9"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * (ligaStats.active / ligaStats.total))}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-black text-white leading-none">{ligaStats.total}</span>
+                      <span className="text-[7px] uppercase font-bold tracking-widest text-gray-400 mt-0.5">Total</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bloques de Indicadores */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Activas
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{ligaStats.active}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {ligaStats.total > 0 ? ((ligaStats.active / ligaStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="bg-slate-500/10 border border-slate-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                      Inactivas
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{ligaStats.inactive}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {ligaStats.total > 0 ? ((ligaStats.inactive / ligaStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Widget de Reservas */}
+            {activeWidgets.includes('reservas') && (
+              <div 
+                onClick={() => navigate('/escenario/reservas')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between"
+                style={{ minHeight: '275px' }}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <CalendarIcon size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Reservas</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Control de Reservas</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    {/* Badge "Por Validar" con color ámbar */}
+                    <span className="px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                      Por Validar: {stats.pending}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('reservas');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-tarjetas de Aprobados y Rechazados estilo "Accesos Hoy" */}
+                <div className="grid grid-cols-2 gap-3 my-1.5">
+                  {/* Panel Aprobados */}
+                  <div className="bg-[#e6fbf3] border border-[#d1fadf] p-3 rounded-2xl flex flex-col justify-between h-18">
+                    <div className="text-[#027a48] text-[8px] font-extrabold uppercase tracking-widest leading-none">
+                      Aprobados
+                    </div>
+                    <div className="text-xl font-black text-[#027a48] leading-none mt-1">
+                      {stats.approved}
+                    </div>
+                  </div>
+
+                  {/* Panel Rechazados */}
+                  <div className="bg-[#fef2f2] border border-[#fee2e2] p-3 rounded-2xl flex flex-col justify-between h-18">
+                    <div className="text-[#b91c1c] text-[8px] font-extrabold uppercase tracking-widest leading-none">
+                      Rechazados
+                    </div>
+                    <div className="text-xl font-black text-[#b91c1c] leading-none mt-1">
+                      {stats.rejected}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer con Total Recaudado, Porcentaje de Éxito y Barra de Progreso */}
+                <div className="mt-3 space-y-1.5">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                    <span>Recaudado</span>
+                    <span className="text-white font-black">
+                      ${new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0 }).format(stats.total)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                    <span>Éxito</span>
+                    <span className="text-[#10b981] font-black">
+                      {(() => {
+                        const totalRes = stats.approved + stats.rejected + stats.pending;
+                        return totalRes > 0 ? Math.round((stats.approved / totalRes) * 100) : 0;
+                      })()}%
+                    </span>
+                  </div>
+
+                  {/* Barra de progreso */}
+                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-[#10b981] h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{ 
+                        width: `${(() => {
+                          const totalRes = stats.approved + stats.rejected + stats.pending;
+                          return totalRes > 0 ? Math.round((stats.approved / totalRes) * 100) : 0;
+                        })()}%` 
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Widget de PQRS */}
+            {activeWidgets.includes('pqrs') && (
+              <div 
+                onClick={() => navigate('/escenario/pqrs')}
+                className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between"
+                style={{ minHeight: '275px' }}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-white">
+                      <MessageCircle size={14} className="text-[#E30613]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">PQRS</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Pendientes vs. Resueltas</p>
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#E30613] text-[10px] font-bold flex items-center gap-1">
+                      Ver listado <ChevronLeft size={10} className="transform rotate-180" />
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWidget('pqrs');
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white/10 hover:bg-red-500 hover:text-white text-gray-400 rounded-xl transition-all"
+                      title="Quitar del dashboard"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Gráfica de Torta/Dona SVG */}
+                <div className="flex justify-center py-2">
+                  <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+                    <svg width={110} height={110} viewBox="0 0 110 110" className="transform -rotate-90">
+                      <circle
+                        cx="55"
+                        cy="55"
+                        r="40"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="9"
+                      />
+                      {pqrsStats.total > 0 && pqrsStats.resolved > 0 && (
+                        <circle
+                          cx="55"
+                          cy="55"
+                          r="40"
+                          fill="transparent"
+                          stroke="var(--primary, #E30613)"
+                          strokeWidth="9"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * (pqrsStats.resolved / pqrsStats.total))}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-black text-white leading-none">{pqrsStats.total}</span>
+                      <span className="text-[7px] uppercase font-bold tracking-widest text-gray-400 mt-0.5">Total</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bloques de Indicadores */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Pendientes
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{pqrsStats.pending}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {pqrsStats.total > 0 ? ((pqrsStats.pending / pqrsStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl flex flex-col">
+                    <div className="flex items-center gap-1.5 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Resueltas
+                    </div>
+                    <span className="text-xl font-black text-white mt-0.5 leading-none">{pqrsStats.resolved}</span>
+                    <span className="text-[9px] font-semibold text-gray-400 mt-1">
+                      {pqrsStats.total > 0 ? ((pqrsStats.resolved / pqrsStats.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-[#182332]/20 dark:to-white/[0.02] border border-gray-100 dark:border-white/5 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-in fade-in duration-500">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-2xl shadow-sm shrink-0">
+                <LayoutGrid size={20} className="animate-pulse" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#182332] dark:text-white">Tablero Personalizable</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Personaliza tu tablero, da clic en BOTON WIDGETS</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsWidgetsOpen(true)}
+              className="px-4 py-2 bg-[#E30613] hover:bg-[#bd0f10] text-white text-[10px] font-black uppercase italic tracking-wider rounded-xl transition-all active:scale-95 shadow-sm"
+            >
+              Configurar
+            </button>
+          </div>
+        )
+      )}
+
       {/* MÉTRICAS DE OPERACIÓN */}
       {view === 'list' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-1000">
@@ -496,6 +1241,80 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
       )}
       {successMsg && <Toast message={successMsg} onClose={() => setSuccessMsg(null)} />}
       <style>{` .custom-scrollbar::-webkit-scrollbar { width: 6px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #E30613; border-radius: 10px; } `}</style>
+
+      {/* Botón Flotante de Widgets */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setIsWidgetsOpen(true)}
+          className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#E30613] to-[#bd0f10] text-white font-black uppercase italic tracking-wider text-[10px] rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"
+        >
+          <LayoutGrid size={14} className="animate-pulse" />
+          Widgets
+        </button>
+      </div>
+
+      {/* Drawer Lateral de Widgets */}
+      {isWidgetsOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden animate-in fade-in duration-200">
+          {/* Fondo Translúcido (Backdrop) */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" 
+            onClick={() => setIsWidgetsOpen(false)}
+          />
+          
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white dark:bg-[#16171b] border-l border-gray-100 dark:border-white/5 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+              {/* Encabezado del Drawer */}
+              <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid size={18} className="text-[#E30613]" />
+                  <h2 className="text-sm font-black text-[#182332] dark:text-white uppercase italic tracking-wider">Widgets</h2>
+                </div>
+                <button 
+                  onClick={() => setIsWidgetsOpen(false)} 
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-gray-600 dark:hover:text-white rounded-xl transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              
+              {/* Cuerpo del Drawer */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                <div className="space-y-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Widgets Disponibles</p>
+                  {AVAILABLE_WIDGETS.map(w => {
+                    const Icon = w.icon;
+                    const isActive = activeWidgets.includes(w.id);
+                    return (
+                      <div key={w.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-xl">
+                            <Icon size={16} />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-[#182332] dark:text-white">{w.name}</h4>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{w.description}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => toggleWidget(w.id)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-wider transition-all active:scale-95 ${
+                            isActive 
+                              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' 
+                              : 'bg-[var(--primary)] text-black hover:brightness-95'
+                          }`}
+                        >
+                          {isActive ? 'Remover' : 'Agregar'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

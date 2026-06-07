@@ -819,6 +819,7 @@ model escenario_horarios {
   hora_inicio      DateTime    @db.Time(6)
   hora_fin         DateTime    @db.Time(6)
   precio           Decimal?    @default(0.00) @db.Decimal(12, 2)
+  precio_particular Decimal?   @default(0.00) @db.Decimal(12, 2)
   es_gratis        Boolean?    @default(false)
   es_bloqueado     Boolean?    @default(false)
   bloqueado_por    String?     @db.Text
@@ -840,7 +841,7 @@ model escenarios {
   correo                                         String?
   deporte                                        String
   deporte_id                                     String?              @db.Uuid
-  configuracion_reserva                          Json?                @default("{\"permite_equipos\": true, \"permite_jugadores\": true}")
+  configuracion_reserva                          Json?                @default("{\"permite_equipos\": true, \"permite_jugadores\": true, \"permite_particulares\": true}")
   created_at                                     DateTime             @default(now()) @db.Timestamptz(6)
   link_pago                                      String?
   qr_url                                         String?
@@ -858,6 +859,10 @@ model escenarios {
   reserva_escenario                              reserva_escenario[]
   deportes                                       deportes?            @relation(fields: [deporte_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   incidencias                                    incidencias[]
+  capacidad                                      Int?
+  descripcion                                    String?
+  campos_reserva_particular                      Json?                @default("[{\"id\": \"nombre\", \"label\": \"Nombre\", \"tipo\": \"text\", \"requerido\": true, \"fijo\": true}, {\"id\": \"correo\", \"label\": \"Correo\", \"tipo\": \"email\", \"requerido\": true, \"fijo\": true}]")
+  auditoria_escenario                            auditoria_escenario[]
 
   @@schema("public")
 }
@@ -889,6 +894,21 @@ model incidencias {
   fecha         DateTime    @db.Date
   created_at    DateTime?   @default(now()) @db.Timestamptz(6)
   escenarios    escenarios  @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model auditoria_escenario {
+  id            String       @id @default(uuid()) @db.Uuid
+  escenario_id  String       @db.Uuid
+  usuario_id    String?      @db.Uuid
+  usuario_nombre String
+  accion        String
+  ruta          String?
+  detalle       String?
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  escenarios    escenarios   @relation(fields: [escenario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  perfiles      perfiles?    @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -1018,6 +1038,7 @@ model perfiles {
   pqrs_pqrs_respondido_porToperfiles               pqrs[]                @relation("pqrs_respondido_porToperfiles")
   pqrs_pqrs_solicitante_idToperfiles               pqrs[]                @relation("pqrs_solicitante_idToperfiles")
   reserva_escenario                                reserva_escenario[]
+  auditoria_escenario                              auditoria_escenario[]
 
   @@schema("public")
 }
@@ -1154,6 +1175,8 @@ model reserva_escenario {
   ingreso_observacion String?
   salida_observacion  String?
   cancha_id           String?            @db.Uuid
+  codigo_seguimiento  String?
+  datos_particular    Json?
   escenario_canchas   escenario_canchas? @relation(fields: [cancha_id], references: [id], onUpdate: NoAction)
   perfiles            perfiles?          @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   deportistas         deportistas?       @relation(fields: [deportista_id], references: [id], onDelete: NoAction, onUpdate: NoAction)

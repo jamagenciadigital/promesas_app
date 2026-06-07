@@ -106,24 +106,24 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
           <select
             value={filter.tipo}
             onChange={(e) => setFilter({ ...filter, tipo: e.target.value as any })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none cursor-pointer"
           >
-            <option value="">Todos los Tipos</option>
-            <option value="pregunta">Preguntas</option>
-            <option value="queja">Quejas</option>
-            <option value="reclamo">Reclamos</option>
-            <option value="sugerencia">Sugerencias</option>
+            <option value="" className="bg-[#0f172a] text-white font-medium">Todos los Tipos</option>
+            <option value="pregunta" className="bg-[#0f172a] text-white font-medium">Preguntas</option>
+            <option value="queja" className="bg-[#0f172a] text-white font-medium">Quejas</option>
+            <option value="reclamo" className="bg-[#0f172a] text-white font-medium">Reclamos</option>
+            <option value="sugerencia" className="bg-[#0f172a] text-white font-medium">Sugerencias</option>
           </select>
           <select
             value={filter.estado}
             onChange={(e) => setFilter({ ...filter, estado: e.target.value as any })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none cursor-pointer"
           >
-            <option value="">Todos los Estados</option>
-            <option value="pendiente">Pendientes</option>
-            <option value="en_revision">En Revisión</option>
-            <option value="respondida">Respondidas</option>
-            <option value="cerrada">Cerradas</option>
+            <option value="" className="bg-[#0f172a] text-white font-medium">Todos los Estados</option>
+            <option value="pendiente" className="bg-[#0f172a] text-white font-medium">Pendientes</option>
+            <option value="en_revision" className="bg-[#0f172a] text-white font-medium">En Revisión</option>
+            <option value="respondida" className="bg-[#0f172a] text-white font-medium">Respondidas</option>
+            <option value="cerrada" className="bg-[#0f172a] text-white font-medium">Cerradas</option>
           </select>
         </div>
       </div>

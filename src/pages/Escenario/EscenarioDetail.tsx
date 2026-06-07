@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../context/AuthContext';
 import {
   ChevronLeft, MapPin, Building2, Settings, Calendar, Clock,
-  Box, AlertTriangle, User, Mail, Phone, LayoutGrid, Edit2,
-  Plus, X, Save, Loader2, Send
+  Box, AlertTriangle, Mail, Phone,
+  Plus, Loader2, Send
 } from 'lucide-react';
-import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Toast } from '../../components/ui/Toast';
@@ -17,6 +15,7 @@ import EscenarioInventory from './EscenarioInventory';
 import PQRSList from '../../components/PQRS/PQRSList';
 import PQRSDetail from '../../components/PQRS/PQRSDetail';
 import { PQRS, Incidencia, TipoIncidencia } from '../../types';
+import EscenarioConfiguracion from './EscenarioConfiguracion';
 
 type Tab = 'configuracion' | 'horarios' | 'reservas' | 'logistica' | 'incidencias';
 
@@ -31,25 +30,12 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
 export default function EscenarioDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
 
   const [escenario, setEscenario] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('configuracion');
 
-  const [deportes, setDeportes] = useState<any[]>([]);
-  const [gestores, setGestores] = useState<any[]>([]);
-  const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const [formData, setFormData] = useState({
-    nombre: '', direccion: '', telefono: '', correo: '', deporte: '',
-    link_pago: '', qr_url: '', permite_clubes: true, permite_deportistas: true, gestor_id: '',
-    responsable_nombre: '', supervisor_nombre: '', supervisor_correo: '', supervisor_area: ''
-  });
-
-  const [canchas, setCanchas] = useState<any[]>([]);
-  const [newCanchaName, setNewCanchaName] = useState('');
 
   const [pqrsView, setPqrsView] = useState<'list' | 'detail'>('list');
   const [selectedPQRS, setSelectedPQRS] = useState<PQRS | null>(null);
@@ -68,8 +54,6 @@ export default function EscenarioDetail() {
   useEffect(() => {
     if (id) {
       fetchEscenario();
-      fetchDeportes();
-      fetchGestores();
     }
   }, [id]);
 
@@ -84,90 +68,12 @@ export default function EscenarioDetail() {
         .single();
       if (data) {
         setEscenario(data);
-        setFormData({
-          nombre: data.nombre || '', direccion: data.direccion || '',
-          telefono: data.telefono || '', correo: data.correo || '',
-          deporte: data.deporte || '', link_pago: data.link_pago || '',
-          qr_url: data.qr_url || '', permite_clubes: data.permite_clubes ?? true,
-          permite_deportistas: data.permite_deportistas ?? true, gestor_id: data.gestor_id || '',
-          responsable_nombre: data.responsable_nombre || '',
-          supervisor_nombre: data.supervisor_nombre || '',
-          supervisor_correo: data.supervisor_correo || '',
-          supervisor_area: data.supervisor_area || ''
-        });
-        fetchCanchas(id);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchCanchas = async (escenarioId: string) => {
-    const { data } = await supabase.from('escenario_canchas').select('*').eq('escenario_id', escenarioId);
-    setCanchas(data || []);
-  };
-
-  const fetchDeportes = async () => {
-    const { data } = await supabase.from('deportes').select('nombre').order('nombre');
-    setDeportes(data || []);
-  };
-
-  const fetchGestores = async () => {
-    const { data } = await supabase.from('perfiles').select('id, nombre, email').eq('rol', 'escenario_deportivo');
-    setGestores(data || []);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id || !profile) return;
-    setSaving(true);
-    try {
-      const payload = {
-        nombre: formData.nombre, direccion: formData.direccion, telefono: formData.telefono,
-        correo: formData.correo, deporte: formData.deporte, link_pago: formData.link_pago,
-        qr_url: formData.qr_url, permite_clubes: formData.permite_clubes,
-        permite_deportistas: formData.permite_deportistas, gestor_id: formData.gestor_id || null,
-        responsable_nombre: formData.responsable_nombre,
-        supervisor_nombre: formData.supervisor_nombre,
-        supervisor_correo: formData.supervisor_correo,
-        supervisor_area: formData.supervisor_area
-      };
-      const { error } = await supabase.from('escenarios').update(payload).eq('id', id);
-      if (error) throw error;
-      setSuccessMsg('Escenario actualizado');
-      fetchEscenario();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleAddCancha = async () => {
-    if (!newCanchaName.trim() || !id) return;
-    try {
-      const { data, error } = await supabase
-        .from('escenario_canchas')
-        .insert([{ escenario_id: id, nombre: newCanchaName }])
-        .select();
-      if (error) throw error;
-      if (data) setCanchas([...canchas, data[0]]);
-      setNewCanchaName('');
-    } catch (err: any) {
-      console.error(err);
-    }
-  };
-
-  const handleRemoveCancha = async (cancha: any) => {
-    await supabase.from('escenario_canchas').delete().eq('id', cancha.id);
-    setCanchas(canchas.filter(c => c.id !== cancha.id));
   };
 
   const fetchIncidencias = async () => {
@@ -297,120 +203,12 @@ export default function EscenarioDetail() {
 
       {/* Tab Content */}
       <div className="min-h-[400px]">
-        {activeTab === 'configuracion' && (
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl p-6 space-y-6">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
-              <Settings size={16} className="text-[var(--primary)]" />
-              <h3 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Información General</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Nombre" required name="nombre" value={formData.nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Deporte</label>
-                <select
-                  name="deporte"
-                  value={formData.deporte}
-                  onChange={handleChange}
-                  required
-                  className="w-full h-12 px-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[var(--primary)]"
-                >
-                  <option value="" disabled>Seleccionar...</option>
-                  {deportes.map((dep, i) => (
-                    <option key={i} value={dep.nombre}>{dep.nombre}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <Input label="Dirección" icon={<MapPin size={14} />} name="direccion" value={formData.direccion} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Teléfono" icon={<Phone size={14} />} name="telefono" value={formData.telefono} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-              <Input label="Email" icon={<Mail size={14} />} name="correo" value={formData.correo} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
-              <div className="flex items-center gap-2">
-                <User size={16} className="text-[var(--primary)]" />
-                <h4 className="text-[10px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Responsable & Supervisión</h4>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Gestor del Escenario</label>
-                <select
-                  name="gestor_id"
-                  value={formData.gestor_id}
-                  onChange={handleChange}
-                  className="w-full h-12 px-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[var(--primary)]"
-                >
-                  <option value="">Admin Principal</option>
-                  {gestores.map(g => (
-                    <option key={g.id} value={g.id}>{g.nombre} ({g.email})</option>
-                  ))}
-                </select>
-              </div>
-
-              <Input label="Nombre del Responsable en Sede" name="responsable_nombre" value={formData.responsable_nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-
-              <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 space-y-4">
-                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest text-center">Supervisor / Auditor</p>
-                <Input label="Nombre" name="supervisor_nombre" value={formData.supervisor_nombre} onChange={handleChange} className="bg-white/10 h-12 rounded-xl" />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input label="Correo" name="supervisor_correo" value={formData.supervisor_correo} onChange={handleChange} className="bg-white/10 h-12 rounded-xl" />
-                  <Input label="Área" name="supervisor_area" value={formData.supervisor_area} onChange={handleChange} className="bg-white/10 h-12 rounded-xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
-              <div className="flex items-center gap-2">
-                <LayoutGrid size={16} className="text-[var(--primary)]" />
-                <h4 className="text-[10px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Canchas / Áreas</h4>
-              </div>
-
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Nombre (Ej: Cancha 1)"
-                  value={newCanchaName}
-                  onChange={(e) => setNewCanchaName(e.target.value)}
-                  className="flex-1 bg-gray-50 dark:bg-white/5 h-10 rounded-xl"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddCancha}
-                  className="h-10 px-4 bg-[var(--primary)] text-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5"
-                >
-                  <Plus size={14} /> Agregar
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                {canchas.map((c) => (
-                  <div key={c.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
-                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">{c.nombre}</span>
-                    <button type="button" onClick={() => handleRemoveCancha(c)} className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg transition-all">
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-                {canchas.length === 0 && (
-                  <p className="text-[10px] text-gray-400 italic text-center py-2">Sin canchas definidas</p>
-                )}
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-end">
-              <Button
-                type="submit"
-                isLoading={saving}
-                disabled={saving}
-                className="h-12 px-8 bg-[var(--primary)] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
-              >
-                <Save size={14} className="mr-2" /> Guardar Cambios
-              </Button>
-            </div>
-          </form>
+        {activeTab === 'configuracion' && escenario && (
+          <EscenarioConfiguracion
+            escenarioId={id!}
+            escenario={escenario}
+            onSuccess={(msg) => setSuccessMsg(msg)}
+          />
         )}
 
         {activeTab === 'horarios' && escenario && (

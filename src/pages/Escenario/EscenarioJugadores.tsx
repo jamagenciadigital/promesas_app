@@ -33,7 +33,7 @@ interface EquipoOption { id: string; nombre: string; }
 const INITIAL_FORM = {
   nombre_completo: '', apellidos: '', tipo_documento: 'CC', numero_documento: '',
   email_deportista: '', celular_deportista: '', genero: '', fecha_nacimiento: '',
-  club_id: '', equipo_id: ''
+  club_id: '', equipo_id: '', estado: 'activo'
 };
 
 export default function EscenarioJugadores() {
@@ -98,10 +98,10 @@ export default function EscenarioJugadores() {
         fecha_nacimiento: form.fecha_nacimiento || null,
         club_id: form.club_id || null,
         equipo_id: form.equipo_id || null,
+        estado: form.estado || 'activo'
       };
 
       if (!editId) {
-        payload.estado = 'pendiente';
         payload.registrado_por = 'escenario';
       }
 
@@ -151,6 +151,7 @@ export default function EscenarioJugadores() {
       fecha_nacimiento: d.fecha_nacimiento || '',
       club_id: d.club_id || '',
       equipo_id: d.equipo_id || '',
+      estado: d.estado || 'activo'
     });
     setIsModalOpen(true);
   };
@@ -246,6 +247,7 @@ export default function EscenarioJugadores() {
                   <th className="px-5 py-3">Contacto</th>
                   <th className="px-5 py-3">Club</th>
                   <th className="px-5 py-3">Equipo</th>
+                  <th className="px-5 py-3">Estado</th>
                   <th className="px-5 py-3 text-right">Acción</th>
                 </tr>
               </thead>
@@ -284,6 +286,17 @@ export default function EscenarioJugadores() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="text-xs font-semibold text-gray-600">{j.equipo?.nombre || '-'}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                        j.estado === 'activo' 
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                          : j.estado === 'pendiente'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                          : 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+                      }`}>
+                        {j.estado || 'activo'}
+                      </span>
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -412,19 +425,37 @@ export default function EscenarioJugadores() {
             </div>
           </div>
 
-          {form.club_id && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {form.club_id ? (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Equipo</label>
+                <select
+                  value={form.equipo_id}
+                  onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}
+                  className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#182332]"
+                >
+                  <option value="">Seleccionar equipo...</option>
+                  {equipos.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+              </div>
+            ) : (
+              <div />
+            )}
+
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Equipo</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estado *</label>
               <select
-                value={form.equipo_id}
-                onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}
+                value={form.estado}
+                onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#182332]"
+                required
               >
-                <option value="">Seleccionar equipo...</option>
-                {equipos.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                <option value="activo">Activo</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="inactivo">Inactivo</option>
               </select>
             </div>
-          )}
+          </div>
 
           <div className="flex gap-3 pt-2 border-t border-gray-100">
             <Button type="button" variant="ghost" onClick={() => { setIsModalOpen(false); resetForm(); }} className="flex-1 h-12 rounded-xl font-bold text-gray-500">
