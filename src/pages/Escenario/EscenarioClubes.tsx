@@ -109,6 +109,7 @@ export default function EscenarioClubes() {
   const [isPermisosModalOpen, setIsPermisosModalOpen] = useState(false);
   const [allPlans, setAllPlans] = useState<{ id: string; nombre: string; modulos_activos: string[] }[]>([]);
   const [toggledModules, setToggledModules] = useState<string[]>([]);
+  const [savingPermisos, setSavingPermisos] = useState(false);
 
   useEffect(() => { fetchData(); fetchDeportes(); }, []);
 
@@ -258,16 +259,13 @@ export default function EscenarioClubes() {
 
   const handleSavePermisos = async () => {
     if (!permisosClub) return;
-    const planModules = permisosClub.planes_suscripcion?.modulos_activos || [];
-    const isSameAsPlan =
-      toggledModules.length === planModules.length &&
-      [...toggledModules].sort().join(',') === [...planModules].sort().join(',');
+    setSavingPermisos(true);
     try {
       const { error } = await supabase
         .from('clubes')
         .update({
           plan_id: selectedPlanId || null,
-          modulos_personalizados: isSameAsPlan ? null : toggledModules,
+          modulos_personalizados: toggledModules,
         })
         .eq('id', permisosClub.id);
       if (error) throw error;
@@ -280,6 +278,8 @@ export default function EscenarioClubes() {
       console.error('Error updating club permisos:', err);
       setError(err.message || 'Error al actualizar permisos.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      setSavingPermisos(false);
     }
   };
 
@@ -801,6 +801,7 @@ export default function EscenarioClubes() {
               </Button>
               <Button
                 onClick={handleSavePermisos}
+                isLoading={savingPermisos}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-xl"
               >
                 Guardar Permisos
