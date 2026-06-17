@@ -276,8 +276,13 @@ export default function EscenarioClubes() {
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
       console.error('Error updating club permisos:', err);
-      setError(err.message || 'Error al actualizar permisos.');
-      setTimeout(() => setError(null), 5000);
+      const msg = err.message || '';
+      if (msg.includes('modulos_personalizados')) {
+        setError('La columna modulos_personalizados no existe. Ejecuta add_club_modulos_personalizados.sql en Supabase.');
+      } else {
+        setError(msg || 'Error al actualizar permisos.');
+      }
+      setTimeout(() => setError(null), 8000);
     } finally {
       setSavingPermisos(false);
     }
