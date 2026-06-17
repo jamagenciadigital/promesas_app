@@ -411,6 +411,10 @@ async function getTableColumnTypes(schemaName: string, tableName: string): Promi
     for (const row of res) {
       types[row.column_name] = row.data_type;
     }
+    if (tableName === 'clubes') {
+      console.log(`=== Column types for clubes:`, Object.keys(types).join(', '));
+      console.log(`=== modulos_personalizados type:`, types['modulos_personalizados']);
+    }
     if (cached) {
       const added = Object.keys(types).filter(k => !(k in cached.types));
       if (added.length > 0) {
@@ -618,9 +622,15 @@ async function executeQuery(table: string, method: string, args: any[], filters:
     
     queryText = `INSERT INTO "${schemaName}"."${table}" (${colStrings}) VALUES ${valueStrings.join(', ')} RETURNING *`;
   }
-  else if (method === 'update') {
+   else if (method === 'update') {
     const data = args[0];
     const updateClauses: string[] = [];
+    
+    if (table === 'clubes') {
+      console.log('=== UPDATE clubes body:', JSON.stringify(data));
+      console.log('=== UPDATE clubes colTypes keys:', Object.keys(colTypes).join(', '));
+      console.log('=== modulos_personalizados in colTypes?', 'modulos_personalizados' in colTypes);
+    }
     
     for (const col of Object.keys(data).filter(c => c in colTypes)) {
       let val = data[col];
@@ -636,7 +646,12 @@ async function executeQuery(table: string, method: string, args: any[], filters:
       }
     }
     
+    if (table === 'clubes') {
+      console.log('=== UPDATE clubes updateClauses:', updateClauses.join(', '));
+    }
+    
     if (updateClauses.length === 0) {
+      if (table === 'clubes') console.log('=== UPDATE clubes: NO CLAUSES TO UPDATE!');
       return { data: null, count: 0 };
     }
     queryText = `UPDATE "${schemaName}"."${table}" SET ${updateClauses.join(', ')} ${whereString} RETURNING *`;
