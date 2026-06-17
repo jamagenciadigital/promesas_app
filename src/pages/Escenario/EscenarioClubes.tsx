@@ -26,7 +26,7 @@ interface ClubRow {
   documento_representante_url?: string;
   deportes?: { nombre: string } | { nombre: string }[] | null;
   plan_id?: string;
-  planes_suscripcion?: { nombre: string; modulos_activos: string[] } | null;
+  planes_suscripcion?: { nombre: string; modulos_activos: string[] } | { nombre: string; modulos_activos: string[] }[] | null;
   modulos_personalizados?: string[] | null;
 }
 
@@ -246,7 +246,7 @@ export default function EscenarioClubes() {
         if (data) setAllPlans(data);
       });
     }
-    const baseModules = club.modulos_personalizados || club.planes_suscripcion?.modulos_activos || [];
+    const baseModules = club.modulos_personalizados || getPlan(club)?.modulos_activos || [];
     setToggledModules([...baseModules]);
   };
 
@@ -359,6 +359,11 @@ export default function EscenarioClubes() {
   const getDeporteName = (club: ClubRow) => {
     if (!club.deportes) return undefined;
     return Array.isArray(club.deportes) ? club.deportes[0]?.nombre : club.deportes.nombre;
+  };
+
+  const getPlan = (club: ClubRow): { nombre: string; modulos_activos: string[] } | null => {
+    if (!club.planes_suscripcion) return null;
+    return Array.isArray(club.planes_suscripcion) ? club.planes_suscripcion[0] : club.planes_suscripcion;
   };
 
   const downloadExcel = () => {
@@ -550,8 +555,8 @@ export default function EscenarioClubes() {
                     {club.email_corporativo && (
                       <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{club.email_corporativo}</span>
                     )}
-                    {club.planes_suscripcion?.nombre && (
-                      <span className="flex items-center gap-1 text-indigo-500 font-semibold"><Award className="w-3 h-3" />{club.planes_suscripcion.nombre}</span>
+                    {getPlan(club)?.nombre && (
+                      <span className="flex items-center gap-1 text-indigo-500 font-semibold"><Award className="w-3 h-3" />{getPlan(club)!.nombre}</span>
                     )}
                   </div>
                 </div>
@@ -703,7 +708,7 @@ export default function EscenarioClubes() {
               <div>
                 <h3 className="font-bold text-[#182332] text-lg">{permisosClub.nombre}</h3>
                 <p className="text-xs text-gray-500">
-                  Plan actual: <span className="font-bold text-indigo-600">{permisosClub.planes_suscripcion?.nombre || 'Sin plan asignado'}</span>
+                  Plan actual: <span className="font-bold text-indigo-600">{getPlan(permisosClub)?.nombre || 'Sin plan asignado'}</span>
                 </p>
               </div>
             </div>
@@ -749,11 +754,11 @@ export default function EscenarioClubes() {
               </div>
 
               {/* Plan info */}
-              {permisosClub.planes_suscripcion && !permisosClub.modulos_personalizados && (
+              {getPlan(permisosClub) && !permisosClub.modulos_personalizados && (
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4 flex items-center gap-2">
                   <ShieldAlert size={14} className="text-indigo-500 shrink-0" />
                   <p className="text-[10px] text-indigo-700 font-medium">
-                    Mostrando módulos del plan <strong>{permisosClub.planes_suscripcion.nombre}</strong>.
+                    Mostrando módulos del plan <strong>{getPlan(permisosClub)!.nombre}</strong>.
                     Activa/desactiva para personalizar este club.
                   </p>
                 </div>

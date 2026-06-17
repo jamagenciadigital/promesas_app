@@ -184,7 +184,7 @@ export default function EscenarioReporteRegistro() {
         const name = `${e.nombre || ''} ${e.apellido || ''}`.trim();
         return name || undefined;
       });
-      const clubGrouped = groupItems(clubResult.data || [], () => undefined);
+      const clubGrouped = groupItems(clubResult.data as any[] || [], () => undefined);
 
       setData({
         jugadores: { total: jugResult.data?.length || 0, items: jugGrouped.grouped, raw: jugGrouped.raw },
