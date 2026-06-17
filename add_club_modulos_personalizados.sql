@@ -1,2 +1,4 @@
-ALTER TABLE public.clubes
-ADD COLUMN IF NOT EXISTS modulos_personalizados JSONB DEFAULT NULL;
+-- La columna ya está definida en backend/prisma/schema.prisma
+-- Ejecutar: cd backend && npx prisma db push
+-- O alternativo directo:
+-- ALTER TABLE public.clubes ADD COLUMN IF NOT EXISTS modulos_personalizados JSONB DEFAULT '[]'::jsonb;

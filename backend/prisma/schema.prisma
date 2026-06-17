@@ -610,6 +610,7 @@ model clubes {
   temporada_inicio             DateTime?           @db.Date
   temporada_fin                DateTime?           @db.Date
   plan_id                      String?             @db.Uuid
+  modulos_personalizados       Json?               @default("[]") @db.JsonB
   nit                          String?
   agenda_deportiva             agenda_deportiva[]
   asistencia                   asistencia[]
