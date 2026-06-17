@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { PQRS, TipoPQRS, EstadoPQRS } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Search, Filter, MessageSquare, Clock, CheckCircle2, XCircle, FileText, ChevronRight } from 'lucide-react';
+import { Search, MessageSquare, Clock, FileText, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -11,6 +11,13 @@ interface PQRSListProps {
   view: 'sent' | 'received';
   onSelect: (pqrs: PQRS) => void;
 }
+
+const TIPO_LABELS: Record<TipoPQRS, string> = {
+  pregunta: 'Pregunta',
+  queja: 'Queja',
+  reclamo: 'Reclamo',
+  sugerencia: 'Sugerencia'
+};
 
 const ESTADO_BADGES: Record<EstadoPQRS, { variant: any, label: string }> = {
   pendiente: { variant: 'warning', label: 'Pendiente' },
@@ -82,7 +89,7 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-24 bg-white/5 rounded-3xl animate-pulse border border-white/5" />
+          <div key={i} className="h-24 bg-gray-50 dark:bg-white/5 rounded-2xl animate-pulse border border-gray-100 dark:border-white/5" />
         ))}
       </div>
     );
@@ -91,39 +98,39 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Buscar por código, descripción o nombre..."
             value={filter.search}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white outline-none focus:border-[var(--primary-40)] transition-all font-medium"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#182332] transition-all"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={filter.tipo}
             onChange={(e) => setFilter({ ...filter, tipo: e.target.value as any })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none cursor-pointer"
+            className="w-full h-[46px] bg-white border border-gray-200 rounded-2xl pl-4 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#182332] appearance-none cursor-pointer"
           >
-            <option value="" className="bg-[#0f172a] text-white font-medium">Todos los Tipos</option>
-            <option value="pregunta" className="bg-[#0f172a] text-white font-medium">Preguntas</option>
-            <option value="queja" className="bg-[#0f172a] text-white font-medium">Quejas</option>
-            <option value="reclamo" className="bg-[#0f172a] text-white font-medium">Reclamos</option>
-            <option value="sugerencia" className="bg-[#0f172a] text-white font-medium">Sugerencias</option>
+            <option value="">Todos los Tipos</option>
+            <option value="pregunta">Preguntas</option>
+            <option value="queja">Quejas</option>
+            <option value="reclamo">Reclamos</option>
+            <option value="sugerencia">Sugerencias</option>
           </select>
           <select
             value={filter.estado}
             onChange={(e) => setFilter({ ...filter, estado: e.target.value as any })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest outline-none cursor-pointer"
+            className="w-full h-[46px] bg-white border border-gray-200 rounded-2xl pl-4 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#182332] appearance-none cursor-pointer"
           >
-            <option value="" className="bg-[#0f172a] text-white font-medium">Todos los Estados</option>
-            <option value="pendiente" className="bg-[#0f172a] text-white font-medium">Pendientes</option>
-            <option value="en_revision" className="bg-[#0f172a] text-white font-medium">En Revisión</option>
-            <option value="respondida" className="bg-[#0f172a] text-white font-medium">Respondidas</option>
-            <option value="cerrada" className="bg-[#0f172a] text-white font-medium">Cerradas</option>
+            <option value="">Todos los Estados</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="en_revision">En Revisión</option>
+            <option value="respondida">Respondidas</option>
+            <option value="cerrada">Cerradas</option>
           </select>
         </div>
       </div>
@@ -135,46 +142,41 @@ export default function PQRSList({ view, onSelect }: PQRSListProps) {
             <button
               key={item.id}
               onClick={() => onSelect(item)}
-              className="w-full text-left group bg-white/5 hover:bg-white/10 border border-white/5 hover:border-[var(--primary-20)] p-5 rounded-[32px] transition-all flex items-center justify-between gap-4"
+              className="w-full text-left bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition-all"
             >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className={`p-3 rounded-2xl bg-black border border-white/10 ${TIPO_COLORS[item.tipo]}`}>
-                  <MessageSquare size={20} />
+              <div className="p-5 flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center bg-gray-50 shrink-0 ${TIPO_COLORS[item.tipo]}`}>
+                  <MessageSquare size={18} />
                 </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest italic">{item.codigo}</span>
-                    <Badge variant={ESTADO_BADGES[item.estado].variant} className="text-[8px] px-2 py-0.5">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{item.codigo}</span>
+                    <Badge variant={ESTADO_BADGES[item.estado].variant} className="text-[8px] px-2 py-0.5 font-bold uppercase">
                       {ESTADO_BADGES[item.estado].label}
                     </Badge>
                   </div>
-                  <h4 className="text-sm font-bold text-white truncate group-hover:text-[var(--primary)] transition-colors uppercase italic">
-                      {item.tipo}: {item.descripcion}
-                  </h4>
-                  <div className="flex items-center gap-4 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  <p className="text-sm font-bold text-[#182332] truncate">
+                    {TIPO_LABELS[item.tipo]}: {item.descripcion}
+                  </p>
+                  <div className="flex items-center gap-4 mt-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                     <span className="flex items-center gap-1">
                       <Clock size={10} />
                       {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: es })}
                     </span>
                     <span className="flex items-center gap-1">
                       <FileText size={10} />
-                      {view === 'received' ? item.solicitante_nombre : `Para: ${item.destino_tipo}`}
+                      {view === 'received' ? item.solicitante_nombre : `Para: ${item.destino_tipo === 'club' ? 'Club' : 'Escenario'}`}
                     </span>
                   </div>
                 </div>
+                <ChevronRight size={16} className="text-gray-300 shrink-0" />
               </div>
-              <ChevronRight className="text-gray-600 group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
             </button>
           ))
         ) : (
-          <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="p-6 bg-white/5 rounded-full">
-              <MessageSquare className="w-10 h-10 text-gray-700" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">No se encontraron solicitudes</p>
-              <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Intenta ajustar los filtros de búsqueda</p>
-            </div>
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-3xl p-16 text-center">
+            <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">No se encontraron solicitudes</p>
           </div>
         )}
       </div>

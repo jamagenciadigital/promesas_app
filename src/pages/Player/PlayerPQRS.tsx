@@ -61,23 +61,23 @@ export default function PlayerPQRS() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[var(--primary-10)] rounded-2xl">
-            <MessageSquare className="w-6 h-6 text-[var(--primary)]" />
+          <div className="p-2 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-xl shadow-sm">
+            <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white uppercase italic tracking-tight">PQRS y Solicitudes</h1>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Preguntas, Quejas, Reclamos y Sugerencias</p>
+            <h1 className="text-xl font-bold text-[#182332] dark:text-white tracking-tight">PQRS y Solicitudes</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Preguntas, Quejas, Reclamos y Sugerencias</p>
           </div>
         </div>
 
         {view === 'list' && (
           <Button 
             onClick={() => setView('create')}
-            className="bg-[var(--primary)] text-black font-black px-6 h-12 rounded-2xl flex items-center gap-2 border-0 shadow-lg shadow-[var(--primary-10)] hover:scale-[1.02] transition-transform"
+            className="bg-[#182332] dark:bg-[var(--primary)] text-white dark:text-black font-bold px-4 h-10 rounded-xl flex items-center gap-2 border-0 shadow-sm transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Nueva Solicitud
@@ -93,14 +93,14 @@ export default function PlayerPQRS() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <button 
             onClick={() => setView('list')}
-            className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white transition-colors italic"
+            className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft size={14} /> Volver
           </button>
           
-          <div className="text-center space-y-2 py-4">
-            <h2 className="text-xl font-black text-white uppercase italic">¿A quién diriges tu solicitud?</h2>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Selecciona el destinatario de tu PQRS</p>
+          <div className="text-center space-y-2 py-2">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">¿A quién diriges tu solicitud?</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Selecciona el destinatario de tu PQRS</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -108,34 +108,34 @@ export default function PlayerPQRS() {
             {profile?.club_id && (
               <button
                 onClick={() => handleCreate('club', profile.club_id!, 'Mi Club')}
-                className="group bg-white/5 hover:bg-[var(--primary-10)] border border-white/5 hover:border-[var(--primary-40)] p-8 rounded-[40px] transition-all text-left space-y-4"
+                className="group bg-gray-50 dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-100 dark:border-white/5 p-6 rounded-2xl transition-all text-left space-y-4"
               >
-                <div className="w-16 h-16 bg-black rounded-[24px] border border-white/10 flex items-center justify-center text-gray-500 group-hover:text-[var(--primary)] group-hover:scale-110 transition-all">
-                  <Building2 size={32} />
+                <div className="w-12 h-12 bg-white dark:bg-black/40 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-center text-gray-400 group-hover:text-[var(--primary)] group-hover:scale-110 transition-all">
+                  <Building2 size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-white uppercase italic">Mi Club</h3>
-                  <p className="text-xs text-gray-400 font-medium">Envía una solicitud administrativa a tu club deportivo.</p>
+                  <h3 className="text-md font-bold text-gray-900 dark:text-white">Mi Club</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Envía una solicitud administrativa a tu club deportivo.</p>
                 </div>
               </button>
             )}
 
             {/* Escenarios Deportivos */}
-            <div className="bg-white/5 border border-white/5 p-8 rounded-[40px] space-y-6">
+            <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 p-6 rounded-2xl space-y-6">
               <div className="flex items-center gap-3">
                 <MapPin className="text-[var(--primary)]" size={24} />
-                <h3 className="text-lg font-black text-white uppercase italic">Escenarios</h3>
+                <h3 className="text-md font-bold text-gray-900 dark:text-white">Escenarios</h3>
               </div>
               
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
                 {loadingEscenarios ? (
-                  [1,2,3].map(i => <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />)
+                  [1,2,3].map(i => <div key={i} className="h-12 bg-gray-50 dark:bg-white/5 rounded-xl animate-pulse" />)
                 ) : (
                   escenarios.map(esc => (
                     <button
                       key={esc.id}
                       onClick={() => handleCreate('escenario', esc.id, esc.nombre)}
-                      className="w-full text-left p-4 bg-black/40 hover:bg-[var(--primary-10)] border border-white/5 hover:border-[var(--primary-40)] rounded-2xl text-[10px] font-black text-white uppercase tracking-widest italic transition-all flex items-center justify-between group"
+                      className="w-full text-left p-4 bg-gray-50 dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-bold text-gray-900 dark:text-white transition-all flex items-center justify-between group"
                     >
                       {esc.nombre}
                       <Plus size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -149,20 +149,20 @@ export default function PlayerPQRS() {
       )}
 
       {view === 'create' && destino && (
-        <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95">
+        <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in zoom-in-95">
           <div className="flex items-center justify-between">
              <button 
                 onClick={() => setDestino(null)}
-                className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white transition-colors italic"
+                className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <ArrowLeft size={14} /> Cambiar Destinatario
               </button>
-              <div className="px-4 py-1.5 bg-[var(--primary-10)] border border-[var(--primary-20)] rounded-full">
-                <span className="text-[10px] font-black text-[var(--primary)] uppercase italic">Para: {destino.nombre}</span>
+              <div className="px-3 py-1.5 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-full">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Para: {destino.nombre}</span>
               </div>
           </div>
 
-          <div className="bg-white/5 border border-white/5 p-8 rounded-[40px] shadow-2xl">
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-sm">
             <PQRSForm 
               destinoTipo={destino.tipo} 
               destinoId={destino.id} 
@@ -178,7 +178,6 @@ export default function PlayerPQRS() {
           pqrs={selectedPQRS} 
           onBack={() => setView('list')} 
           onUpdate={() => {
-            // Refrescar datos
             setView('list');
           }}
         />

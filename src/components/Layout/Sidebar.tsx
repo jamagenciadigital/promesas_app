@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Home, Users, Settings, Activity, ChevronLeft, ChevronRight, Calendar, X, FileText, User, MessageCircle, Shield, Wallet, Share2, MapPin, Box, Trophy, UserPlus, Building2 } from 'lucide-react';
+import { LogOut, Home, Users, Settings, Activity, ChevronLeft, ChevronRight, Calendar, X, FileText, User, MessageCircle, Shield, Wallet, Share2, MapPin, Box, Trophy, UserPlus, Building2, BarChart3 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { cn } from '../../lib/utils';
@@ -99,6 +99,10 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: 'Entrenadores', icon: UserPlus, path: '/escenario/entrenadores' },
         { name: 'Gestión Usuarios', icon: Users, path: '/escenario/usuarios' },
         { name: 'PQRS', icon: MessageCircle, path: '/escenario/pqrs' },
+        { name: 'Reportes', icon: BarChart3, path: '#', submenu: [
+          { name: 'Ingresos Reservas', path: '/escenario/reportes/ingresos' },
+          { name: 'Reporte Registro', path: '/escenario/reportes/registro' },
+        ]},
       ];
     case 'liga':
       return [

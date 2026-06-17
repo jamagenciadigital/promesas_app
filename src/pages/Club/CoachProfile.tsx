@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { 
   User, Calendar, Shield, MapPin, Phone, Mail, 
-  ArrowLeft, QrCode, Printer, ShieldCheck, Star, Award
+  ArrowLeft, QrCode, Printer, ShieldCheck, Star, Award,
+  FileText, ExternalLink
 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -221,6 +222,66 @@ export default function CoachProfile() {
                   Copiar Link Compartible
                 </Button>
             </section>
+          </div>
+        </div>
+
+        {/* Documentos Oficiales */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+              <FileText size={16} className="text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Documentos Oficiales</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`rounded-2xl border p-5 flex items-center gap-4 ${coach.documento_identidad_url ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-[#1e293b] border-gray-100 dark:border-white/5'}`}>
+              <div className={`p-3 rounded-xl ${coach.documento_identidad_url ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                <FileText size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Documento Identidad</p>
+                {coach.documento_identidad_url ? (
+                  <a href={coach.documento_identidad_url} target="_blank" rel="noreferrer"
+                    className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
+                    <ExternalLink size={12} /> Ver documento
+                  </a>
+                ) : (
+                  <p className="text-[10px] text-gray-400 italic mt-0.5">No cargado</p>
+                )}
+              </div>
+            </div>
+            <div className={`rounded-2xl border p-5 flex items-center gap-4 ${coach.certificado_grado_url ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-[#1e293b] border-gray-100 dark:border-white/5'}`}>
+              <div className={`p-3 rounded-xl ${coach.certificado_grado_url ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                <FileText size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Certificado Grado</p>
+                {coach.certificado_grado_url ? (
+                  <a href={coach.certificado_grado_url} target="_blank" rel="noreferrer"
+                    className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
+                    <ExternalLink size={12} /> Ver documento
+                  </a>
+                ) : (
+                  <p className="text-[10px] text-gray-400 italic mt-0.5">No cargado</p>
+                )}
+              </div>
+            </div>
+            <div className={`rounded-2xl border p-5 flex items-center gap-4 ${coach.certificado_entrenador_url ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-[#1e293b] border-gray-100 dark:border-white/5'}`}>
+              <div className={`p-3 rounded-xl ${coach.certificado_entrenador_url ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                <FileText size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Certificado Entrenador</p>
+                {coach.certificado_entrenador_url ? (
+                  <a href={coach.certificado_entrenador_url} target="_blank" rel="noreferrer"
+                    className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
+                    <ExternalLink size={12} /> Ver documento
+                  </a>
+                ) : (
+                  <p className="text-[10px] text-gray-400 italic mt-0.5">No cargado</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

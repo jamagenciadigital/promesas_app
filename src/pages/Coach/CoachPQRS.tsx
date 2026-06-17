@@ -61,22 +61,22 @@ export default function CoachPQRS() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[var(--primary-10)] rounded-2xl">
-            <MessageSquare className="w-6 h-6 text-[var(--primary)]" />
+          <div className="p-2 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-xl shadow-sm">
+            <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white uppercase italic tracking-tight">PQRS a Escenarios</h1>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Gestiona tus solicitudes a escenarios deportivos</p>
+            <h1 className="text-xl font-bold text-[#182332] dark:text-white tracking-tight">PQRS a Escenarios</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Gestiona tus solicitudes a escenarios deportivos</p>
           </div>
         </div>
 
         {view === 'list' && (
           <Button 
             onClick={() => setView('create')}
-            className="bg-[var(--primary)] text-black font-black px-6 h-12 rounded-2xl flex items-center gap-2 border-0 shadow-lg"
+            className="bg-[#182332] dark:bg-[var(--primary)] text-white dark:text-black font-bold px-4 h-10 rounded-xl flex items-center gap-2 border-0 shadow-sm transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Nueva Solicitud
@@ -90,28 +90,31 @@ export default function CoachPQRS() {
 
       {view === 'create' && !destino && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-          <button onClick={() => setView('list')} className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white transition-colors italic">
+          <button 
+            onClick={() => setView('list')} 
+            className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
             <ArrowLeft size={14} /> Volver
           </button>
           
-          <div className="bg-white/5 border border-white/5 p-8 rounded-[40px] space-y-6">
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 p-6 rounded-2xl space-y-6">
             <div className="flex items-center gap-3">
               <MapPin className="text-[var(--primary)]" size={24} />
-              <h3 className="text-lg font-black text-white uppercase italic">Seleccionar Escenario</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Seleccionar Escenario</h3>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {loadingEscenarios ? (
-                [1,2,3].map(i => <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />)
+                [1,2,3].map(i => <div key={i} className="h-16 bg-gray-50 dark:bg-white/5 rounded-2xl animate-pulse" />)
               ) : (
                 escenarios.map(esc => (
                   <button
                     key={esc.id}
                     onClick={() => handleCreate(esc.id, esc.nombre)}
-                    className="text-left p-6 bg-black/40 hover:bg-[var(--primary-10)] border border-white/5 hover:border-[var(--primary-40)] rounded-3xl transition-all group"
+                    className="text-left p-6 bg-gray-50 dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl transition-all group"
                   >
-                    <p className="text-sm font-black text-white uppercase italic group-hover:text-[var(--primary)] transition-colors">{esc.nombre}</p>
-                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{esc.deporte || 'Deporte no especificado'}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-[var(--primary)] transition-colors">{esc.nombre}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{esc.deporte || 'Deporte no especificado'}</p>
                   </button>
                 ))
               )}
@@ -121,11 +124,14 @@ export default function CoachPQRS() {
       )}
 
       {view === 'create' && destino && (
-        <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95">
-          <button onClick={() => setDestino(null)} className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white transition-colors italic">
+        <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in zoom-in-95">
+          <button 
+            onClick={() => setDestino(null)} 
+            className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
             <ArrowLeft size={14} /> Cambiar Escenario
           </button>
-          <div className="bg-white/5 border border-white/5 p-8 rounded-[40px]">
+          <div className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-sm">
             <PQRSForm destinoTipo="escenario" destinoId={destino.id} onSuccess={() => setView('list')} onCancel={() => setDestino(null)} />
           </div>
         </div>

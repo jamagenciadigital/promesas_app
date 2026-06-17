@@ -65,6 +65,8 @@ import EscenarioUsuarios from './pages/Escenario/EscenarioUsuarios';
 import EscenarioClubes from './pages/Escenario/EscenarioClubes';
 import EscenarioJugadores from './pages/Escenario/EscenarioJugadores';
 import EscenarioEntrenadores from './pages/Escenario/EscenarioEntrenadores';
+import EscenarioReporteIngresos from './pages/Escenario/EscenarioReporteIngresos';
+import EscenarioReporteRegistro from './pages/Escenario/EscenarioReporteRegistro';
 import CoachPQRS from './pages/Coach/CoachPQRS';
 import InventoryDashboard from './pages/Logistica/InventoryDashboard';
 import LigaDashboard from './pages/Liga/LigaDashboard';
@@ -189,6 +191,8 @@ function App() {
                   <Route path="/jugadores" element={<EscenarioJugadores />} />
                   <Route path="/entrenadores" element={<EscenarioEntrenadores />} />
                   <Route path="/usuarios" element={<EscenarioUsuarios />} />
+                  <Route path="/reportes/ingresos" element={<EscenarioReporteIngresos />} />
+                  <Route path="/reportes/registro" element={<EscenarioReporteRegistro />} />
                   <Route path=":id" element={<EscenarioDetail />} />
                   <Route path="*" element={<Navigate to="/escenario" replace />} />
                 </Routes>

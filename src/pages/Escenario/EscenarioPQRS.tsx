@@ -4,7 +4,8 @@ import { supabase } from '../../lib/supabase';
 import { PQRS, TipoPQRS, EstadoPQRS } from '../../types';
 import PQRSList from '../../components/PQRS/PQRSList';
 import PQRSDetail from '../../components/PQRS/PQRSDetail';
-import { MessageSquare, AlertCircle, CheckCircle2, Clock, XCircle, HelpCircle, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { MessageSquare, AlertCircle, CheckCircle2, Clock, XCircle, HelpCircle, ThumbsDown, ThumbsUp, RefreshCw } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
 
 const TIPO_CONFIG: Record<TipoPQRS, { label: string; icon: React.ElementType; color: string }> = {
   pregunta: { label: 'Preguntas', icon: HelpCircle, color: 'text-blue-500' },
@@ -28,6 +29,7 @@ export default function EscenarioPQRS() {
     tipo: { pregunta: 0, queja: 0, reclamo: 0, sugerencia: 0 },
     estado: { pendiente: 0, en_revision: 0, respondida: 0, cerrada: 0 }
   });
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     fetchStats();
@@ -68,8 +70,13 @@ export default function EscenarioPQRS() {
     setView('detail');
   };
 
+  const handleBack = () => {
+    setView('list');
+    setKey(k => k + 1);
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -77,65 +84,67 @@ export default function EscenarioPQRS() {
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#182332] dark:text-white tracking-tight">PQRS</h2>
+            <h2 className="text-xl font-bold text-[#182332] tracking-tight">PQRS</h2>
             <p className="text-xs text-gray-500">Solicitudes de equipos y deportistas.</p>
           </div>
         </div>
+        {view === 'list' && (
+          <Button onClick={fetchStats} className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Actualizar
+          </Button>
+        )}
       </div>
 
       {view === 'list' ? (
         <>
           {/* Stats by Tipo */}
-          <div>
-            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Por Tipo</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {(Object.keys(TIPO_CONFIG) as TipoPQRS[]).map((key) => {
-                const cfg = TIPO_CONFIG[key];
-                const Icon = cfg.icon;
-                return (
-                  <div key={key} className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-2xl p-4 flex items-center gap-4">
-                    <div className={`p-2.5 rounded-xl bg-black/5 dark:bg-white/5 ${cfg.color}`}>
-                      <Icon size={18} />
-                    </div>
-                    <div>
-                      <p className={`text-lg font-black ${cfg.color}`}>{stats.tipo[key]}</p>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{cfg.label}</p>
-                    </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {(Object.keys(TIPO_CONFIG) as TipoPQRS[]).map((key) => {
+              const cfg = TIPO_CONFIG[key];
+              const Icon = cfg.icon;
+              return (
+                <div key={key} className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4">
+                  <div className={`p-2.5 rounded-xl bg-gray-50 ${cfg.color}`}>
+                    <Icon size={18} />
                   </div>
-                );
-              })}
-            </div>
+                  <div>
+                    <p className={`text-lg font-black ${cfg.color}`}>{stats.tipo[key]}</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{cfg.label}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Stats by Estado */}
-          <div>
-            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Por Estado</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {(Object.keys(ESTADO_CONFIG) as EstadoPQRS[]).map((key) => {
-                const cfg = ESTADO_CONFIG[key];
-                const Icon = cfg.icon;
-                return (
-                  <div key={key} className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-2xl p-4 flex items-center gap-4">
-                    <div className={`p-2.5 rounded-xl bg-black/5 dark:bg-white/5 ${cfg.color}`}>
-                      <Icon size={18} />
-                    </div>
-                    <div>
-                      <p className={`text-lg font-black ${cfg.color}`}>{stats.estado[key]}</p>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{cfg.label}</p>
-                    </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {(Object.keys(ESTADO_CONFIG) as EstadoPQRS[]).map((key) => {
+              const cfg = ESTADO_CONFIG[key];
+              const Icon = cfg.icon;
+              return (
+                <div key={key} className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4">
+                  <div className={`p-2.5 rounded-xl bg-gray-50 ${cfg.color}`}>
+                    <Icon size={18} />
                   </div>
-                );
-              })}
-            </div>
+                  <div>
+                    <p className={`text-lg font-black ${cfg.color}`}>{stats.estado[key]}</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{cfg.label}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <PQRSList view="received" onSelect={handleSelect} />
+          <div key={key}>
+            <PQRSList view="received" onSelect={handleSelect} />
+          </div>
         </>
       ) : selectedPQRS ? (
         <PQRSDetail 
           pqrs={selectedPQRS} 
-          onBack={() => setView('list')} 
-          onUpdate={() => setView('list')}
+          onBack={handleBack} 
+          onUpdate={handleBack}
         />
       ) : null}
     </div>

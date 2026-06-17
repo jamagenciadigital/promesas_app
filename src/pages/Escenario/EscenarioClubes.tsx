@@ -6,7 +6,8 @@ import { Modal } from '../../components/ui/Modal';
 import { FileUpload } from '../../components/ui/FileUpload';
 import {
   Search, Building2, Plus, RefreshCw, Globe, MapPin, Mail, Phone, Shield,
-  Eye, Users, Trophy, UserPlus, Calendar, FileText, ExternalLink, Pencil
+  Eye, Users, Trophy, UserPlus, Calendar, FileText, ExternalLink, Pencil,
+  BarChart3, TrendingUp, FileSpreadsheet, XCircle, CheckCircle2
 } from 'lucide-react';
 
 interface ClubRow {
@@ -44,6 +45,14 @@ interface ClubDetail {
   reservas: number;
 }
 
+interface GlobalStats {
+  activos: number;
+  inactivos: number;
+  jugadores: number;
+  equipos: number;
+  entrenadores: number;
+}
+
 export default function EscenarioClubes() {
   const [clubes, setClubes] = useState<ClubRow[]>([]);
   const [filtered, setFiltered] = useState<ClubRow[]>([]);
@@ -51,6 +60,7 @@ export default function EscenarioClubes() {
   const [search, setSearch] = useState('');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<GlobalStats | null>(null);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deportes, setDeportes] = useState<{ id: string; nombre: string }[]>([]);
@@ -71,12 +81,60 @@ export default function EscenarioClubes() {
   });
   const [editingClubId, setEditingClubId] = useState<string | null>(null);
 
-  useEffect(() => { fetchClubes(); fetchDeportes(); }, []);
+  useEffect(() => { fetchData(); fetchDeportes(); }, []);
 
   useEffect(() => {
     const q = search.toLowerCase();
     setFiltered(clubes.filter(c => c.nombre.toLowerCase().includes(q)));
   }, [search, clubes]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [clubResult, statsResult] = await Promise.all([
+        supabase
+          .from('clubes')
+          .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre)')
+          .order('nombre'),
+        fetchGlobalStats(),
+      ]);
+
+      if (clubResult.error) throw clubResult.error;
+      setClubes(clubResult.data || []);
+      setStats(statsResult);
+    } catch (err: any) {
+      console.error('Error fetching clubes:', err);
+      setError(err.message || 'Error al cargar clubes.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGlobalStats = async (): Promise<GlobalStats> => {
+    const [
+      { count: activos },
+      { count: inactivos },
+      { count: jugadores },
+      { count: equipos },
+      { count: entrenadores },
+    ] = await Promise.all([
+      supabase.from('clubes').select('*', { count: 'exact', head: true }).eq('estado', 'activo'),
+      supabase.from('clubes').select('*', { count: 'exact', head: true }).eq('estado', 'inactivo'),
+      supabase.from('deportistas').select('*', { count: 'exact', head: true }),
+      supabase.from('equipos').select('*', { count: 'exact', head: true }),
+      supabase.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'entrenador'),
+    ]);
+
+    return {
+      activos: activos ?? 0,
+      inactivos: inactivos ?? 0,
+      jugadores: jugadores ?? 0,
+      equipos: equipos ?? 0,
+      entrenadores: entrenadores ?? 0,
+    };
+  };
 
   const fetchClubes = async () => {
     try {
@@ -123,7 +181,7 @@ export default function EscenarioClubes() {
       setSuccessMsg(`Club "${form.nombre}" creado.`);
       setIsCreateModalOpen(false);
       setForm({ nombre: '', deporte_id: '', pais: '', ciudad: '', direccion: '', telefono: '', email_corporativo: '', website: '', reconocimiento_deportivo_url: '', documento_representante_url: '' });
-      fetchClubes();
+      fetchData();
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
       console.error('Error creating club:', err);
@@ -167,7 +225,7 @@ export default function EscenarioClubes() {
       setSuccessMsg(`Club "${editForm.nombre}" actualizado.`);
       setIsEditModalOpen(false);
       setEditingClubId(null);
-      fetchClubes();
+      fetchData();
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
       console.error('Error updating club:', err);
@@ -220,8 +278,38 @@ export default function EscenarioClubes() {
     return Array.isArray(club.deportes) ? club.deportes[0]?.nombre : club.deportes.nombre;
   };
 
+  const downloadExcel = () => {
+    const BOM = '\uFEFF';
+    const headers = ['Nombre', 'Estado', 'Deporte', 'País', 'Ciudad', 'Dirección', 'Email', 'Teléfono', 'Website'];
+    const rows = filtered.map(c => [
+      c.nombre,
+      c.estado || 'activo',
+      getDeporteName(c) || '',
+      c.pais || '',
+      c.ciudad || '',
+      c.direccion || '',
+      c.email_corporativo || '',
+      c.telefono || '',
+      c.website || '',
+    ]);
+
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clubes-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-tr from-[#182332] to-[#bd0f10] text-white rounded-xl shadow-sm">
@@ -232,15 +320,107 @@ export default function EscenarioClubes() {
             <p className="text-xs text-gray-500">Gestiona los clubes registrados en la plataforma.</p>
           </div>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 bg-[var(--primary)] text-black hover:brightness-90 font-bold px-5">
-          <Plus className="h-4 w-4" />
-          <span>AGREGAR CLUB</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={downloadExcel} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-4">
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>EXCEL</span>
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 bg-[var(--primary)] text-black hover:brightness-90 font-bold px-5">
+            <Plus className="h-4 w-4" />
+            <span>AGREGAR CLUB</span>
+          </Button>
+        </div>
       </div>
 
       {error && <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs border border-red-100">{error}</div>}
       {successMsg && <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl text-xs border border-emerald-100">{successMsg}</div>}
 
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <CheckCircle2 size={18} className="text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[#182332]">{stats.activos}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Activos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-emerald-500">
+              <TrendingUp size={11} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">clubes</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
+                <XCircle size={18} className="text-red-500" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[#182332]">{stats.inactivos}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Inactivos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-red-400">
+              <TrendingUp size={11} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">clubes</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                <Users size={18} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[#182332]">{stats.jugadores}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Jugadores</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-blue-500">
+              <TrendingUp size={11} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">total</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Trophy size={18} className="text-amber-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[#182332]">{stats.equipos}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Equipos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-amber-500">
+              <TrendingUp size={11} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">total</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
+                <UserPlus size={18} className="text-orange-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[#182332]">{stats.entrenadores}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Entrenadores</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-orange-500">
+              <TrendingUp size={11} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">total</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
@@ -252,6 +432,7 @@ export default function EscenarioClubes() {
         />
       </div>
 
+      {/* Club List */}
       {loading ? (
         <div className="p-8 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
           <RefreshCw className="w-8 h-8 animate-spin text-[#182332]" />

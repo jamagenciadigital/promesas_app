@@ -1010,47 +1010,6 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         )
       )}
 
-      {/* MÉTRICAS DE OPERACIÓN */}
-      {view === 'list' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-1000">
-            {/* Por Validar */}
-            <div className="bg-white dark:bg-[#1e293b]/10 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform text-amber-500">
-                    <Clock size={48} />
-                </div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Por Validar</p>
-                <h3 className="text-2xl font-bold text-[#182332] dark:text-white">{stats.pending}</h3>
-                <p className="text-[10px] font-medium text-gray-400 mt-3">Reservas pendientes</p>
-            </div>
-            {/* Aprobadas */}
-            <div className="bg-white dark:bg-[#1e293b]/10 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform text-emerald-500">
-                    <ShieldCheck size={48} />
-                </div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Aprobadas</p>
-                <h3 className="text-2xl font-bold text-emerald-500">{stats.approved}</h3>
-                <p className="text-[10px] font-medium text-gray-400 mt-3">Ingresos confirmados</p>
-            </div>
-            {/* Rechazadas */}
-            <div className="bg-white dark:bg-[#1e293b]/10 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform text-red-500">
-                    <X size={48} />
-                </div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Rechazadas</p>
-                <h3 className="text-2xl font-bold text-red-500">{stats.rejected}</h3>
-                <p className="text-[10px] font-medium text-gray-400 mt-3">Validación fallida</p>
-            </div>
-            {/* Recaudado */}
-            <div className="bg-[#E30613] p-6 rounded-2xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform text-white">
-                    <DollarSign size={48} />
-                </div>
-                <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-2">Total Recaudado</p>
-                <h3 className="text-2xl font-bold text-white">${new Intl.NumberFormat().format(stats.total)}</h3>
-                <p className="text-[10px] font-medium text-white/50 mt-3">Confirmado global</p>
-            </div>
-        </div>
-      )}
 
       {view === 'list' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">

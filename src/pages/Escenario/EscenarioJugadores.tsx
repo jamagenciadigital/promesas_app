@@ -4,13 +4,14 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Search, Users, Plus, RefreshCw, Pencil, Trash2, Building2, Calendar, Phone, Mail
+  Search, Users, Plus, RefreshCw, Pencil, Trash2, Building2, Calendar, Phone, Mail, Eye, FileText, ExternalLink, Camera, ClipboardList, Heart, User, XCircle
 } from 'lucide-react';
 
 interface Deportista {
   id: string;
   nombre_completo: string;
   apellidos: string;
+  segundo_apellido?: string | null;
   tipo_documento: string;
   numero_documento: string;
   email_deportista: string | null;
@@ -25,6 +26,30 @@ interface Deportista {
   registrado_por: string | null;
   club?: { nombre: string } | null;
   equipo?: { nombre: string } | null;
+  // Documentos
+  url_registro_civil?: string | null;
+  url_documento_id?: string | null;
+  url_contrato?: string | null;
+  url_certificado_salud?: string | null;
+  url_carta_traspaso?: string | null;
+  // Datos adicionales
+  eps?: string | null;
+  rh?: string | null;
+  tutor_nombre?: string | null;
+  tutor_apellidos?: string | null;
+  tutor_celular?: string | null;
+  tutor_email?: string | null;
+  emergencia_nombre?: string | null;
+  emergencia_celular?: string | null;
+  emergencia_email?: string | null;
+  direccion?: string | null;
+  barrio?: string | null;
+  municipio?: string | null;
+  departamento?: string | null;
+  pais?: string | null;
+  estatura?: number | null;
+  peso?: number | null;
+  dorsal?: number | null;
 }
 
 interface ClubOption { id: string; nombre: string; }
@@ -52,6 +77,7 @@ export default function EscenarioJugadores() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [editId, setEditId] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Deportista | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -300,6 +326,9 @@ export default function EscenarioJugadores() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => setSelectedPlayer(j)} className="p-2 text-gray-400 hover:text-[#182332] hover:bg-gray-100 rounded-lg transition-all" title="Ver ficha">
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         <button onClick={() => openEdit(j)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="Editar">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -467,6 +496,193 @@ export default function EscenarioJugadores() {
           </div>
         </form>
       </Modal>
+
+      {/* MODAL FICHA JUGADOR */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedPlayer(null)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#182332] to-[#bd0f10] flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                  {selectedPlayer.foto_url ? (
+                    <img src={selectedPlayer.foto_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    `${selectedPlayer.nombre_completo.charAt(0)}${selectedPlayer.apellidos.charAt(0)}`
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-[#182332]">{selectedPlayer.nombre_completo} {selectedPlayer.apellidos}{selectedPlayer.segundo_apellido ? ` ${selectedPlayer.segundo_apellido}` : ''}</h2>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    {selectedPlayer.tipo_documento} {selectedPlayer.numero_documento}
+                    {selectedPlayer.club && <span> · {selectedPlayer.club.nombre}</span>}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedPlayer(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+                <XCircle size={20} className="text-gray-400 hover:text-red-500" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Datos Personales */}
+              <div>
+                <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <User size={12} /> Datos Personales
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Género</p>
+                    <p className="text-xs font-bold text-[#182332]">{selectedPlayer.genero || 'N/A'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Fecha Nac.</p>
+                    <p className="text-xs font-bold text-[#182332]">{selectedPlayer.fecha_nacimiento ? new Date(selectedPlayer.fecha_nacimiento).toLocaleDateString('es-ES') : 'N/A'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Edad</p>
+                    <p className="text-xs font-bold text-[#182332]">
+                      {selectedPlayer.fecha_nacimiento
+                        ? Math.floor((new Date().getTime() - new Date(selectedPlayer.fecha_nacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) + ' años'
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">RH</p>
+                    <p className="text-xs font-bold text-[#bd0f10]">{selectedPlayer.rh || 'N/A'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">EPS</p>
+                    <p className="text-xs font-bold text-[#182332]">{selectedPlayer.eps || 'N/A'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Dorsal</p>
+                    <p className="text-xs font-bold text-[#182332]">{selectedPlayer.dorsal || 'N/A'}</p>
+                  </div>
+                  {(selectedPlayer.estatura || selectedPlayer.peso) && (
+                    <div className="bg-gray-50 p-3 rounded-xl">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Físico</p>
+                      <p className="text-xs font-bold text-[#182332]">{selectedPlayer.estatura ? `${selectedPlayer.estatura} cm` : ''}{selectedPlayer.estatura && selectedPlayer.peso ? ' · ' : ''}{selectedPlayer.peso ? `${selectedPlayer.peso} kg` : ''}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Contacto */}
+              <div>
+                <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Phone size={12} /> Contacto
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {selectedPlayer.email_deportista && (
+                    <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
+                      <Mail size={14} className="text-gray-400 shrink-0" />
+                      <span className="text-xs font-semibold text-[#182332]">{selectedPlayer.email_deportista}</span>
+                    </div>
+                  )}
+                  {selectedPlayer.celular_deportista && (
+                    <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
+                      <Phone size={14} className="text-gray-400 shrink-0" />
+                      <span className="text-xs font-semibold text-[#182332]">{selectedPlayer.celular_deportista}</span>
+                    </div>
+                  )}
+                </div>
+                {selectedPlayer.direccion && (
+                  <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl mt-3">
+                    <Building2 size={14} className="text-gray-400 shrink-0" />
+                    <span className="text-xs font-semibold text-[#182332]">
+                      {[selectedPlayer.direccion, selectedPlayer.barrio, selectedPlayer.municipio, selectedPlayer.departamento].filter(Boolean).join(', ')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Tutor / Emergencia */}
+              {(selectedPlayer.tutor_nombre || selectedPlayer.emergencia_nombre) && (
+                <div>
+                  <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Heart size={12} /> Contacto de Emergencia
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedPlayer.tutor_nombre && (
+                      <div className="bg-gray-50 p-4 rounded-xl space-y-2">
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Acudiente</p>
+                        <p className="text-xs font-bold text-[#182332]">{selectedPlayer.tutor_nombre} {selectedPlayer.tutor_apellidos || ''}</p>
+                        {selectedPlayer.tutor_celular && (
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                            <Phone size={10} /> {selectedPlayer.tutor_celular}
+                          </div>
+                        )}
+                        {selectedPlayer.tutor_email && (
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                            <Mail size={10} /> {selectedPlayer.tutor_email}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {selectedPlayer.emergencia_nombre && (
+                      <div className="bg-gray-50 p-4 rounded-xl space-y-2">
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Emergencia</p>
+                        <p className="text-xs font-bold text-[#182332]">{selectedPlayer.emergencia_nombre}</p>
+                        {selectedPlayer.emergencia_celular && (
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                            <Phone size={10} /> {selectedPlayer.emergencia_celular}
+                          </div>
+                        )}
+                        {selectedPlayer.emergencia_email && (
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                            <Mail size={10} /> {selectedPlayer.emergencia_email}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Documentos */}
+              <div>
+                <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FileText size={12} /> Documentos Adjuntos
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { label: 'Foto', url: selectedPlayer.foto_url, icon: <Camera size={14} /> },
+                    { label: 'Registro Civil', url: selectedPlayer.url_registro_civil, icon: <FileText size={14} /> },
+                    { label: 'Documento de Identidad', url: selectedPlayer.url_documento_id, icon: <ClipboardList size={14} /> },
+                    { label: 'Contrato', url: selectedPlayer.url_contrato, icon: <FileText size={14} /> },
+                    { label: 'Certificado de Salud', url: selectedPlayer.url_certificado_salud, icon: <Heart size={14} /> },
+                    { label: 'Carta de Traspaso', url: selectedPlayer.url_carta_traspaso, icon: <ExternalLink size={14} /> },
+                  ].map(doc => doc.url ? (
+                    <a
+                      key={doc.label}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-all group"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-[#182332] transition-colors">
+                        {doc.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[#182332]">{doc.label}</p>
+                        <p className="text-[9px] text-gray-400 truncate">Ver documento</p>
+                      </div>
+                      <ExternalLink size={12} className="text-gray-300 group-hover:text-[#182332] shrink-0" />
+                    </a>
+                  ) : null)}
+                  {!selectedPlayer.foto_url && !selectedPlayer.url_registro_civil && !selectedPlayer.url_documento_id && !selectedPlayer.url_contrato && !selectedPlayer.url_certificado_salud && !selectedPlayer.url_carta_traspaso && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <FileText size={24} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-xs font-bold">Sin documentos adjuntos</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

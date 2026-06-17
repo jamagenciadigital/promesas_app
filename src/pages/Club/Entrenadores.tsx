@@ -12,6 +12,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { Toast } from '../../components/ui/Toast';
 import { ImageUpload } from '../../components/ui/ImageUpload';
+import { FileUpload } from '../../components/ui/FileUpload';
 
 interface Coach {
   id: string;
@@ -23,6 +24,9 @@ interface Coach {
   foto_url?: string;
   tipo_documento?: string;
   numero_documento?: string;
+  documento_identidad_url?: string;
+  certificado_grado_url?: string;
+  certificado_entrenador_url?: string;
   created_at: string;
 }
 
@@ -88,7 +92,10 @@ export default function Entrenadores() {
       telefono: coach.telefono || '',
       tipo_documento: coach.tipo_documento || '',
       numero_documento: coach.numero_documento || '',
-      foto_url: coach.foto_url || ''
+      foto_url: coach.foto_url || '',
+      documento_identidad_url: coach.documento_identidad_url || '',
+      certificado_grado_url: coach.certificado_grado_url || '',
+      certificado_entrenador_url: coach.certificado_entrenador_url || '',
     });
     setShowEditModal(true);
   };
@@ -110,7 +117,10 @@ export default function Entrenadores() {
           estado: selectedCoach.estado,
           tipo_documento: selectedCoach.tipo_documento,
           numero_documento: selectedCoach.numero_documento,
-          foto_url: selectedCoach.foto_url
+          foto_url: selectedCoach.foto_url,
+          documento_identidad_url: selectedCoach.documento_identidad_url,
+          certificado_grado_url: selectedCoach.certificado_grado_url,
+          certificado_entrenador_url: selectedCoach.certificado_entrenador_url,
         })
         .eq('id', selectedCoach.id)
         .select(); // IMPORTANTE: Pedimos que devuelva el registro actualizado
@@ -301,6 +311,31 @@ export default function Entrenadores() {
             </div>
 
             <Input label="Teléfono" value={selectedCoach.telefono || ''} onChange={e => setSelectedCoach({...selectedCoach, telefono: e.target.value})} className="bg-gray-50 border-none h-14" />
+
+            <div className="border-t border-gray-100 dark:border-white/5 pt-6 space-y-4">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Documentos Oficiales</p>
+              <FileUpload
+                bucket="club-documentos"
+                path={`entrenador-dni/${selectedCoach.id}`}
+                label="Documento Identidad"
+                value={selectedCoach.documento_identidad_url}
+                onChange={(url) => setSelectedCoach({...selectedCoach, documento_identidad_url: url})}
+              />
+              <FileUpload
+                bucket="club-documentos"
+                path={`entrenador-grado/${selectedCoach.id}`}
+                label="Certificado Grado"
+                value={selectedCoach.certificado_grado_url}
+                onChange={(url) => setSelectedCoach({...selectedCoach, certificado_grado_url: url})}
+              />
+              <FileUpload
+                bucket="club-documentos"
+                path={`entrenador-cert/${selectedCoach.id}`}
+                label="Certificado Entrenador"
+                value={selectedCoach.certificado_entrenador_url}
+                onChange={(url) => setSelectedCoach({...selectedCoach, certificado_entrenador_url: url})}
+              />
+            </div>
 
             <div className="flex gap-4 pt-4">
                <Button type="submit" isLoading={saving} className="flex-1 bg-black text-white dark:bg-[var(--primary)] dark:text-black h-14 rounded-3xl font-black uppercase italic text-xs gap-2">
