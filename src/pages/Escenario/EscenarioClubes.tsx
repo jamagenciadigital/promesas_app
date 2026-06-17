@@ -7,7 +7,8 @@ import { FileUpload } from '../../components/ui/FileUpload';
 import {
   Search, Building2, Plus, RefreshCw, Globe, MapPin, Mail, Phone, Shield,
   Eye, Users, Trophy, UserPlus, Calendar, FileText, ExternalLink, Pencil,
-  BarChart3, TrendingUp, FileSpreadsheet, XCircle, CheckCircle2
+  BarChart3, TrendingUp, FileSpreadsheet, XCircle, CheckCircle2, Settings,
+  Award, ShieldAlert, Check, X
 } from 'lucide-react';
 
 interface ClubRow {
@@ -24,6 +25,8 @@ interface ClubRow {
   reconocimiento_deportivo_url?: string;
   documento_representante_url?: string;
   deportes?: { nombre: string } | { nombre: string }[] | null;
+  plan_id?: string;
+  planes_suscripcion?: { nombre: string; modulos_activos: string[] } | null;
 }
 
 interface ClubDetail {
@@ -81,6 +84,11 @@ export default function EscenarioClubes() {
   });
   const [editingClubId, setEditingClubId] = useState<string | null>(null);
 
+  const [permisosClub, setPermisosClub] = useState<ClubRow | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [isPermisosModalOpen, setIsPermisosModalOpen] = useState(false);
+  const [allPlans, setAllPlans] = useState<{ id: string; nombre: string; modulos_activos: string[] }[]>([]);
+
   useEffect(() => { fetchData(); fetchDeportes(); }, []);
 
   useEffect(() => {
@@ -93,17 +101,19 @@ export default function EscenarioClubes() {
       setLoading(true);
       setError(null);
 
-      const [clubResult, statsResult] = await Promise.all([
+      const [clubResult, statsResult, plansResult] = await Promise.all([
         supabase
           .from('clubes')
-          .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre)')
+          .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, planes_suscripcion(nombre, modulos_activos)')
           .order('nombre'),
         fetchGlobalStats(),
+        supabase.from('planes_suscripcion').select('id, nombre, modulos_activos').order('nombre'),
       ]);
 
       if (clubResult.error) throw clubResult.error;
       setClubes(clubResult.data || []);
       setStats(statsResult);
+      setAllPlans(plansResult.data || []);
     } catch (err: any) {
       console.error('Error fetching clubes:', err);
       setError(err.message || 'Error al cargar clubes.');
@@ -142,7 +152,7 @@ export default function EscenarioClubes() {
       setError(null);
       const { data, error } = await supabase
         .from('clubes')
-        .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre)')
+        .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, planes_suscripcion(nombre, modulos_activos)')
         .order('nombre');
       if (error) throw error;
       setClubes(data || []);
@@ -203,6 +213,37 @@ export default function EscenarioClubes() {
     });
     setEditingClubId(club.id);
     setIsEditModalOpen(true);
+  };
+
+  const openPermisos = (club: ClubRow) => {
+    setPermisosClub(club);
+    setSelectedPlanId(club.plan_id || '');
+    setIsPermisosModalOpen(true);
+    if (allPlans.length === 0) {
+      supabase.from('planes_suscripcion').select('id, nombre, modulos_activos').order('nombre').then(({ data }) => {
+        if (data) setAllPlans(data);
+      });
+    }
+  };
+
+  const handleChangePlan = async () => {
+    if (!permisosClub) return;
+    try {
+      const { error } = await supabase
+        .from('clubes')
+        .update({ plan_id: selectedPlanId || null })
+        .eq('id', permisosClub.id);
+      if (error) throw error;
+      setSuccessMsg(`Plan actualizado para "${permisosClub.nombre}".`);
+      setIsPermisosModalOpen(false);
+      setPermisosClub(null);
+      fetchData();
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error('Error updating club plan:', err);
+      setError(err.message || 'Error al actualizar plan.');
+      setTimeout(() => setError(null), 5000);
+    }
   };
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -467,9 +508,19 @@ export default function EscenarioClubes() {
                     {club.email_corporativo && (
                       <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{club.email_corporativo}</span>
                     )}
+                    {club.planes_suscripcion?.nombre && (
+                      <span className="flex items-center gap-1 text-indigo-500 font-semibold"><Award className="w-3 h-3" />{club.planes_suscripcion.nombre}</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <button
+                    onClick={() => openPermisos(club)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    Permisos
+                  </button>
                   <button
                     onClick={() => openEdit(club)}
                     className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all"
@@ -596,6 +647,128 @@ export default function EscenarioClubes() {
             </div>
           </div>
         ) : null}
+      </Modal>
+
+      {/* Modal Permisos */}
+      <Modal isOpen={isPermisosModalOpen} onClose={() => { setIsPermisosModalOpen(false); setPermisosClub(null); }} title="Gestión de Permisos" maxWidth="max-w-2xl">
+        {permisosClub && (
+          <div className="space-y-6">
+            {/* Club Header */}
+            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#182332] to-[#bd0f10] flex items-center justify-center text-white font-bold text-lg shrink-0">
+                {permisosClub.nombre?.charAt(0) || 'C'}
+              </div>
+              <div>
+                <h3 className="font-bold text-[#182332] text-lg">{permisosClub.nombre}</h3>
+                <p className="text-xs text-gray-500">
+                  Plan actual: <span className="font-bold text-indigo-600">{permisosClub.planes_suscripcion?.nombre || 'Sin plan asignado'}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Plan Selector */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Cambiar Plan</label>
+              <div className="flex gap-3">
+                <select
+                  value={selectedPlanId}
+                  onChange={(e) => setSelectedPlanId(e.target.value)}
+                  className="flex-1 h-12 px-4 bg-gray-50 rounded-xl text-sm font-medium border border-gray-200 text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                >
+                  <option value="">Sin plan</option>
+                  {allPlans.map(p => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
+                <Button onClick={handleChangePlan} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-xl">
+                  Guardar
+                </Button>
+              </div>
+            </div>
+
+            {/* Modules Display */}
+            <div>
+              <h4 className="font-black text-sm uppercase tracking-widest text-gray-900 flex items-center gap-2 mb-4"><ShieldAlert size={16} /> Permisos y Módulos</h4>
+              {permisosClub.planes_suscripcion?.modulos_activos && permisosClub.planes_suscripcion.modulos_activos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { id: 'admin_club', label: 'Admin Club' },
+                    { id: 'equipos', label: 'Equipos & Roster' },
+                    { id: 'entrenadores', label: 'Entrenadores' },
+                    { id: 'cartera', label: 'Cartera & Finanzas' },
+                    { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
+                    { id: 'comunicaciones', label: 'Comunicaciones' },
+                    { id: 'admin_equipo', label: 'Admin Equipo' },
+                    { id: 'compras_nomina_pagos', label: 'Compras / Pagos / Nómina' },
+                    { id: 'direccion_deportiva', label: 'Dirección Deportiva' },
+                    { id: 'asistencia_juegos', label: 'Asistencia y Eventos' },
+                    { id: 'juegos_amistosos', label: 'Gestión de Juegos' },
+                    { id: 'nomina_deportiva', label: 'Nómina Deportiva' },
+                    { id: 'marketing', label: 'Marketing' },
+                    { id: 'logistica', label: 'Logística' },
+                  ].map(mod => {
+                    const active = permisosClub.planes_suscripcion!.modulos_activos.includes(mod.id);
+                    return (
+                      <div key={mod.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${active ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className={`p-1 rounded-full ${active ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                          {active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                        </div>
+                        <span className={`text-xs font-bold ${active ? 'text-emerald-700' : 'text-gray-400'}`}>{mod.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                  <ShieldAlert className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-gray-400">Este club no tiene un plan asignado</p>
+                  <p className="text-[9px] text-gray-400 mt-1">Selecciona un plan arriba para ver los módulos disponibles.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Preview when selecting a different plan */}
+            {selectedPlanId && selectedPlanId !== permisosClub.plan_id && (
+              <div>
+                <h4 className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-3">Vista previa del nuevo plan</h4>
+                {(() => {
+                  const newPlan = allPlans.find(p => p.id === selectedPlanId);
+                  if (!newPlan) return null;
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        { id: 'admin_club', label: 'Admin Club' },
+                        { id: 'equipos', label: 'Equipos & Roster' },
+                        { id: 'entrenadores', label: 'Entrenadores' },
+                        { id: 'cartera', label: 'Cartera & Finanzas' },
+                        { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
+                        { id: 'comunicaciones', label: 'Comunicaciones' },
+                        { id: 'admin_equipo', label: 'Admin Equipo' },
+                        { id: 'compras_nomina_pagos', label: 'Compras / Pagos / Nómina' },
+                        { id: 'direccion_deportiva', label: 'Dirección Deportiva' },
+                        { id: 'asistencia_juegos', label: 'Asistencia y Eventos' },
+                        { id: 'juegos_amistosos', label: 'Gestión de Juegos' },
+                        { id: 'nomina_deportiva', label: 'Nómina Deportiva' },
+                        { id: 'marketing', label: 'Marketing' },
+                        { id: 'logistica', label: 'Logística' },
+                      ].map(mod => {
+                        const active = newPlan.modulos_activos?.includes(mod.id) || false;
+                        return (
+                          <div key={mod.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${active ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className={`p-1 rounded-full ${active ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                              {active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            </div>
+                            <span className={`text-xs font-bold ${active ? 'text-indigo-700' : 'text-gray-400'}`}>{mod.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
 
       {/* Modal Crear */}
