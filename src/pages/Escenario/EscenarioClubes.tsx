@@ -27,6 +27,7 @@ interface ClubRow {
   deportes?: { nombre: string } | { nombre: string }[] | null;
   plan_id?: string;
   planes_suscripcion?: { nombre: string; modulos_activos: string[] } | null;
+  modulos_personalizados?: string[] | null;
 }
 
 interface ClubDetail {
@@ -55,6 +56,25 @@ interface GlobalStats {
   equipos: number;
   entrenadores: number;
 }
+
+const ALL_MODULES = [
+  { id: 'admin_club', label: 'Admin Club' },
+  { id: 'equipos', label: 'Equipos & Roster' },
+  { id: 'entrenadores', label: 'Entrenadores' },
+  { id: 'cartera', label: 'Cartera & Finanzas' },
+  { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
+  { id: 'comunicaciones', label: 'Comunicaciones' },
+  { id: 'admin_equipo', label: 'Admin Equipo' },
+  { id: 'pqrs', label: 'PQRS' },
+  { id: 'reserva_escenarios', label: 'Reserva Escenarios' },
+  { id: 'juegos_amistosos', label: 'Gestión de Juegos' },
+  { id: 'compras_nomina_pagos', label: 'Compras / Pagos / Nómina' },
+  { id: 'direccion_deportiva', label: 'Dirección Deportiva' },
+  { id: 'asistencia_juegos', label: 'Asistencia y Eventos' },
+  { id: 'nomina_deportiva', label: 'Nómina Deportiva' },
+  { id: 'marketing', label: 'Marketing' },
+  { id: 'logistica', label: 'Logística' },
+];
 
 export default function EscenarioClubes() {
   const [clubes, setClubes] = useState<ClubRow[]>([]);
@@ -88,6 +108,7 @@ export default function EscenarioClubes() {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [isPermisosModalOpen, setIsPermisosModalOpen] = useState(false);
   const [allPlans, setAllPlans] = useState<{ id: string; nombre: string; modulos_activos: string[] }[]>([]);
+  const [toggledModules, setToggledModules] = useState<string[]>([]);
 
   useEffect(() => { fetchData(); fetchDeportes(); }, []);
 
@@ -104,7 +125,7 @@ export default function EscenarioClubes() {
       const [clubResult, statsResult, plansResult] = await Promise.all([
         supabase
           .from('clubes')
-          .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, planes_suscripcion(nombre, modulos_activos)')
+          .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, modulos_personalizados, planes_suscripcion(nombre, modulos_activos)')
           .order('nombre'),
         fetchGlobalStats(),
         supabase.from('planes_suscripcion').select('id, nombre, modulos_activos').order('nombre'),
@@ -152,7 +173,7 @@ export default function EscenarioClubes() {
       setError(null);
       const { data, error } = await supabase
         .from('clubes')
-        .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, planes_suscripcion(nombre, modulos_activos)')
+        .select('id, nombre, pais, ciudad, direccion, email_corporativo, telefono, website, estado, deporte_id, reconocimiento_deportivo_url, documento_representante_url, deportes(nombre), plan_id, modulos_personalizados, planes_suscripcion(nombre, modulos_activos)')
         .order('nombre');
       if (error) throw error;
       setClubes(data || []);
@@ -224,24 +245,40 @@ export default function EscenarioClubes() {
         if (data) setAllPlans(data);
       });
     }
+    const baseModules = club.modulos_personalizados || club.planes_suscripcion?.modulos_activos || [];
+    setToggledModules([...baseModules]);
   };
 
-  const handleChangePlan = async () => {
+  const toggleModule = (modId: string) => {
+    if (modId === 'admin_club') return;
+    setToggledModules(prev =>
+      prev.includes(modId) ? prev.filter(m => m !== modId) : [...prev, modId]
+    );
+  };
+
+  const handleSavePermisos = async () => {
     if (!permisosClub) return;
+    const planModules = permisosClub.planes_suscripcion?.modulos_activos || [];
+    const isSameAsPlan =
+      toggledModules.length === planModules.length &&
+      [...toggledModules].sort().join(',') === [...planModules].sort().join(',');
     try {
       const { error } = await supabase
         .from('clubes')
-        .update({ plan_id: selectedPlanId || null })
+        .update({
+          plan_id: selectedPlanId || null,
+          modulos_personalizados: isSameAsPlan ? null : toggledModules,
+        })
         .eq('id', permisosClub.id);
       if (error) throw error;
-      setSuccessMsg(`Plan actualizado para "${permisosClub.nombre}".`);
+      setSuccessMsg(`Permisos actualizados para "${permisosClub.nombre}".`);
       setIsPermisosModalOpen(false);
       setPermisosClub(null);
       fetchData();
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
-      console.error('Error updating club plan:', err);
-      setError(err.message || 'Error al actualizar plan.');
+      console.error('Error updating club permisos:', err);
+      setError(err.message || 'Error al actualizar permisos.');
       setTimeout(() => setError(null), 5000);
     }
   };
@@ -650,7 +687,7 @@ export default function EscenarioClubes() {
       </Modal>
 
       {/* Modal Permisos */}
-      <Modal isOpen={isPermisosModalOpen} onClose={() => { setIsPermisosModalOpen(false); setPermisosClub(null); }} title="Gestión de Permisos" maxWidth="max-w-2xl">
+      <Modal isOpen={isPermisosModalOpen} onClose={() => { setIsPermisosModalOpen(false); setPermisosClub(null); }} title="Gestión de Permisos" maxWidth="max-w-3xl">
         {permisosClub && (
           <div className="space-y-6">
             {/* Club Header */}
@@ -669,104 +706,106 @@ export default function EscenarioClubes() {
             {/* Plan Selector */}
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Cambiar Plan</label>
-              <div className="flex gap-3">
-                <select
-                  value={selectedPlanId}
-                  onChange={(e) => setSelectedPlanId(e.target.value)}
-                  className="flex-1 h-12 px-4 bg-gray-50 rounded-xl text-sm font-medium border border-gray-200 text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
-                >
-                  <option value="">Sin plan</option>
-                  {allPlans.map(p => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
-                  ))}
-                </select>
-                <Button onClick={handleChangePlan} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-xl">
-                  Guardar
-                </Button>
-              </div>
-            </div>
-
-            {/* Modules Display */}
-            <div>
-              <h4 className="font-black text-sm uppercase tracking-widest text-gray-900 flex items-center gap-2 mb-4"><ShieldAlert size={16} /> Permisos y Módulos</h4>
-              {permisosClub.planes_suscripcion?.modulos_activos && permisosClub.planes_suscripcion.modulos_activos.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { id: 'admin_club', label: 'Admin Club' },
-                    { id: 'equipos', label: 'Equipos & Roster' },
-                    { id: 'entrenadores', label: 'Entrenadores' },
-                    { id: 'cartera', label: 'Cartera & Finanzas' },
-                    { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
-                    { id: 'comunicaciones', label: 'Comunicaciones' },
-                    { id: 'admin_equipo', label: 'Admin Equipo' },
-                    { id: 'compras_nomina_pagos', label: 'Compras / Pagos / Nómina' },
-                    { id: 'direccion_deportiva', label: 'Dirección Deportiva' },
-                    { id: 'asistencia_juegos', label: 'Asistencia y Eventos' },
-                    { id: 'juegos_amistosos', label: 'Gestión de Juegos' },
-                    { id: 'nomina_deportiva', label: 'Nómina Deportiva' },
-                    { id: 'marketing', label: 'Marketing' },
-                    { id: 'logistica', label: 'Logística' },
-                  ].map(mod => {
-                    const active = permisosClub.planes_suscripcion!.modulos_activos.includes(mod.id);
-                    return (
-                      <div key={mod.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${active ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
-                        <div className={`p-1 rounded-full ${active ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                          {active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-                        </div>
-                        <span className={`text-xs font-bold ${active ? 'text-emerald-700' : 'text-gray-400'}`}>{mod.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <ShieldAlert className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-[10px] font-bold text-gray-400">Este club no tiene un plan asignado</p>
-                  <p className="text-[9px] text-gray-400 mt-1">Selecciona un plan arriba para ver los módulos disponibles.</p>
-                </div>
+              <select
+                value={selectedPlanId}
+                onChange={(e) => {
+                  const newPlanId = e.target.value;
+                  setSelectedPlanId(newPlanId);
+                  const plan = allPlans.find(p => p.id === newPlanId);
+                  if (plan) {
+                    setToggledModules([...plan.modulos_activos]);
+                  } else {
+                    setToggledModules([]);
+                  }
+                }}
+                className="w-full h-12 px-4 bg-gray-50 rounded-xl text-sm font-medium border border-gray-200 text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+              >
+                <option value="">Sin plan</option>
+                {allPlans.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+              {selectedPlanId && (
+                <p className="text-[10px] text-indigo-500 mt-1 italic">
+                  Al seleccionar un plan se cargan sus módulos. Puedes personalizarlos abajo.
+                </p>
               )}
             </div>
 
-            {/* Preview when selecting a different plan */}
-            {selectedPlanId && selectedPlanId !== permisosClub.plan_id && (
-              <div>
-                <h4 className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-3">Vista previa del nuevo plan</h4>
-                {(() => {
-                  const newPlan = allPlans.find(p => p.id === selectedPlanId);
-                  if (!newPlan) return null;
+            {/* Editable Toggles */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-black text-sm uppercase tracking-widest text-gray-900 flex items-center gap-2">
+                  <ShieldAlert size={16} /> Módulos y Permisos
+                </h4>
+                <span className="text-[10px] font-bold text-gray-400">
+                  {toggledModules.length} / {ALL_MODULES.length} activos
+                </span>
+              </div>
+
+              {/* Plan info */}
+              {permisosClub.planes_suscripcion && !permisosClub.modulos_personalizados && (
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4 flex items-center gap-2">
+                  <ShieldAlert size={14} className="text-indigo-500 shrink-0" />
+                  <p className="text-[10px] text-indigo-700 font-medium">
+                    Mostrando módulos del plan <strong>{permisosClub.planes_suscripcion.nombre}</strong>.
+                    Activa/desactiva para personalizar este club.
+                  </p>
+                </div>
+              )}
+              {permisosClub.modulos_personalizados && (
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 flex items-center gap-2">
+                  <Settings size={14} className="text-amber-500 shrink-0" />
+                  <p className="text-[10px] text-amber-700 font-medium">
+                    Este club tiene módulos personalizados que sobrescriben los del plan.
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ALL_MODULES.map(mod => {
+                  const active = toggledModules.includes(mod.id);
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {[
-                        { id: 'admin_club', label: 'Admin Club' },
-                        { id: 'equipos', label: 'Equipos & Roster' },
-                        { id: 'entrenadores', label: 'Entrenadores' },
-                        { id: 'cartera', label: 'Cartera & Finanzas' },
-                        { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
-                        { id: 'comunicaciones', label: 'Comunicaciones' },
-                        { id: 'admin_equipo', label: 'Admin Equipo' },
-                        { id: 'compras_nomina_pagos', label: 'Compras / Pagos / Nómina' },
-                        { id: 'direccion_deportiva', label: 'Dirección Deportiva' },
-                        { id: 'asistencia_juegos', label: 'Asistencia y Eventos' },
-                        { id: 'juegos_amistosos', label: 'Gestión de Juegos' },
-                        { id: 'nomina_deportiva', label: 'Nómina Deportiva' },
-                        { id: 'marketing', label: 'Marketing' },
-                        { id: 'logistica', label: 'Logística' },
-                      ].map(mod => {
-                        const active = newPlan.modulos_activos?.includes(mod.id) || false;
-                        return (
-                          <div key={mod.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${active ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-100'}`}>
-                            <div className={`p-1 rounded-full ${active ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                              {active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-                            </div>
-                            <span className={`text-xs font-bold ${active ? 'text-indigo-700' : 'text-gray-400'}`}>{mod.label}</span>
-                          </div>
-                        );
-                      })}
+                    <div
+                      key={mod.id}
+                      onClick={() => toggleModule(mod.id)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        active
+                          ? 'bg-emerald-50 border-emerald-300 shadow-sm'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded flex items-center justify-center transition-all ${
+                          active ? 'bg-emerald-500' : 'bg-gray-200'
+                        }`}
+                      >
+                        {active ? <Check className="w-3 h-3 text-white" /> : null}
+                      </div>
+                      <span className={`text-xs font-bold ${active ? 'text-emerald-800' : 'text-gray-500'}`}>
+                        {mod.label}
+                      </span>
                     </div>
                   );
-                })()}
+                })}
               </div>
-            )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <Button
+                variant="ghost"
+                onClick={() => { setIsPermisosModalOpen(false); setPermisosClub(null); }}
+                className="rounded-xl px-5"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSavePermisos}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-xl"
+              >
+                Guardar Permisos
+              </Button>
+            </div>
           </div>
         )}
       </Modal>

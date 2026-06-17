@@ -14,7 +14,9 @@ const FORMATIVE_MODULES = [
   { id: 'cartera', label: 'Cartera & Finanzas' },
   { id: 'padre_hijo', label: 'Portal Padre/Hijo' },
   { id: 'comunicaciones', label: 'Comunicaciones' },
-  { id: 'admin_equipo', label: 'Admin Equipo' }
+  { id: 'admin_equipo', label: 'Admin Equipo' },
+  { id: 'pqrs', label: 'PQRS' },
+  { id: 'reserva_escenarios', label: 'Reserva Escenarios' },
 ];
 
 const PRO_MODULES = [

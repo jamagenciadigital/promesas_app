@@ -30,7 +30,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.teams'), icon: Users, path: '/club/teams', requiredMod: 'equipos' },
         { name: t('nav.calendar'), icon: Calendar, path: '/club/calendar', requiredMod: 'admin_club' },
         { name: t('nav.planning'), icon: FileText, path: '/club/planning', requiredMod: 'admin_club' },
-        { name: 'Reservas', icon: Calendar, path: '/club/reservations', requiredMod: 'admin_club' },
+        { name: 'Reservas', icon: Calendar, path: '/club/reservations', requiredMod: 'reserva_escenarios' },
         { name: t('nav.coaches'), icon: Users, path: '/club/coaches', requiredMod: 'entrenadores' },
         { name: 'Comunicaciones', icon: MessageCircle, path: '/club/comunicaciones', requiredMod: 'comunicaciones' },
         
@@ -41,7 +41,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: 'Nómina & Pagos', icon: Wallet, path: '/club/pro/nomina', requiredMod: 'compras_nomina_pagos' },
         { name: 'Marketing', icon: Share2, path: '/club/pro/marketing', requiredMod: 'marketing' },
         
-        { name: 'PQRS', icon: MessageCircle, path: '/club/pqrs', requiredMod: 'admin_club' },
+        { name: 'PQRS', icon: MessageCircle, path: '/club/pqrs', requiredMod: 'pqrs' },
         { name: t('nav.settings'), icon: Settings, path: '/club/settings', requiredMod: 'admin_club' },
       ];
       return adminItems.filter(item => hasModule(item.requiredMod)).map(({requiredMod, ...rest}) => rest);
@@ -51,7 +51,7 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: 'Mis Equipos', icon: Users, path: '/coordinator/teams' },
         { name: 'Reservas', icon: Calendar, path: '/coordinator/reservations' },
         { name: 'Logística', icon: Box, path: '/club/logistica', requiredMod: 'logistica' },
-        { name: 'PQRS', icon: MessageCircle, path: '/coordinator/pqrs' },
+        { name: 'PQRS', icon: MessageCircle, path: '/coordinator/pqrs', requiredMod: 'pqrs' },
       ];
       return teamAdminItems.filter(item => hasModule(item.requiredMod || 'admin_club')).map(({requiredMod, ...rest}) => rest);
     case 'entrenador':
@@ -59,9 +59,9 @@ const getNavItems = (role: string | undefined, t: (key: string) => string, activ
         { name: t('nav.dashboard'), icon: Home, path: '/coach', requiredMod: 'admin_club' },
         { name: t('nav.calendar'), icon: Calendar, path: '/coach/calendar', requiredMod: 'admin_club' },
         { name: t('nav.planning'), icon: FileText, path: '/coach/planning', requiredMod: 'admin_club' },
-        { name: 'Reservas', icon: Calendar, path: '/coach/reservations', requiredMod: 'admin_club' },
+        { name: 'Reservas', icon: Calendar, path: '/coach/reservations', requiredMod: 'reserva_escenarios' },
         { name: 'Gestión de Juegos', icon: Trophy, path: '/coach/games', requiredMod: 'juegos_amistosos' },
-        { name: 'PQRS', icon: MessageCircle, path: '/coach/pqrs', requiredMod: 'admin_club' },
+        { name: 'PQRS', icon: MessageCircle, path: '/coach/pqrs', requiredMod: 'pqrs' },
       ];
       return coachItems.filter(item => hasModule(item.requiredMod || 'admin_club')).map(({requiredMod, ...rest}) => rest);
     case 'padre':
@@ -165,8 +165,15 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
     async function loadPlanModules() {
       if (activeClubId) {
          try {
-            const { data: club } = await supabase.from('clubes').select('plan_id').eq('id', activeClubId).single();
-            if (club?.plan_id) {
+            const { data: club } = await supabase
+              .from('clubes')
+              .select('plan_id, modulos_personalizados')
+              .eq('id', activeClubId)
+              .single();
+
+            if (club?.modulos_personalizados) {
+              setActiveModules(club.modulos_personalizados);
+            } else if (club?.plan_id) {
                const { data: plan } = await supabase.from('planes_suscripcion').select('modulos_activos').eq('id', club.plan_id).single();
                if (plan?.modulos_activos) {
                  setActiveModules(plan.modulos_activos);
