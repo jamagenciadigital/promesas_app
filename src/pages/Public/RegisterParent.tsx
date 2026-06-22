@@ -68,9 +68,11 @@ export default function RegisterParent() {
       if (teamError || !team) throw new Error("El código de equipo no existe.");
       setTeamInfo(team);
 
-      // 2. Cargar deportistas del equipo usando RPC (Más seguro y evita RLS para anon)
+      // 2. Cargar deportistas del equipo
       const { data: playersData, error: playersError } = await supabase
-        .rpc('get_players_by_team_code', { p_codigo: formData.codigo.trim() });
+        .from('deportistas')
+        .select('id, nombre_completo, apellidos, numero_documento')
+        .eq('equipo_id', teamInfo.id);
       
       if (playersError) throw playersError;
       
