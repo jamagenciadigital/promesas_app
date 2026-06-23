@@ -332,7 +332,9 @@ export default function Calendar() {
         query = query.eq('equipo_id', selectedTeam);
       }
 
+      console.log('fetchEvents query params:', { club_id: profile?.club_id, startOfMonth, endOfMonth, selectedTeam });
       const { data: agendaData, error } = await query;
+      console.log('Agenda data:', agendaData, 'error:', error);
       let finalEvents: AgendaEvent[] = agendaData || [];
       
       if (error && error.code !== 'PGRST116') {
@@ -414,6 +416,7 @@ export default function Calendar() {
         console.error("Error fetching juegos_amistosos:", err);
       }
 
+      console.log('Final events count:', finalEvents.length);
       setEvents(finalEvents);
     } catch (err) {
       console.error("Error fetching events:", err);
@@ -489,7 +492,9 @@ export default function Calendar() {
         iterDate.setDate(iterDate.getDate() + 1);
       }
 
-      const { error } = await supabase.from('agenda_deportiva').insert(sessions);
+      console.log('Inserting sessions:', sessions);
+      const { data: insertData, error } = await supabase.from('agenda_deportiva').insert(sessions).select();
+      console.log('Insert result:', { insertData, error });
       if (error) throw error;
 
       showToast(`${sessions.length} ${t('calendar.sessions_generated')}`);
