@@ -17,6 +17,30 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+async function initializeStorageTable() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS public.storage_files (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        bucket TEXT NOT NULL,
+        path TEXT NOT NULL,
+        content TEXT NOT NULL,
+        mime_type TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        CONSTRAINT bucket_path_unique UNIQUE (bucket, path)
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS storage_files_bucket_path_idx ON public.storage_files (bucket, path);
+    `);
+    console.log('✅ Storage database table initialized');
+  } catch (err) {
+    console.error('❌ Failed to initialize storage database table:', err);
+  }
+}
+initializeStorageTable();
+
+
 const app = express();
 
 // Strip /api prefix for Vercel serverless routing
@@ -119,27 +143,68 @@ app.all(/\/storage\/v1\/.*/, async (req, res) => {
     // POST /storage/v1/object/list/:bucket — list objects
     if (parts[0] === 'object' && parts[1] === 'list' && method === 'POST') {
       const bucket = parts[2];
-      const dir = path.resolve(UPLOADS_DIR, bucket);
-      if (!fs.existsSync(dir)) return res.json([]);
-      const files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f.toString())).isFile());
-      const result = files.map((f: any) => {
-        const stat = fs.statSync(path.join(dir, f.toString()));
-        return {
-          name: f.toString(),
+      try {
+        const rows = await prisma.$queryRawUnsafe<any[]>(`
+          SELECT path, created_at, OCTET_LENGTH(DECODE(content, 'base64')) as size
+          FROM public.storage_files
+          WHERE bucket = $1
+        `, bucket);
+        
+        const result = rows.map((row: any) => ({
+          name: row.path,
           id: crypto.randomUUID(),
-          updated_at: stat.mtime.toISOString(),
-          created_at: stat.birthtime.toISOString(),
-          last_accessed_at: stat.atime.toISOString(),
-          metadata: { size: stat.size, mimetype: 'application/octet-stream' },
-        };
-      });
-      return res.json(result);
+          updated_at: row.created_at,
+          created_at: row.created_at,
+          last_accessed_at: row.created_at,
+          metadata: { size: Number(row.size), mimetype: 'application/octet-stream' },
+        }));
+        return res.json(result);
+      } catch (dbErr) {
+        console.warn('[local storage] DB list query failed, falling back to FS:', dbErr);
+        const dir = path.resolve(UPLOADS_DIR, bucket);
+        if (!fs.existsSync(dir)) return res.json([]);
+        const files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f.toString())).isFile());
+        const result = files.map((f: any) => {
+          const stat = fs.statSync(path.join(dir, f.toString()));
+          return {
+            name: f.toString(),
+            id: crypto.randomUUID(),
+            updated_at: stat.mtime.toISOString(),
+            created_at: stat.birthtime.toISOString(),
+            last_accessed_at: stat.atime.toISOString(),
+            metadata: { size: stat.size, mimetype: 'application/octet-stream' },
+          };
+        });
+        return res.json(result);
+      }
     }
 
     // GET /storage/v1/object/public/:bucket/:path — serve public file
     if (parts[0] === 'object' && parts[1] === 'public' && (method === 'GET' || method === 'HEAD')) {
       const bucket = parts[2];
       const fileRelPath = parts.slice(3).join('/');
+
+      try {
+        const rows = await prisma.$queryRawUnsafe<any[]>(`
+          SELECT content, mime_type FROM public.storage_files
+          WHERE bucket = $1 AND path = $2
+          LIMIT 1
+        `, bucket, fileRelPath);
+
+        if (rows.length > 0) {
+          const fileData = Buffer.from(rows[0].content, 'base64');
+          res.setHeader('Content-Type', rows[0].mime_type || 'application/octet-stream');
+          res.setHeader('Content-Length', fileData.length);
+          if (method === 'HEAD') {
+            return res.status(200).end();
+          }
+          return res.end(fileData);
+        }
+      } catch (dbErr) {
+        console.warn('[local storage] DB public read query failed:', dbErr);
+      }
+
+      // Fallback to local FS
       const full = safePath(bucket, fileRelPath);
       if (!full || !fs.existsSync(full)) return res.status(404).json({ error: 'File not found' });
       return res.sendFile(full);
@@ -148,8 +213,7 @@ app.all(/\/storage\/v1\/.*/, async (req, res) => {
     // GET /storage/v1/bucket/:id — bucket info
     if (parts[0] === 'bucket' && method === 'GET') {
       const bucketId = parts[1];
-      const dir = path.resolve(UPLOADS_DIR, bucketId);
-      if (!fs.existsSync(dir)) return res.status(404).json({ error: 'Bucket not found' });
+      // Always treat requesting bucket as existing and public
       return res.json({ id: bucketId, name: bucketId, public: true });
     }
 
@@ -157,11 +221,30 @@ app.all(/\/storage\/v1\/.*/, async (req, res) => {
     if (parts[0] === 'object' && !parts[1]?.startsWith('public') && !parts[1]?.startsWith('list') && (method === 'POST' || method === 'PUT')) {
       const bucket = parts[1];
       const fileRelPath = parts.slice(2).join('/');
-      const full = safePath(bucket, fileRelPath);
-      if (!full) return res.status(403).json({ error: 'Invalid path' });
-      const dir = path.dirname(full);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(full, fileBody);
+
+      const contentBase64 = fileBody.toString('base64');
+      const contentType = req.headers['content-type'] || 'application/octet-stream';
+
+      // Save to database
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO public.storage_files (bucket, path, content, mime_type)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (bucket, path)
+        DO UPDATE SET content = $3, mime_type = $4, created_at = NOW()
+      `, bucket, fileRelPath, contentBase64, contentType);
+
+      // Try local FS backup
+      try {
+        const full = safePath(bucket, fileRelPath);
+        if (full) {
+          const dir = path.dirname(full);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(full, fileBody);
+        }
+      } catch (fsErr) {
+        console.warn('[local storage] local backup file write failed:', fsErr);
+      }
+
       const fileId = crypto.randomUUID();
       return res.status(200).json({ Key: `${bucket}/${fileRelPath}`, Id: fileId });
     }
@@ -170,9 +253,23 @@ app.all(/\/storage\/v1\/.*/, async (req, res) => {
     if (parts[0] === 'object' && method === 'DELETE') {
       const bucket = parts[1];
       const fileRelPath = parts.slice(2).join('/');
-      const full = safePath(bucket, fileRelPath);
-      if (!full || !fs.existsSync(full)) return res.status(404).json({ error: 'File not found' });
-      fs.unlinkSync(full);
+
+      // Delete from database
+      await prisma.$executeRawUnsafe(`
+        DELETE FROM public.storage_files
+        WHERE bucket = $1 AND path = $2
+      `, bucket, fileRelPath);
+
+      // Try local FS delete
+      try {
+        const full = safePath(bucket, fileRelPath);
+        if (full && fs.existsSync(full)) {
+          fs.unlinkSync(full);
+        }
+      } catch (fsErr) {
+        console.warn('[local storage] local file delete failed:', fsErr);
+      }
+
       return res.status(200).json({ message: 'Deleted' });
     }
 
