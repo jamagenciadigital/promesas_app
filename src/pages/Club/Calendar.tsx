@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Plus, 
-  ChevronLeft, ChevronRight, Filter, Users, Shield, 
+  ChevronLeft, ChevronRight, ChevronDown, Filter, Users, Shield, 
   Info, CheckCircle2, X, PlusCircle, Save, Loader2, Trophy, Mic, Bot, Search
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -44,6 +44,8 @@ export default function Calendar() {
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [teamSearchTerm, setTeamSearchTerm] = useState('');
+  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
+  const teamDropdownRef = useRef<HTMLDivElement>(null);
 
   const TEAM_COLORS = [
     { bg: 'bg-red-500/10 text-red-500 border-red-500/20', dot: 'bg-red-500' },
@@ -107,6 +109,16 @@ export default function Calendar() {
   } | null>(null);
   const [totalTeamPlayers, setTotalTeamPlayers] = useState<number>(0);
   const [gamePlayers, setGamePlayers] = useState<any[]>([]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (teamDropdownRef.current && !teamDropdownRef.current.contains(e.target as Node)) {
+        setTeamDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (selectedEvent) {
@@ -1165,53 +1177,81 @@ export default function Calendar() {
               <div className="space-y-4">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.filter_team')}</label>
                  
-                 {/* Team Search Input */}
-                 <div className="relative">
-                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                   <input
-                     type="text"
-                     placeholder="Buscar equipo..."
-                     value={teamSearchTerm}
-                     onChange={(e) => setTeamSearchTerm(e.target.value)}
-                     className="w-full pl-9 pr-4 h-10 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
-                   />
-                 </div>
-
-                 <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-                    <button 
-                      onClick={() => setSelectedTeam('')}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                        selectedTeam === '' 
-                          ? "bg-black text-[var(--primary)] border-[var(--primary-30)] shadow-lg" 
-                          : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-                      )}
+                 {/* Team Combobox */}
+                  <div className="relative" ref={teamDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => { setTeamDropdownOpen(!teamDropdownOpen); setTeamSearchTerm(''); }}
+                      className="w-full flex items-center gap-2 h-10 px-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
                     >
-                      <Users size={16} /> {t('calendar.all_teams')}
-                    </button>
-                    {(teams || [])
-                      .filter(team => team && team.nombre && team.nombre.toLowerCase().includes(teamSearchTerm.toLowerCase()))
-                      .map(team => {
-                        const color = getTeamColor(team.id);
-                        const isSelected = selectedTeam === team.id;
+                      {selectedTeam ? (() => {
+                        const team = (teams || []).find(t => t.id === selectedTeam);
+                        const color = getTeamColor(selectedTeam);
                         return (
-                          <button 
-                            key={team.id}
-                            onClick={() => setSelectedTeam(team.id)}
-                            className={cn(
-                              "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                              isSelected 
-                                ? `${color.bg} border-current` 
-                                : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-                            )}
-                            style={isSelected ? { borderColor: 'currentColor' } : undefined}
-                          >
+                          <>
                             <span className={cn("w-2 h-2 rounded-full shrink-0", color.dot)} />
-                            {team.nombre || ''}
-                          </button>
+                            <span className="flex-1 text-left truncate">{team?.nombre || 'Equipo'}</span>
+                          </>
                         );
-                      })}
-                 </div>
+                      })() : (
+                        <>
+                          <Users size={14} className="text-gray-400" />
+                          <span className="flex-1 text-left text-gray-500">{t('calendar.all_teams')}</span>
+                        </>
+                      )}
+                      <ChevronDown size={14} className={cn("text-gray-400 transition-transform", teamDropdownOpen && "rotate-180")} />
+                    </button>
+
+                    {teamDropdownOpen && (
+                      <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-white/10 rounded-2xl shadow-2xl p-3 space-y-1">
+                        <div className="relative mb-2">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                          <input
+                            type="text"
+                            placeholder="Buscar equipo..."
+                            value={teamSearchTerm}
+                            onChange={(e) => setTeamSearchTerm(e.target.value)}
+                            className="w-full pl-8 pr-3 h-9 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="max-h-[280px] overflow-y-auto space-y-1 pr-1">
+                          <button
+                            onClick={() => { setSelectedTeam(''); setTeamDropdownOpen(false); }}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all",
+                              selectedTeam === ''
+                                ? "bg-black text-[var(--primary)]"
+                                : "text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5"
+                            )}
+                          >
+                            <Users size={14} /> {t('calendar.all_teams')}
+                          </button>
+                          {(teams || [])
+                            .filter(team => team && team.nombre && team.nombre.toLowerCase().includes(teamSearchTerm.toLowerCase()))
+                            .map(team => {
+                              const color = getTeamColor(team.id);
+                              const isSelected = selectedTeam === team.id;
+                              return (
+                                <button
+                                  key={team.id}
+                                  onClick={() => { setSelectedTeam(team.id); setTeamDropdownOpen(false); }}
+                                  className={cn(
+                                    "w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all",
+                                    isSelected
+                                      ? `${color.bg}`
+                                      : "text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5"
+                                  )}
+                                >
+                                  <span className={cn("w-2 h-2 rounded-full shrink-0", color.dot)} />
+                                  {team.nombre || ''}
+                                </button>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
               </div>
 
               <div className="pt-6 border-t border-gray-100 dark:border-white/5">
