@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { createClient } from '@supabase/supabase-js';
 import { 
   Users, ShieldAlert, Search, UserPlus, Power, 
   Trash2, Edit3, Mail, Activity, ArrowLeft,
@@ -78,21 +77,22 @@ export default function ClubAdmins() {
             if (selectedEscenarios.length > 0) await supabase.from('escenarios').update({ gestor_id: editingAdminId }).in('id', selectedEscenarios);
         }
       } else {
-        const ghostClient = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-        
-        const { data: authData, error: authError } = await ghostClient.auth.signUp({
-          email: newUser.email,
-          password: newUser.password,
-          options: { 
+        const signupRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+          body: JSON.stringify({
+            email: newUser.email,
+            password: newUser.password,
             data: { 
               full_name: newUser.nombre,
               nombre: newUser.nombre,
               rol: newUser.rol
-            } 
-          }
+            }
+          })
         });
 
-        if (authError) throw new Error(`Paso 1 (Auth) Falló: ${authError.message}`);
+        const authData = await signupRes.json();
+        if (!signupRes.ok) throw new Error(`Paso 1 (Auth) Falló: ${authData.error || authData.msg || 'Error'}`);
         const uid = authData.user?.id;
         if (!uid) throw new Error("No se pudo obtener el UID del nuevo usuario.");
 

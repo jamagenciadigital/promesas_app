@@ -65,6 +65,39 @@ export default function Calendar() {
   };
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeModules, setActiveModules] = useState<string[] | null>(null);
+  
+  useEffect(() => {
+    async function loadClubModules() {
+      if (profile?.club_id) {
+        try {
+          const { data: club } = await supabase
+            .from('clubes')
+            .select('plan_id, modulos_personalizados')
+            .eq('id', profile.club_id)
+            .single();
+
+          if (club?.modulos_personalizados && Array.isArray(club.modulos_personalizados) && club.modulos_personalizados.length > 0) {
+            setActiveModules(club.modulos_personalizados);
+          } else if (club?.plan_id) {
+            const { data: plan } = await supabase
+              .from('planes_suscripcion')
+              .select('modulos_activos')
+              .eq('id', club.plan_id)
+              .single();
+            if (plan?.modulos_activos) {
+              setActiveModules(plan.modulos_activos);
+            }
+          }
+        } catch (e) {
+          console.error('Error loading club modules in Calendar:', e);
+        }
+      }
+    }
+    loadClubModules();
+  }, [profile?.club_id]);
+
+  const hasReservationsModule = !activeModules || activeModules.includes('reserva_escenarios');
   
   // Modals
   const [showTrainingModal, setShowTrainingModal] = useState(false);
@@ -335,7 +368,10 @@ export default function Calendar() {
       console.log('fetchEvents query params:', { club_id: profile?.club_id, startOfMonth, endOfMonth, selectedTeam });
       const { data: agendaData, error } = await query;
       console.log('Agenda data:', agendaData, 'error:', error);
-      let finalEvents: AgendaEvent[] = agendaData || [];
+      let finalEvents: AgendaEvent[] = (agendaData || []).map((e: any) => ({
+        ...e,
+        fecha: e.fecha ? (typeof e.fecha === 'string' ? e.fecha.split('T')[0] : new Date(e.fecha).toISOString().split('T')[0]) : ''
+      }));
       
       if (error && error.code !== 'PGRST116') {
          console.warn("Error agenda_deportiva:", error);
@@ -364,7 +400,7 @@ export default function Calendar() {
                titulo: `Reserva: ${r.escenario?.nombre || 'Escenario'}`,
                descripcion: `Estado: ${r.estado} - Responsable: ${r.atleta_nombre}`,
                tipo: 'evento', 
-               fecha: r.fecha,
+               fecha: r.fecha ? (typeof r.fecha === 'string' ? r.fecha.split('T')[0] : new Date(r.fecha).toISOString().split('T')[0]) : '',
                hora_inicio: r.hora_inicio,
                hora_fin: r.hora_fin,
                lugar: r.escenario?.nombre || 'Escenario',
@@ -440,6 +476,20 @@ export default function Calendar() {
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), day + 1);
   });
 
+  const getDaysInWeek = (date: Date) => {
+    const temp = new Date(date);
+    const day = temp.getDay();
+    const diff = temp.getDate() - day + (day === 0 ? -6 : 1);
+    const startOfWeek = new Date(temp.setDate(diff));
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      return d;
+    });
+  };
+
+  const visibleDays = view === 'month' ? calendarDays : getDaysInWeek(currentDate);
+
   const months = Array.from({ length: 12 }, (_, i) => t(`month.${i}`));
 
   const handleSaveTraining = async (e: React.FormEvent) => {
@@ -493,7 +543,7 @@ export default function Calendar() {
       }
 
       console.log('Inserting sessions:', sessions);
-      const { data: insertData, error } = await supabase.from('agenda_deportiva').insert(sessions).select();
+      const { data: insertData, error } = await supabase.from('agenda_deportiva').insert(sessions);
       console.log('Insert result:', { insertData, error });
       if (error) throw error;
 
@@ -1153,12 +1203,14 @@ export default function Calendar() {
         </div>
         
         <div className="flex items-center gap-3">
-           <Button 
-            onClick={() => window.location.href='/club/reservations/new'}
-            className="bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white border-transparent h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
-           >
-             <MapPin size={16} /> Reservar Escenario
-           </Button>
+           {hasReservationsModule && (
+             <Button 
+              onClick={() => window.location.href='/club/reservations/new'}
+              className="bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white border-transparent h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
+             >
+               <MapPin size={16} /> Reservar Escenario
+             </Button>
+           )}
            <Button 
             onClick={() => setShowTrainingModal(true)}
             className="bg-[var(--primary)] text-black h-12 rounded-2xl font-black uppercase italic text-[10px] tracking-widest gap-2"
@@ -1324,10 +1376,13 @@ export default function Calendar() {
 
                     {/* Grid Days */}
                     <div className="grid grid-cols-7 gap-4">
-                 {calendarDays.map((day, idx) => {
+                  {visibleDays.map((day, idx) => {
                     const isCurrentMonth = day.getMonth() === currentDate.getMonth();
                     const isToday = day.toDateString() === new Date().toDateString();
-                    const dayString = day.toISOString().split('T')[0];
+                    const y = day.getFullYear();
+                    const m = String(day.getMonth() + 1).padStart(2, '0');
+                    const d = String(day.getDate()).padStart(2, '0');
+                    const dayString = `${y}-${m}-${d}`;
                     const dayEvents = events.filter(e => e.fecha === dayString);
                     
                     return (

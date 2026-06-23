@@ -6,7 +6,7 @@ import {
   Wallet, Search, Filter, CheckCircle2, 
   Clock, XCircle, Trash2, ArrowUpRight, 
   DollarSign, User, Upload, Eye, FileText, X,
-  Download
+  Download, Users
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -43,6 +43,25 @@ export default function Cartera() {
   const [clubCurrency, setClubCurrency] = useState('COP');
   const [playersMap, setPlayersMap] = useState<Record<string, { nombre: string, equipo: string }>>({});
   const [equipos, setEquipos] = useState<{id: string, nombre: string}[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [selectedProductTeam, setSelectedProductTeam] = useState('');
+
+  const TEAM_COLORS = [
+    { bg: 'bg-red-500/10 text-red-500 border-red-500/20', dot: 'bg-red-500' },
+    { bg: 'bg-blue-500/10 text-blue-500 border-blue-500/20', dot: 'bg-blue-500' },
+    { bg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', dot: 'bg-emerald-500' },
+    { bg: 'bg-amber-500/10 text-amber-500 border-amber-500/20', dot: 'bg-amber-500' },
+    { bg: 'bg-purple-500/10 text-purple-500 border-purple-500/20', dot: 'bg-purple-500' },
+    { bg: 'bg-pink-500/10 text-pink-500 border-pink-500/20', dot: 'bg-pink-500' },
+    { bg: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20', dot: 'bg-indigo-500' },
+    { bg: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20', dot: 'bg-cyan-500' },
+  ];
+
+  const getTeamColor = (teamId: string) => {
+    const index = equipos.findIndex(eq => eq.id === teamId);
+    if (index === -1) return TEAM_COLORS[0];
+    return TEAM_COLORS[index % TEAM_COLORS.length];
+  };
 
   // Estado para el modal de aprobación
   const [approvingCharge, setApprovingCharge] = useState<Charge | null>(null);
@@ -776,48 +795,124 @@ export default function Cartera() {
 
       {activeTab === 'eventos' && (
         <div className="space-y-6">
-           <div className="flex justify-end">
-              <Button onClick={() => initCreateEvent()} className="h-14 px-8 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-[10px] rounded-[24px]">Crear Evento / Producto</Button>
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1e1f24] p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+              <div className="flex-1 relative">
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                 <input 
+                    type="text" 
+                    placeholder="Buscar producto o evento por nombre..." 
+                    className="w-full pl-12 pr-4 h-14 bg-gray-50 dark:bg-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-[var(--primary)]" 
+                    value={productSearchTerm} 
+                    onChange={(e) => setProductSearchTerm(e.target.value)} 
+                 />
+              </div>
+              <div className="shrink-0">
+                 <Button onClick={() => initCreateEvent()} className="h-14 px-8 bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-[10px] rounded-[24px]">Crear Evento / Producto</Button>
+              </div>
            </div>
-           
-           {productos.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {productos.map(p => (
-                   <div key={p.id} className="bg-white dark:bg-[#1e1f24] rounded-[32px] border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col">
-                      {p.imagen_url ? (
-                         <div className="w-full h-40 bg-gray-100 dark:bg-black relative group flex-shrink-0">
-                            <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover opacity-80" />
-                         </div>
-                      ) : (
-                         <div className="w-full h-40 bg-gray-50 dark:bg-white/5 flex flex-shrink-0 items-center justify-center">
-                            <FileText className="text-gray-300 w-12 h-12" />
-                         </div>
-                      )}
-                      <div className="p-6 flex-1 flex flex-col">
-                         <div className="flex justify-between items-start mb-2">
-                           <h3 className="text-xl font-black italic uppercase leading-tight">{p.nombre}</h3>
-                           <p className="text-lg font-black text-[var(--primary)] tabular-nums">{formatCurrency(p.precio)}</p>
-                         </div>
-                         <p className="text-xs text-gray-500 line-clamp-2 mt-2 flex-1">{p.descripcion}</p>
-                         <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
-                            <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">
-                              {p.equipos?.length} Equipo(s) Asociado(s)
-                            </p>
-                            <Button variant="ghost" onClick={() => openEditModal(p)} className="h-8 px-4 rounded-xl text-[10px] uppercase font-black tracking-widest group relative overflow-hidden">
-                                <span className="relative z-10 group-hover:text-black dark:group-hover:text-black">Editar</span>
-                                <div className="absolute inset-0 bg-[var(--primary)] -translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                            </Button>
-                         </div>
-                      </div>
-                   </div>
-                ))}
-             </div>
-           ) : (
-             <div className="py-20 text-center flex flex-col items-center">
-                <FileText className="w-16 h-16 text-gray-200 dark:text-white/10 mb-4" />
-                <p className="text-gray-500 font-black uppercase tracking-widest text-xs">No hay productos ni eventos creados.</p>
+
+           {/* Team Selector Filter */}
+           {equipos.length > 0 && (
+             <div className="bg-white dark:bg-[#1e1f24] p-6 rounded-3xl border border-gray-100 dark:border-white/5 space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Filtrar por Equipo</label>
+                <div className="flex flex-wrap gap-2">
+                   <button
+                      onClick={() => setSelectedProductTeam('')}
+                      className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${
+                         !selectedProductTeam 
+                           ? 'bg-black text-[var(--primary)] border-[var(--primary-30)] shadow-lg' 
+                           : 'bg-gray-50 dark:bg-white/5 text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                      }`}
+                   >
+                      <Users size={12} /> Todos los Equipos
+                   </button>
+                   {equipos.map((eq) => {
+                      const color = getTeamColor(eq.id);
+                      const isSelected = selectedProductTeam === eq.id;
+                      return (
+                         <button
+                            key={eq.id}
+                            onClick={() => setSelectedProductTeam(eq.id)}
+                            className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${
+                               isSelected 
+                                 ? `${color.bg} border-current shadow-sm` 
+                                 : 'bg-gray-50 dark:bg-white/5 text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                            }`}
+                            style={isSelected ? { borderColor: 'currentColor' } : undefined}
+                         >
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${color.dot}`} />
+                            {eq.nombre}
+                         </button>
+                      );
+                   })}
+                </div>
              </div>
            )}
+           
+           {(() => {
+             const filteredProducts = productos.filter(p => {
+               const matchesSearch = p.nombre.toLowerCase().includes(productSearchTerm.toLowerCase()) || 
+                                     (p.descripcion && p.descripcion.toLowerCase().includes(productSearchTerm.toLowerCase()));
+               const matchesTeam = !selectedProductTeam || p.equipos?.includes(selectedProductTeam);
+               return matchesSearch && matchesTeam;
+             });
+
+             return filteredProducts.length > 0 ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProducts.map(p => (
+                     <div key={p.id} className="bg-white dark:bg-[#1e1f24] rounded-[32px] border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col hover:border-[var(--primary)] transition-all duration-300">
+                        {p.imagen_url ? (
+                           <div className="w-full h-40 bg-gray-100 dark:bg-black relative group flex-shrink-0">
+                              <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover opacity-80" />
+                           </div>
+                        ) : (
+                           <div className="w-full h-40 bg-gray-50 dark:bg-white/5 flex flex-shrink-0 items-center justify-center">
+                              <FileText className="text-gray-300 w-12 h-12" />
+                           </div>
+                        )}
+                        <div className="p-6 flex-1 flex flex-col">
+                           <div className="flex justify-between items-start mb-2">
+                             <h3 className="text-xl font-black italic uppercase leading-tight">{p.nombre}</h3>
+                             <p className="text-lg font-black text-[var(--primary)] tabular-nums">{formatCurrency(p.precio)}</p>
+                           </div>
+                           <p className="text-xs text-gray-500 line-clamp-2 mt-2 flex-1">{p.descripcion}</p>
+                           
+                           {/* Team badges */}
+                           {p.equipos && p.equipos.length > 0 && (
+                             <div className="mt-4 flex flex-wrap gap-1">
+                               {p.equipos.map(eqId => {
+                                 const teamObj = equipos.find(eq => eq.id === eqId);
+                                 if (!teamObj) return null;
+                                 const color = getTeamColor(eqId);
+                                 return (
+                                   <span key={eqId} className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border shrink-0 ${color.bg}`}>
+                                     {teamObj.nombre}
+                                   </span>
+                                 );
+                               })}
+                             </div>
+                           )}
+
+                           <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
+                              <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">
+                                {p.equipos?.length || 0} Equipo(s) Asociado(s)
+                              </p>
+                              <Button variant="ghost" onClick={() => openEditModal(p)} className="h-8 px-4 rounded-xl text-[10px] uppercase font-black tracking-widest group relative overflow-hidden">
+                                  <span className="relative z-10 group-hover:text-black dark:group-hover:text-black">Editar</span>
+                                  <div className="absolute inset-0 bg-[var(--primary)] -translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                              </Button>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+             ) : (
+               <div className="py-20 text-center flex flex-col items-center bg-white dark:bg-[#1e1f24] rounded-[40px] border border-gray-100 dark:border-white/5">
+                  <FileText className="w-16 h-16 text-gray-200 dark:text-white/10 mb-4" />
+                  <p className="text-gray-500 font-black uppercase tracking-widest text-xs">No se encontraron productos o eventos.</p>
+               </div>
+             );
+           })()}
         </div>
       )}
 

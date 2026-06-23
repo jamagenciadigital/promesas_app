@@ -33,6 +33,22 @@ function applyTheme(theme: ClubTheme) {
   root.style.setProperty('--club-button-text', theme.button_text || DEFAULT_THEME_COLORS['--club-button-text']);
   root.style.setProperty('--club-button-hover', theme.button_hover || DEFAULT_THEME_COLORS['--club-button-hover']);
   root.style.setProperty('--club-login-bg', theme.login_bg || DEFAULT_THEME_COLORS['--club-login-bg']);
+
+  // Update primary properties to align with ThemeContext (used in dashboard components)
+  const primary = theme.primary_color || '#CCFF00';
+  root.style.setProperty('--primary', primary);
+  const hex = primary.replace('#', '');
+  if (hex.length === 6) {
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    root.style.setProperty('--primary-5', `rgba(${r},${g},${b},0.05)`);
+    root.style.setProperty('--primary-10', `rgba(${r},${g},${b},0.1)`);
+    root.style.setProperty('--primary-20', `rgba(${r},${g},${b},0.2)`);
+    root.style.setProperty('--primary-30', `rgba(${r},${g},${b},0.3)`);
+    root.style.setProperty('--primary-40', `rgba(${r},${g},${b},0.4)`);
+    root.style.setProperty('--primary-50', `rgba(${r},${g},${b},0.5)`);
+  }
 }
 
 function resetTheme() {
@@ -40,6 +56,17 @@ function resetTheme() {
   Object.entries(DEFAULT_THEME_COLORS).forEach(([key, value]) => {
     root.style.setProperty(key, value);
   });
+  root.style.setProperty('--primary', '#CCFF00');
+  const hex = 'CCFF00';
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  root.style.setProperty('--primary-5', `rgba(${r},${g},${b},0.05)`);
+  root.style.setProperty('--primary-10', `rgba(${r},${g},${b},0.1)`);
+  root.style.setProperty('--primary-20', `rgba(${r},${g},${b},0.2)`);
+  root.style.setProperty('--primary-30', `rgba(${r},${g},${b},0.3)`);
+  root.style.setProperty('--primary-40', `rgba(${r},${g},${b},0.4)`);
+  root.style.setProperty('--primary-50', `rgba(${r},${g},${b},0.5)`);
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

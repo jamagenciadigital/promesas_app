@@ -171,7 +171,7 @@ export default function Sidebar({ isMobile, isMobileOpen, onClose }: SidebarProp
               .eq('id', activeClubId)
               .single();
 
-            if (club?.modulos_personalizados) {
+            if (club?.modulos_personalizados && Array.isArray(club.modulos_personalizados) && club.modulos_personalizados.length > 0) {
               setActiveModules(club.modulos_personalizados);
             } else if (club?.plan_id) {
                const { data: plan } = await supabase.from('planes_suscripcion').select('modulos_activos').eq('id', club.plan_id).single();

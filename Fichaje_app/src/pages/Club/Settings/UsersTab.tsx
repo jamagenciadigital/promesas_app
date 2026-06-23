@@ -199,26 +199,22 @@ export default function UsersTab() {
         setTimeout(() => setSuccessMsg(null), 5000);
       } else {
         // Crear nuevo usuario
-        const { createClient } = await import('@supabase/supabase-js');
-        const tempClient = createClient(
-          import.meta.env.VITE_SUPABASE_URL,
-          import.meta.env.VITE_SUPABASE_ANON_KEY,
-          { auth: { persistSession: false } }
-        );
-
-        const { data: authData, error: authError } = await tempClient.auth.signUp({
-          email: userForm.email.toLowerCase().trim(),
-          password: userForm.password,
-          options: {
+        const signupRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+          body: JSON.stringify({
+            email: userForm.email.toLowerCase().trim(),
+            password: userForm.password,
             data: {
               nombre: userForm.nombre,
               rol: userForm.rol,
               club_id: profile.club_id,
             }
-          }
+          })
         });
 
-        if (authError) throw authError;
+        const authData = await signupRes.json();
+        if (!signupRes.ok) throw new Error(authData.error || 'Error al crear usuario');
 
         if (authData.user) {
           const { error: profileError } = await supabase

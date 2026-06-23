@@ -8,7 +8,7 @@ async function run() {
   });
   await client.connect();
   try {
-    const res = await client.query("SELECT id, email, encrypted_password FROM auth.users WHERE email = 'admin@promesas.com'");
+    const res = await client.query("SELECT id, email, encrypted_password FROM auth.users WHERE email = 'demo.club@fichaje.com.co'");
     if (res.rows.length === 0) {
       console.log('No user found.');
       return;

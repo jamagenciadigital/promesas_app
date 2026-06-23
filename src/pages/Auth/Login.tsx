@@ -138,6 +138,8 @@ export default function Login() {
         }
 
         redirectByRole(profileData.rol);
+
+
       }
     } catch (err: any) {
       setError(getAuthErrorMessage(err));

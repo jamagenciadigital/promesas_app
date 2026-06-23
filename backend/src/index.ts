@@ -879,10 +879,14 @@ app.post('/auth/v1/signup', async (req, res) => {
 });
 
 app.post('/auth/v1/token', async (req, res) => {
+  console.log('[TOKEN] req.body:', JSON.stringify(req.body));
+  console.log('[TOKEN] req.headers:', JSON.stringify(req.headers));
   const grantType = req.query.grant_type || req.body?.grant_type;
+  console.log('[TOKEN] grantType:', grantType);
   
   if (grantType === 'password') {
     const { email, password } = req.body;
+    console.log('[TOKEN] email:', email, 'password present:', !!password);
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
@@ -1309,6 +1313,7 @@ app.all('/rest/v1/:table', async (req, res) => {
 
 // SEND NOTIFICATION EMAIL
 app.post('/api/notifications/send', async (req, res) => {
+
   const { to, tipo, variables, club_id } = req.body;
 
   if (!to || !tipo || !club_id) {

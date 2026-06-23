@@ -210,7 +210,7 @@ export default function ClubDashboard() {
           <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic leading-none">{t('nav.dashboard')}</h1>
           <p className="text-sm text-gray-500 font-medium mt-2">Gestión administrativa y deportiva en tiempo real.</p>
         </div>
-        <Badge className="bg-[var(--primary-10)] text-[var(--primary)] border-[var(--primary-20)] px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-widest">
+        <Badge className="bg-gray-950 text-[var(--primary)] border border-[var(--primary-30)] dark:bg-white dark:text-black dark:border-transparent px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-widest">
           Plan: {plan?.nombre || 'Legacy/Ilimitado'}
         </Badge>
       </div>
@@ -256,7 +256,7 @@ export default function ClubDashboard() {
                 <div className="w-1.5 h-6 bg-[var(--primary)] rounded-full"></div>
                 <h3 className="font-black text-gray-900 dark:text-white uppercase italic tracking-tight text-lg">Configuración del Club</h3>
               </div>
-              <span className="text-[10px] font-black text-[var(--primary)] uppercase italic bg-[var(--primary-10)] px-3 py-1 rounded-full">
+              <span className="text-[10px] font-black text-black bg-[var(--primary)] uppercase italic px-3 py-1 rounded-full">
                 {completedSteps}/{setupSteps.length} Pasos
               </span>
             </div>

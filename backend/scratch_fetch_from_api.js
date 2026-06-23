@@ -1,14 +1,15 @@
 async function run() {
-  const url = 'http://localhost:3000/rest/v1/reserva_escenario?escenario_id=eq.5e9dc2c5-97ca-48c7-be5e-858027b67fd9&fecha=eq.2026-05-28';
+  const url = 'http://localhost:3000/rest/v1/perfiles?select=rol,id,estado&id=eq.54c93f7e-3055-4c39-af69-a5acb40927ab';
   try {
     const res = await fetch(url, {
       headers: {
         'apikey': 'local-dev-key',
-        'Authorization': 'Bearer local-dev-key'
+        'Authorization': 'Bearer local-dev-key',
+        'Accept': 'application/vnd.pgrst.object+json'
       }
     });
     const data = await res.json();
-    console.log('--- DATE SPECIFIC FETCH RESULT ---');
+    console.log('--- PROFILE FETCH RESULT ---');
     console.log(JSON.stringify(data, null, 2));
   } catch (err) {
     console.error(err);

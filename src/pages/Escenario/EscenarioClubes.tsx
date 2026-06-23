@@ -246,7 +246,9 @@ export default function EscenarioClubes() {
         if (data) setAllPlans(data);
       });
     }
-    const baseModules = club.modulos_personalizados || getPlan(club)?.modulos_activos || [];
+    const baseModules = (club.modulos_personalizados && club.modulos_personalizados.length > 0)
+      ? club.modulos_personalizados
+      : (getPlan(club)?.modulos_activos || []);
     setToggledModules([...baseModules]);
   };
 
@@ -754,7 +756,7 @@ export default function EscenarioClubes() {
               </div>
 
               {/* Plan info */}
-              {getPlan(permisosClub) && !permisosClub.modulos_personalizados && (
+              {getPlan(permisosClub) && (!permisosClub.modulos_personalizados || permisosClub.modulos_personalizados.length === 0) && (
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4 flex items-center gap-2">
                   <ShieldAlert size={14} className="text-indigo-500 shrink-0" />
                   <p className="text-[10px] text-indigo-700 font-medium">
@@ -763,7 +765,7 @@ export default function EscenarioClubes() {
                   </p>
                 </div>
               )}
-              {permisosClub.modulos_personalizados && (
+              {permisosClub.modulos_personalizados && permisosClub.modulos_personalizados.length > 0 && (
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 flex items-center gap-2">
                   <Settings size={14} className="text-amber-500 shrink-0" />
                   <p className="text-[10px] text-amber-700 font-medium">
