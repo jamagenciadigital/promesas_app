@@ -63,6 +63,7 @@ export default function RegisterParent() {
           club:clubes(nombre, logo_url)
         `)
         .ilike('codigo', formData.codigo.trim())
+        .limit(1)
         .single();
 
       if (teamError || !team) throw new Error("El código de equipo no existe.");
@@ -100,13 +101,15 @@ export default function RegisterParent() {
     setError(null);
 
     try {
-      // 1. Crear usuario en Auth
+      // 1. Crear usuario en Auth (el backend crea el perfil y actualiza tutor del deportista)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             nombre: formData.nombre,
+            apellido: formData.apellido,
+            documento: formData.documento,
             rol: 'padre',
             club_id: teamInfo.club_id,
             deportista_id: selectedPlayer.id
@@ -116,60 +119,6 @@ export default function RegisterParent() {
 
       if (authError) throw authError;
       if (!authData.user) throw new Error("No se pudo crear el usuario.");
-
-      console.log('Update payload:', {
-        club_id: teamInfo.club_id,
-        deportista_id: selectedPlayer.id,
-        rol: 'padre',
-        nombre: formData.nombre,
-        estado: 'activo'
-      });
-
-      const { data: updateData, error: updateError, count } = await supabase
-        .from('perfiles')
-        .update({
-          club_id: teamInfo.club_id,
-          deportista_id: selectedPlayer.id,
-          rol: 'padre',
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          documento: formData.documento,
-          estado: 'activo'
-        })
-        .eq('id', authData.user.id)
-        .select();
-
-      console.log('Update result:', { updateData, updateError, count });
-
-      if (updateError || !updateData || updateData.length === 0) {
-        console.warn("Update failed or no rows affected, trying upsert...");
-        const { error: upsertError } = await supabase
-          .from('perfiles')
-          .upsert({
-            id: authData.user.id,
-            email: formData.email,
-            nombre: formData.nombre,
-            apellido: formData.apellido,
-            documento: formData.documento,
-            rol: 'padre',
-            club_id: teamInfo.club_id,
-            deportista_id: selectedPlayer.id,
-            estado: 'activo'
-          });
-        
-        if (upsertError) {
-           console.error('Upsert failed:', upsertError);
-           throw upsertError;
-        }
-      }
-
-      // Sincronizar la información de tutor directamente con el deportista para Cartera y contratos
-      await supabase.from('deportistas').update({
-         tutor_nombre: formData.nombre,
-         tutor_apellidos: formData.apellido,
-         tutor_numero_documento: formData.documento,
-         tutor_email: formData.email
-      }).eq('id', selectedPlayer.id);
 
       setStep('success');
     } catch (err: any) {

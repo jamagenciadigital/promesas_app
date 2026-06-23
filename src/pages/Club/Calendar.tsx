@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Plus, 
   ChevronLeft, ChevronRight, Filter, Users, Shield, 
-  Info, CheckCircle2, X, PlusCircle, Save, Loader2, Trophy, Mic, Bot
+  Info, CheckCircle2, X, PlusCircle, Save, Loader2, Trophy, Mic, Bot, Search
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -43,6 +43,24 @@ export default function Calendar() {
   const [view, setView] = useState<'month' | 'week'>('month');
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>('');
+  const [teamSearchTerm, setTeamSearchTerm] = useState('');
+
+  const TEAM_COLORS = [
+    { bg: 'bg-red-500/10 text-red-500 border-red-500/20', dot: 'bg-red-500' },
+    { bg: 'bg-blue-500/10 text-blue-500 border-blue-500/20', dot: 'bg-blue-500' },
+    { bg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', dot: 'bg-emerald-500' },
+    { bg: 'bg-amber-500/10 text-amber-500 border-amber-500/20', dot: 'bg-amber-500' },
+    { bg: 'bg-purple-500/10 text-purple-500 border-purple-500/20', dot: 'bg-purple-500' },
+    { bg: 'bg-pink-500/10 text-pink-500 border-pink-500/20', dot: 'bg-pink-500' },
+    { bg: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20', dot: 'bg-indigo-500' },
+    { bg: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20', dot: 'bg-cyan-500' },
+  ];
+
+  const getTeamColor = (teamId: string) => {
+    const index = (teams || []).findIndex(eq => eq && eq.id === teamId);
+    if (index === -1) return TEAM_COLORS[0];
+    return TEAM_COLORS[index % TEAM_COLORS.length];
+  };
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -204,7 +222,7 @@ export default function Calendar() {
       
       let clubId = profile?.club_id;
       if (!clubId) {
-        const team = teams.find(t => t.id === teamId);
+        const team = (teams || []).find(t => t && t.id === teamId);
         clubId = team?.club_id;
         console.log("DEBUG: clubId obtenido del equipo:", clubId);
       }
@@ -259,7 +277,7 @@ export default function Calendar() {
     } else if (profile) {
       setLoading(false);
     }
-  }, [profile?.club_id, currentDate, selectedTeam, profile]);
+  }, [profile?.club_id, currentDate, selectedTeam, profile?.id, profile?.rol]);
 
   async function fetchTeams() {
     if (profile?.rol === 'entrenador') {
@@ -370,8 +388,8 @@ export default function Calendar() {
                titulo: `Juego: ${j.nombre_local} vs ${j.nombre_visitante}`,
                descripcion: `Estado: ${j.estado} - Sede: ${j.lugar}`,
                tipo: 'evento', 
-               fecha: j.fecha.split('T')[0],
-               hora_inicio: j.fecha.split('T')[1].substring(0, 5),
+               fecha: j.fecha ? j.fecha.split('T')[0] : '',
+               hora_inicio: (j.fecha && j.fecha.includes('T')) ? j.fecha.split('T')[1].substring(0, 5) : '00:00',
                hora_fin: 'N/A',
                lugar: j.lugar,
                equipo: j.equipo_local,
@@ -415,7 +433,7 @@ export default function Calendar() {
 
     setSaving(true);
     try {
-      const team = teams.find(t => t.id === trainingForm.teamId);
+      const team = (teams || []).find(t => t && t.id === trainingForm.teamId);
       if (!team) throw new Error("Equipo no encontrado");
 
       const [startYear, startMonth, startDay] = trainingForm.startDate.split('-').map(Number);
@@ -1146,28 +1164,53 @@ export default function Calendar() {
            <div className="bg-white dark:bg-[#1e293b]/40 border border-gray-100 dark:border-white/5 rounded-[40px] p-8 space-y-6">
               <div className="space-y-4">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.filter_team')}</label>
-                 <div className="space-y-2">
+                 
+                 {/* Team Search Input */}
+                 <div className="relative">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                   <input
+                     type="text"
+                     placeholder="Buscar equipo..."
+                     value={teamSearchTerm}
+                     onChange={(e) => setTeamSearchTerm(e.target.value)}
+                     className="w-full pl-9 pr-4 h-10 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] dark:text-white"
+                   />
+                 </div>
+
+                 <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
                     <button 
                       onClick={() => setSelectedTeam('')}
                       className={cn(
                         "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                        selectedTeam === '' ? "bg-[var(--primary-10)] border-[var(--primary)] text-black dark:text-[var(--primary)]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
+                        selectedTeam === '' 
+                          ? "bg-black text-[var(--primary)] border-[var(--primary-30)] shadow-lg" 
+                          : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
                       )}
                     >
                       <Users size={16} /> {t('calendar.all_teams')}
                     </button>
-                    {teams.map(team => (
-                      <button 
-                        key={team.id}
-                        onClick={() => setSelectedTeam(team.id)}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
-                          selectedTeam === team.id ? "bg-[var(--primary-10)] border-[var(--primary)] text-black dark:text-[var(--primary)]" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500"
-                        )}
-                      >
-                        <Shield size={16} /> {team.nombre}
-                      </button>
-                    ))}
+                    {(teams || [])
+                      .filter(team => team && team.nombre && team.nombre.toLowerCase().includes(teamSearchTerm.toLowerCase()))
+                      .map(team => {
+                        const color = getTeamColor(team.id);
+                        const isSelected = selectedTeam === team.id;
+                        return (
+                          <button 
+                            key={team.id}
+                            onClick={() => setSelectedTeam(team.id)}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-4 rounded-2xl text-xs font-bold transition-all border",
+                              isSelected 
+                                ? `${color.bg} border-current` 
+                                : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+                            )}
+                            style={isSelected ? { borderColor: 'currentColor' } : undefined}
+                          >
+                            <span className={cn("w-2 h-2 rounded-full shrink-0", color.dot)} />
+                            {team.nombre || ''}
+                          </button>
+                        );
+                      })}
                  </div>
               </div>
 
@@ -1260,23 +1303,28 @@ export default function Calendar() {
                          </div>
 
                          <div className="space-y-1">
-                            {dayEvents.map((event, eIdx) => (
-                               <div 
-                                key={eIdx}
-                                className={cn(
-                                    "px-2 py-1 rounded-lg text-[8px] font-black uppercase truncate border",
-                                   event.isReserva 
-                                        ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                                        : event.isJuego
-                                            ? "bg-blue-500 text-white border-blue-600 shadow-md"
-                                            : event.tipo === 'entrenamiento' 
-                                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
-                                                : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                                )}
-                               >
-                                  {event.titulo}
-                               </div>
-                            ))}
+                            {dayEvents.map((event, eIdx) => {
+                               const teamColor = event.equipo_id ? getTeamColor(event.equipo_id) : null;
+                               return (
+                                 <div 
+                                  key={eIdx}
+                                  className={cn(
+                                      "px-2 py-1 rounded-lg text-[8px] font-black uppercase truncate border",
+                                     event.isReserva 
+                                          ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                          : event.isJuego
+                                              ? "bg-blue-500 text-white border-blue-600 shadow-md"
+                                              : teamColor
+                                                  ? teamColor.bg
+                                                  : event.tipo === 'entrenamiento' 
+                                                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                                                      : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                  )}
+                                 >
+                                    {event.titulo}
+                                 </div>
+                               );
+                            })}
                          </div>
                       </div>
                     );
@@ -1507,7 +1555,7 @@ export default function Calendar() {
                 onChange={(e) => setTrainingForm({...trainingForm, teamId: e.target.value})}
               >
                 <option value="">{t('calendar.choose_team')}</option>
-                {teams.map(t => <option key={t.id} value={t.id} className="dark:bg-[#1e293b]">{t.nombre}</option>)}
+                {(teams || []).filter(Boolean).map(t => <option key={t.id} value={t.id} className="dark:bg-[#1e293b]">{t.nombre || ''}</option>)}
               </select>
            </div>
 
@@ -1637,7 +1685,7 @@ export default function Calendar() {
                 onChange={(e) => setEventForm({...eventForm, teamId: e.target.value})}
               >
                 <option value="">{t('calendar.all_club')}</option>
-                {teams.map(t => <option key={t.id} value={t.id} className="dark:bg-[#1e293b]">{t.nombre}</option>)}
+                {(teams || []).filter(Boolean).map(t => <option key={t.id} value={t.id} className="dark:bg-[#1e293b]">{t.nombre || ''}</option>)}
               </select>
            </div>
 

@@ -767,12 +767,14 @@ app.post('/auth/v1/signup', async (req, res) => {
     if (existingProfile.length === 0) {
       await prisma.$executeRawUnsafe(`
         INSERT INTO public.perfiles (
-          id, email, nombre, rol, club_id, telefono, deportista_id, estado, created_at
-        ) VALUES ($1, $2, $3, $4::public.user_role, $5, $6, $7, $8, $9)
+          id, email, nombre, apellido, documento, rol, club_id, telefono, deportista_id, estado, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6::public.user_role, $7, $8, $9, $10, $11)
       `,
         userId,
         email,
         userMetadata.nombre || userMetadata.nombre_completo || '',
+        userMetadata.apellido || '',
+        userMetadata.documento || '',
         userMetadata.rol || 'entrenador',
         userMetadata.club_id || null,
         userMetadata.telefono || '',
@@ -780,6 +782,28 @@ app.post('/auth/v1/signup', async (req, res) => {
         userMetadata.estado || 'activo',
         now
       );
+    }
+
+    // Update deportistas tutor info if provided
+    if (userMetadata.deportista_id) {
+      try {
+        await prisma.$executeRawUnsafe(`
+          UPDATE public.deportistas SET
+            tutor_nombre = COALESCE($1, tutor_nombre),
+            tutor_apellidos = COALESCE($2, tutor_apellidos),
+            tutor_numero_documento = COALESCE($3, tutor_numero_documento),
+            tutor_email = COALESCE($4, tutor_email)
+          WHERE id = $5
+        `,
+          userMetadata.nombre || '',
+          userMetadata.apellido || '',
+          userMetadata.documento || '',
+          email,
+          userMetadata.deportista_id
+        );
+      } catch (e) {
+        console.error("Error updating deportistas tutor info during signup:", e);
+      }
     }
 
     const access_token = jwt.sign(
