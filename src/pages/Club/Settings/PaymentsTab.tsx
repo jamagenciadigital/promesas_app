@@ -104,13 +104,13 @@ export default function PaymentsTab() {
         const filePath = `${profile.club_id}/qrs/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('comprobantes-pagos')
+          .from('club-logos')
           .upload(filePath, qrFile, { upsert: true });
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-          .from('comprobantes-pagos')
+          .from('club-logos')
           .getPublicUrl(filePath);
 
         finalQrUrl = publicUrl;

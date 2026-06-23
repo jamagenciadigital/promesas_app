@@ -55,7 +55,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         .from(bucket)
         .upload(fullPath, blob, {
           contentType: fileType,
-          upsert: true
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
