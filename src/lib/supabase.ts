@@ -21,14 +21,18 @@ const authUrl = `${supabaseUrl}/auth/v1`;
 const restUrl = `${supabaseUrl}/rest/v1`;
 const storageUrl = `${supabaseUrl}/storage/v1`;
 
-const headers: Record<string, string> = {
+const baseHeaders: Record<string, string> = {
   apikey: supabaseAnonKey || '',
+};
+
+const restHeaders: Record<string, string> = {
+  ...baseHeaders,
   'Content-Type': 'application/json',
 };
 
 const auth = new GoTrueClient({
   url: authUrl,
-  headers,
+  headers: restHeaders,
   flowType: 'implicit',
   persistSession: true,
   autoRefreshToken: true,
@@ -36,7 +40,7 @@ const auth = new GoTrueClient({
 
 const fetchWithAuth: typeof fetch = async (url, options) => {
   const token = (await auth.getSession())?.data?.session?.access_token;
-  const mergedHeaders = new Headers(headers);
+  const mergedHeaders = new Headers(baseHeaders);
   if (token) {
     mergedHeaders.set('Authorization', `Bearer ${token}`);
   }
@@ -51,11 +55,11 @@ const fetchWithAuth: typeof fetch = async (url, options) => {
 
 
 const rest = new PostgrestClient(restUrl, {
-  headers,
+  headers: restHeaders,
   fetch: fetchWithAuth,
 });
 
-const storage = new StorageClient(storageUrl, headers, fetchWithAuth);
+const storage = new StorageClient(storageUrl, baseHeaders, fetchWithAuth);
 
 function createMockChannel(name: string) {
   const mock = {

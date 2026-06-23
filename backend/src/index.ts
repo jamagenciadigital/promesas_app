@@ -1243,6 +1243,31 @@ app.post('/rest/v1/rpc/:functionName', async (req, res) => {
   }
 });
 
+function cleanUrls(obj: any, origin: string): any {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'string') {
+    if (obj.startsWith('http://localhost:3000/storage/v1/object/public/')) {
+      return obj.replace('http://localhost:3000', origin);
+    }
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanUrls(item, origin));
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      cleaned[key] = cleanUrls(value, origin);
+    }
+    return cleaned;
+  }
+  
+  return obj;
+}
+
 // REST V1 POSTGREST ENDPOINT
 app.all('/rest/v1/:table', async (req, res) => {
   const { table } = req.params;
@@ -1398,7 +1423,12 @@ app.all('/rest/v1/:table', async (req, res) => {
       return res.status(404).json({ error: 'JSON object requested, but 0 rows were returned' });
     }
 
-    return res.status(statusCode).json(result.data);
+    const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.headers['host'] || '';
+    const origin = host ? `${proto}://${host}` : '';
+    const cleanedData = origin ? cleanUrls(result.data, origin) : result.data;
+
+    return res.status(statusCode).json(cleanedData);
   } catch (error: any) {
     console.error(`Error in /rest/v1/${table}:`, error);
     return res.status(400).json({
