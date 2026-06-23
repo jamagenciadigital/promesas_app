@@ -1659,6 +1659,44 @@ export default function Calendar() {
               </select>
            </div>
 
+           {trainingForm.teamId && (() => {
+             const juneTrainings = events.filter(e => 
+               e.tipo === 'entrenamiento' && 
+               e.equipo_id === trainingForm.teamId && 
+               e.fecha.includes('-06-')
+             );
+             juneTrainings.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+             return (
+               <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                 <label className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest px-1">
+                   Entrenamientos registrados en Junio
+                 </label>
+                 {juneTrainings.length === 0 ? (
+                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-white/10 text-center">
+                     <p className="text-xs text-gray-500 italic">No hay entrenamientos registrados en junio para este equipo.</p>
+                   </div>
+                 ) : (
+                   <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                     {juneTrainings.map(t => {
+                       const dateParts = t.fecha.split('-');
+                       const dayNum = dateParts[2];
+                       return (
+                         <div 
+                           key={t.id} 
+                           className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
+                         >
+                           <CalendarIcon size={12} />
+                           <span>Día {parseInt(dayNum)} - {t.hora_inicio}</span>
+                         </div>
+                       );
+                     })}
+                   </div>
+                 )}
+               </div>
+             );
+           })()}
+
            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('calendar.start_date')}</label>
