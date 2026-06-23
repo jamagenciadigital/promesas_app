@@ -5,11 +5,13 @@ import { StorageClient } from '@supabase/storage-js';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const supabaseUrl = rawUrl && rawUrl.startsWith('http')
-  ? rawUrl
-  : typeof window !== 'undefined'
-    ? `${window.location.origin}${rawUrl || '/api'}`
-    : '';
+const supabaseUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+  ? `${window.location.origin}/api`
+  : rawUrl && rawUrl.startsWith('http')
+    ? rawUrl
+    : typeof window !== 'undefined'
+      ? `${window.location.origin}${rawUrl || '/api'}`
+      : '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Faltan las credenciales en el archivo .env');
