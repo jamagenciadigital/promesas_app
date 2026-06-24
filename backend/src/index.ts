@@ -364,6 +364,11 @@ async function hydrateRelation(row: any, fieldName: string, selectFields: string
       const joinQuery = `SELECT * FROM "${fk.foreign_schema}"."${fk.foreign_table}" WHERE "${fk.foreign_col}" = $1 LIMIT 1`;
       const joinRes = await prisma.$queryRawUnsafe<any[]>(joinQuery, localValue);
       let val = joinRes.length > 0 ? joinRes[0] : null;
+      if (val) {
+        for (const key of Object.keys(val)) {
+          val[key] = convertNumericObject(val[key]);
+        }
+      }
       if (val && selectFields !== '*') {
         await hydrateRow(val, fk.foreign_schema, fk.foreign_table, selectFields);
       }
@@ -379,6 +384,12 @@ async function hydrateRelation(row: any, fieldName: string, selectFields: string
         const joinQuery = `SELECT * FROM "${revFk.foreign_schema}"."${revFk.foreign_table_name}" WHERE "${revFk.foreign_column_name}" = $1`;
         const joinRes = await prisma.$queryRawUnsafe<any[]>(joinQuery, localValue);
         
+        for (let i = 0; i < joinRes.length; i++) {
+          for (const key of Object.keys(joinRes[i])) {
+            joinRes[i][key] = convertNumericObject(joinRes[i][key]);
+          }
+        }
+        
         const isOneToOne = (baseFieldName === 'perfiles' || baseFieldName === 'users');
         if (selectFields !== '*') {
           for (let i = 0; i < joinRes.length; i++) {
@@ -388,6 +399,167 @@ async function hydrateRelation(row: any, fieldName: string, selectFields: string
         row[aliasName || baseFieldName] = isOneToOne ? (joinRes.length > 0 ? joinRes[0] : null) : joinRes;
       } else {
         row[aliasName || baseFieldName] = [];
+      }
+    }
+  }
+}
+
+async function hydrateRows(rows: any[], schemaName: string, tableName: string, selectStr: string) {
+  if (!rows || rows.length === 0 || selectStr === '*') return;
+
+  const parsedParts = parseSelectString(selectStr);
+  const joinsToHydrate: { fieldName: string, selectFields: string, aliasName?: string }[] = [];
+
+  for (const part of parsedParts) {
+    const firstParen = part.indexOf('(');
+    if (firstParen !== -1 && part.endsWith(')')) {
+      const relationPart = part.substring(0, firstParen);
+      const selectFields = part.substring(firstParen + 1, part.length - 1);
+      let aliasName: string | undefined;
+      let relationName = relationPart;
+      const colonIdx = relationPart.indexOf(':');
+      if (colonIdx !== -1) {
+        aliasName = relationPart.substring(0, colonIdx);
+        relationName = relationPart.substring(colonIdx + 1);
+      }
+      joinsToHydrate.push({ fieldName: relationName, selectFields, aliasName });
+    }
+  }
+
+  if (joinsToHydrate.length === 0) return;
+
+  const fkQuery = `
+    SELECT 
+      kcu.column_name, 
+      ccu.table_name AS foreign_table, 
+      ccu.column_name AS foreign_col,
+      ccu.table_schema AS foreign_schema,
+      tc.constraint_name
+    FROM information_schema.table_constraints AS tc 
+    JOIN information_schema.key_column_usage AS kcu 
+      ON tc.constraint_name = kcu.constraint_name 
+      AND tc.table_schema = kcu.table_schema 
+    JOIN information_schema.constraint_column_usage AS ccu 
+      ON ccu.constraint_name = tc.constraint_name 
+      AND ccu.table_schema = tc.table_schema 
+    WHERE tc.constraint_type = 'FOREIGN KEY' 
+      AND tc.table_schema = $1 
+      AND tc.table_name = $2
+  `;
+  const fks = await prisma.$queryRawUnsafe<any[]>(fkQuery, schemaName, tableName);
+
+  const reverseFkQuery = `
+    SELECT 
+      kcu.column_name AS foreign_col, 
+      tc.table_name AS foreign_table, 
+      kcu.table_name AS foreign_table_name,
+      kcu.column_name AS foreign_column_name,
+      tc.table_schema AS foreign_schema
+    FROM information_schema.table_constraints AS tc 
+    JOIN information_schema.key_column_usage AS kcu 
+      ON tc.constraint_name = kcu.constraint_name 
+      AND tc.table_schema = kcu.table_schema 
+    JOIN information_schema.constraint_column_usage AS ccu 
+      ON ccu.constraint_name = tc.constraint_name 
+      AND ccu.table_schema = tc.table_schema 
+    WHERE tc.constraint_type = 'FOREIGN KEY' 
+      AND ccu.table_schema = $1 
+      AND ccu.table_name = $2
+  `;
+  const reverseFks = await prisma.$queryRawUnsafe<any[]>(reverseFkQuery, schemaName, tableName);
+
+  for (const join of joinsToHydrate) {
+    await hydrateRelationBatch(rows, join.fieldName, join.selectFields, join.aliasName, fks, reverseFks, schemaName);
+  }
+}
+
+async function hydrateRelationBatch(rows: any[], fieldName: string, selectFields: string, aliasName: string | undefined, fks: any[], reverseFks: any[], schemaName: string) {
+  let explicitFkName: string | undefined;
+  let baseFieldName = fieldName;
+  const bangIdx = fieldName.indexOf('!');
+  if (bangIdx !== -1) {
+    explicitFkName = fieldName.substring(bangIdx + 1);
+    baseFieldName = fieldName.substring(0, bangIdx);
+  }
+
+  const sortedFks = [...fks].sort((a, b) => {
+    const singular = baseFieldName.replace(/es$/, '').replace(/s$/, '');
+    const expectedCol = singular + '_id';
+    const aScore = a.column_name === expectedCol ? 2 : a.column_name.startsWith(singular + '_id') ? 1 : 0;
+    const bScore = b.column_name === expectedCol ? 2 : b.column_name.startsWith(singular + '_id') ? 1 : 0;
+    return bScore - aScore;
+  });
+  const fk = sortedFks.find(f =>
+    (explicitFkName && f.constraint_name === explicitFkName) ||
+    f.foreign_table === baseFieldName ||
+    f.column_name === baseFieldName ||
+    f.column_name === `${baseFieldName}_id`
+  );
+
+  if (fk) {
+    const localValues: any[] = [];
+    for (const row of rows) {
+      const val = row[fk.column_name];
+      if (val !== null && val !== undefined) localValues.push(val);
+    }
+    if (localValues.length === 0) {
+      for (const row of rows) row[aliasName || baseFieldName] = null;
+      return;
+    }
+    const placeholders = localValues.map((_, i) => `$${i + 1}`).join(', ');
+    const joinQuery = `SELECT * FROM "${fk.foreign_schema}"."${fk.foreign_table}" WHERE "${fk.foreign_col}" IN (${placeholders})`;
+    const joinRes = await prisma.$queryRawUnsafe<any[]>(joinQuery, ...localValues);
+
+    const joinMap: Record<string, any> = {};
+    for (const jr of joinRes) {
+      const key = String(jr[fk.foreign_col]);
+      for (const k of Object.keys(jr)) {
+        jr[k] = convertNumericObject(jr[k]);
+      }
+      if (selectFields !== '*') {
+        await hydrateRow(jr, fk.foreign_schema, fk.foreign_table, selectFields);
+      }
+      joinMap[key] = jr;
+    }
+    for (const row of rows) {
+      const key = row[fk.column_name];
+      row[aliasName || baseFieldName] = key !== null && key !== undefined && String(key) in joinMap ? joinMap[String(key)] : null;
+    }
+  } else {
+    const revFk = reverseFks.find(r => r.foreign_table_name === baseFieldName);
+    if (revFk) {
+      const ids: any[] = [];
+      for (const row of rows) {
+        if (row['id'] !== null && row['id'] !== undefined) ids.push(row['id']);
+      }
+      if (ids.length === 0) {
+        for (const row of rows) row[aliasName || baseFieldName] = [];
+        return;
+      }
+      const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+      const joinQuery = `SELECT * FROM "${revFk.foreign_schema}"."${revFk.foreign_table_name}" WHERE "${revFk.foreign_column_name}" IN (${placeholders})`;
+      const joinRes = await prisma.$queryRawUnsafe<any[]>(joinQuery, ...ids);
+
+      for (const jr of joinRes) {
+        for (const k of Object.keys(jr)) {
+          jr[k] = convertNumericObject(jr[k]);
+        }
+        if (selectFields !== '*') {
+          await hydrateRow(jr, revFk.foreign_schema, revFk.foreign_table_name, selectFields);
+        }
+      }
+      const groupMap: Record<string, any[]> = {};
+      for (const jr of joinRes) {
+        const key = String(jr[revFk.foreign_column_name]);
+        if (!groupMap[key]) groupMap[key] = [];
+        groupMap[key].push(jr);
+      }
+      const isOneToOne = (baseFieldName === 'perfiles' || baseFieldName === 'users');
+      for (const row of rows) {
+        const key = row['id'];
+        row[aliasName || baseFieldName] = key !== null && key !== undefined && String(key) in groupMap
+          ? (isOneToOne ? groupMap[String(key)][0] : groupMap[String(key)])
+          : (isOneToOne ? null : []);
       }
     }
   }
@@ -461,6 +633,21 @@ async function hydrateRow(row: any, schemaName: string, tableName: string, selec
       await hydrateRelation(row, join.fieldName, join.selectFields, join.aliasName, fks, reverseFks, schemaName);
     }
   }
+}
+
+function convertNumericObject(val: any): any {
+  if (!val || typeof val !== 'object') return val;
+  if ('s' in val && 'e' in val && 'd' in val && Array.isArray(val.d)) {
+    if (val.s === 0) return NaN;
+    let str = String(val.d[0]);
+    for (let i = 1; i < val.d.length; i++) {
+      str += String(val.d[i]).padStart(7, '0');
+    }
+    const decimalPos = val.e - str.length + 1;
+    const num = Number(str) * 10 ** decimalPos;
+    return val.s === -1 ? -num : num;
+  }
+  return val;
 }
 
 function formatTimeValue(val: any): any {
@@ -761,7 +948,7 @@ async function executeQuery(table: string, method: string, args: any[], filters:
   
   const res = await prisma.$queryRawUnsafe<any[]>(queryText, ...queryParams);
 
-  // Post-process returned rows to format time fields properly
+  // Post-process returned rows to format time fields properly and convert numeric objects
   if (Array.isArray(res) && res.length > 0) {
     for (const row of res) {
       if (row) {
@@ -769,6 +956,10 @@ async function executeQuery(table: string, method: string, args: any[], filters:
           if (colType === 'time without time zone' || colType === 'time') {
             if (row[col] !== undefined && row[col] !== null) {
               row[col] = formatTimeValue(row[col]);
+            }
+          } else if (colType === 'numeric' || colType === 'decimal') {
+            if (row[col] !== undefined && row[col] !== null) {
+              row[col] = convertNumericObject(row[col]);
             }
           }
         }
@@ -793,11 +984,7 @@ async function executeQuery(table: string, method: string, args: any[], filters:
     const selectStr = args[0];
     if (typeof selectStr === 'string' && selectStr !== '*') {
       const rows = Array.isArray(dataResult) ? dataResult : [dataResult];
-      for (const row of rows) {
-        if (row) {
-          await hydrateRow(row, schemaName, table, selectStr);
-        }
-      }
+      await hydrateRows(rows, schemaName, table, selectStr);
     }
   }
 
@@ -1256,6 +1443,8 @@ function cleanUrls(obj: any, origin: string): any {
   if (Array.isArray(obj)) {
     return obj.map(item => cleanUrls(item, origin));
   }
+  
+  if (obj instanceof Date) return obj;
   
   if (typeof obj === 'object') {
     const cleaned: any = {};

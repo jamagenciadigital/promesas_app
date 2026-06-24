@@ -7,10 +7,16 @@ import { Input } from '../../../components/ui/Input';
 import { ImageUpload } from '../../../components/ui/ImageUpload';
 import { CheckCircle2, Building2, Upload, CalendarDays, RefreshCw } from 'lucide-react';
 
-function toDateInputValue(date: string | null | undefined): string {
+function toDateInputValue(date: any): string {
   if (!date) return '';
-  if (date.includes('T')) return date.split('T')[0];
-  return date;
+  if (typeof date === 'string') {
+    if (date.includes('T')) return date.split('T')[0];
+    return date;
+  }
+  if (date instanceof Date) {
+    return date.toISOString().split('T')[0];
+  }
+  return String(date);
 }
 
 export default function GeneralInfoTab() {
