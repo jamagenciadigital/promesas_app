@@ -71,6 +71,27 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
 
   const [canchas, setCanchas] = useState<any[]>([]);
 
+  // Estado para modal de nuevo bloque en vista semanal
+  const [newBlockModal, setNewBlockModal] = useState<{
+    isOpen: boolean;
+    hora_inicio: string;
+    hora_fin: string;
+    precio: number;
+    precio_particular: number;
+    es_gratis: boolean;
+    es_bloqueado: boolean;
+    cancha_id: string;
+  }>({
+    isOpen: false,
+    hora_inicio: '08:00',
+    hora_fin: '09:00',
+    precio: 0,
+    precio_particular: 0,
+    es_gratis: false,
+    es_bloqueado: false,
+    cancha_id: ''
+  });
+
   // Estados para bloqueo avanzado (Administrativo / Equipo)
   const [blockingSlot, setBlockingSlot] = useState<any>(null);
   const [blockType, setBlockType] = useState<'admin' | 'team'>('admin');
@@ -332,21 +353,38 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
 
   const addSlot = (prefilledCanchaId?: string) => {
     if (!canEdit) return;
-    const newSlot = {
-      escenario_id: escenario.id,
-      dia_semana: uiDayToDbDay(activeDay),
-      ui_dia: activeDay,
+    setNewBlockModal({
+      isOpen: true,
       hora_inicio: '08:00',
       hora_fin: '09:00',
       precio: 0,
       precio_particular: 0,
       es_gratis: false,
       es_bloqueado: false,
-      cancha_id: prefilledCanchaId || '',
+      cancha_id: prefilledCanchaId || ''
+    });
+  };
+
+  const confirmNewSlot = () => {
+    if (!canEdit) return;
+    const { hora_inicio, hora_fin, precio, precio_particular, es_gratis, es_bloqueado, cancha_id } = newBlockModal;
+    if (hora_inicio >= hora_fin) { alert('La hora de inicio debe ser menor que la de fin'); return; }
+    const newSlot = {
+      escenario_id: escenario.id,
+      dia_semana: uiDayToDbDay(activeDay),
+      ui_dia: activeDay,
+      hora_inicio,
+      hora_fin,
+      precio: es_gratis ? 0 : precio,
+      precio_particular: es_gratis ? 0 : precio_particular,
+      es_gratis,
+      es_bloqueado,
+      cancha_id,
       isNew: true,
       tempId: Math.random()
     };
     setHorarios(prev => [...prev, newSlot]);
+    setNewBlockModal(prev => ({ ...prev, isOpen: false }));
   };
 
   const removeSlot = async (slot: any) => {
@@ -602,13 +640,29 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
     })
     .filter(s => !selectedCalendarCancha || s.cancha_id === selectedCalendarCancha);
 
+  const groupedCalendarSlots = React.useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+    activeDateSlots.forEach(slot => {
+      const key = slot.cancha_id || '__none__';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(slot);
+    });
+    return Object.entries(grouped).map(([canchaId, slots]) => ({
+      canchaId,
+      canchaName: canchaId !== '__none__'
+        ? (canchas.find(c => c.id === canchaId)?.nombre || 'Cancha')
+        : 'Sin cancha',
+      slots
+    }));
+  }, [activeDateSlots, canchas]);
+
   const content = (
     <>
       <div className={inline ? "space-y-6" : "space-y-6 p-1"}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 mb-1">
-              Sede Deportiva
+              Escenario Deportivo
             </span>
             <h4 className="text-sm font-black text-[#182332] dark:text-white uppercase tracking-tight pl-0.5">
               {escenario.nombre}
@@ -1165,127 +1219,56 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[38vh] overflow-y-auto pr-1">
-                    {activeDateSlots.map(slot => {
-                      let blockRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva === 'bloqueo');
-                      
-                      // Si no encontramos un registro en la fecha seleccionada pero el slot está bloqueado semanalmente (Fijo),
-                      // buscamos en todos los bloques del mes si hay algún bloqueo para este mismo horario y día de la semana
-                      if (!blockRecord && slot.es_bloqueado) {
-                        blockRecord = monthBlocks.find(b => 
-                          b.tipo_reserva === 'bloqueo' && 
-                          getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) &&
-                          getLocalWeekdayIndex(getCleanDateStr(b.fecha)) === getLocalWeekdayIndex(selectedDate)
-                        );
-                      }
-
-                      const isDateBlocked = !!blockRecord;
-                      const reservationRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva !== 'bloqueo');
-                      const isDateReserved = !!reservationRecord;
-                      const isBlocked = slot.es_bloqueado || isDateBlocked;
-
-                      return (
-                        <div 
-                          key={slot.id} 
-                          className={`bg-white dark:bg-[#182332]/10 p-4 rounded-xl border flex items-center justify-between gap-4 transition-all hover:shadow-sm ${
-                            isDateReserved 
-                              ? 'border-amber-200/50 bg-amber-50/10' 
-                              : isBlocked 
-                                ? 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 opacity-75' 
-                                : 'border-gray-100 dark:border-white/5'
-                          }`}
-                        >
-                          {/* Slot details */}
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                              isDateReserved 
-                                ? 'bg-amber-500/10 text-amber-500' 
-                                : isBlocked 
-                                  ? 'bg-gray-400/20 text-gray-500 dark:text-gray-400' 
-                                  : 'bg-emerald-500/10 text-emerald-500'
-                            }`}>
-                              {isBlocked ? <Lock className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                            </div>
-                            <div>
-                              <p className={`text-[11px] font-bold uppercase tracking-tight ${
-                                isBlocked ? 'text-gray-400 dark:text-gray-500' : 'text-[#182332] dark:text-white'
-                              }`}>
-                                {slot.hora_inicio.substring(0,5)} - {slot.hora_fin.substring(0,5)}
-                              </p>
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
-                                {isDateBlocked ? (
-                                  <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">
-                                    Bloqueado por: {blockRecord.atleta_nombre || 'Administración'}
-                                  </span>
-                                ) : slot.es_bloqueado ? (
-                                  <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">
-                                    Bloqueado por: {slot.bloqueado_por || 'Administración'}
-                                  </span>
-                                ) : (
-                                  slot.es_gratis ? 'Gratis' : `Club: $${slot.precio.toLocaleString()} / Part: $${(slot.precio_particular || 0).toLocaleString()} COP`
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Buttons */}
-                          <div className="flex items-center gap-2">
-                            {isDateReserved ? (
-                              <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                {(() => {
-                                  const club = reservationRecord?.cliente_nombre || reservationRecord?.equipo_club_nombre;
-                                  const sub = reservationRecord?.equipo_nombre || reservationRecord?.deportista_nombre || reservationRecord?.atleta_nombre;
-                                  return club ? `${club} / ${sub || 'Ocupado'}` : sub || 'Ocupado';
-                                })()}
-                              </span>
-                            ) : isBlocked ? (
-                              <>
-                                <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20">
-                                  {slot.es_bloqueado ? 'Fijo' : 'Puntual'}
-                                </span>
-                                {canEdit && (
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      if (slot.es_bloqueado) {
-                                        handleUnblockWeeklySlot(slot);
-                                      } else if (blockRecord) {
-                                        handleUnblockDateSlot(blockRecord.id);
-                                      }
-                                    }}
-                                    className="h-7 px-2.5 bg-gray-100/80 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all"
-                                  >
-                                    Habilitar
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                  Libre
-                                </span>
-                                {canEdit ? (
-                                  <button 
-                                    type="button"
-                                    onClick={() => setBlockingSlot(slot)}
-                                    className="h-7 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border border-red-500/20 hover:border-transparent"
-                                  >
-                                    Bloquear
-                                  </button>
-                                ) : (
-                                  <button 
-                                    type="button"
-                                    onClick={() => window.open(`${window.location.origin}/reservar/${escenario.id}`, '_blank')}
-                                    className="h-7 px-2.5 bg-[#E30613]/10 hover:bg-[#E30613] hover:text-white text-[#E30613] rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border border-[#E30613]/20 hover:border-transparent"
-                                  >
-                                    Reservar
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
+                    {groupedCalendarSlots.map(group => (
+                      <div key={group.canchaId} className="space-y-2">
+                        <div className="flex items-center gap-2 px-1">
+                          <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+                          <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{group.canchaName}</span>
+                          <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
                         </div>
-                      );
-                    })}
+                        {group.slots.map(slot => {
+                              let blockRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva === 'bloqueo');
+                              if (!blockRecord && slot.es_bloqueado) { blockRecord = monthBlocks.find(b => b.tipo_reserva === 'bloqueo' && getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && getLocalWeekdayIndex(getCleanDateStr(b.fecha)) === getLocalWeekdayIndex(selectedDate)); }
+                              const isDateBlocked = !!blockRecord;
+                              const reservationRecord = dateBlocks.find(b => getCleanTime(b.hora_inicio) === getCleanTime(slot.hora_inicio) && b.tipo_reserva !== 'bloqueo');
+                              const isDateReserved = !!reservationRecord;
+                              const isBlocked = slot.es_bloqueado || isDateBlocked;
+                              return (
+                                <div key={slot.id} className={`bg-white dark:bg-[#182332]/10 p-4 rounded-xl border flex items-center justify-between gap-4 transition-all hover:shadow-sm ${isDateReserved ? 'border-amber-200/50 bg-amber-50/10' : isBlocked ? 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 opacity-75' : 'border-gray-100 dark:border-white/5'}`}>
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isDateReserved ? 'bg-amber-500/10 text-amber-500' : isBlocked ? 'bg-gray-400/20 text-gray-500 dark:text-gray-400' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                      {isBlocked ? <Lock className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                                    </div>
+                                    <div>
+                                      <p className={`text-[11px] font-bold uppercase tracking-tight ${isBlocked ? 'text-gray-400 dark:text-gray-500' : 'text-[#182332] dark:text-white'}`}>
+                                        {slot.hora_inicio.substring(0,5)} - {slot.hora_fin.substring(0,5)}
+                                      </p>
+                                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+                                        {isDateBlocked ? <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">Bloqueado por: {blockRecord.atleta_nombre || 'Administración'}</span>
+                                          : slot.es_bloqueado ? <span className="text-gray-500 dark:text-gray-400 font-extrabold normal-case">Bloqueado por: {slot.bloqueado_por || 'Administración'}</span>
+                                          : slot.es_gratis ? 'Gratis' : `Club: $${slot.precio.toLocaleString()} / Part: $${(slot.precio_particular || 0).toLocaleString()} COP`}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {isDateReserved ? (
+                                      <span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        {(() => { const club = reservationRecord?.cliente_nombre || reservationRecord?.equipo_club_nombre; const sub = reservationRecord?.equipo_nombre || reservationRecord?.deportista_nombre || reservationRecord?.atleta_nombre; return club ? `${club} / ${sub || 'Ocupado'}` : sub || 'Ocupado'; })()}
+                                      </span>
+                                    ) : isBlocked ? (
+                                      <><span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20">{slot.es_bloqueado ? 'Fijo' : 'Puntual'}</span>
+                                        {canEdit && <button type="button" onClick={() => { if (slot.es_bloqueado) handleUnblockWeeklySlot(slot); else if (blockRecord) handleUnblockDateSlot(blockRecord.id); }} className="h-7 px-2.5 bg-gray-100/80 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all">Habilitar</button>}</>
+                                    ) : (
+                                      <><span className="px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Libre</span>
+                                        {canEdit ? <button type="button" onClick={() => setBlockingSlot(slot)} className="h-7 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border border-red-500/20 hover:border-transparent">Bloquear</button>
+                                          : <button type="button" onClick={() => window.open(`${window.location.origin}/reservar/${escenario.id}`, '_blank')} className="h-7 px-2.5 bg-[#E30613]/10 hover:bg-[#E30613] hover:text-white text-[#E30613] rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border border-[#E30613]/20 hover:border-transparent">Reservar</button>}</>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1303,6 +1286,74 @@ export default function EscenarioScheduleModal({ escenario, onClose, onSuccess, 
           </div>
         )}
       </div>
+
+      {/* Modal para Nuevo Bloque en Plantilla Semanal */}
+      {newBlockModal.isOpen && (
+        <Modal isOpen={true} onClose={() => setNewBlockModal(prev => ({ ...prev, isOpen: false }))} title={`Nuevo Bloque - ${DIAS[activeDay]}`} maxWidth="max-w-lg">
+          <div className="space-y-5 p-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Hora Inicio</label>
+                <input type="time" value={newBlockModal.hora_inicio} onChange={e => setNewBlockModal(prev => ({ ...prev, hora_inicio: e.target.value }))}
+                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold py-3 px-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613]" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Hora Fin</label>
+                <input type="time" value={newBlockModal.hora_fin} onChange={e => setNewBlockModal(prev => ({ ...prev, hora_fin: e.target.value }))}
+                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold py-3 px-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613]" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Precio Club (COP)</label>
+                <input type="number" placeholder="0" value={newBlockModal.precio} onChange={e => setNewBlockModal(prev => ({ ...prev, precio: parseFloat(e.target.value) || 0 }))}
+                  disabled={newBlockModal.es_gratis || newBlockModal.es_bloqueado}
+                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold py-3 px-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613] disabled:opacity-30" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Precio Particular (COP)</label>
+                <input type="number" placeholder="0" value={newBlockModal.precio_particular} onChange={e => setNewBlockModal(prev => ({ ...prev, precio_particular: parseFloat(e.target.value) || 0 }))}
+                  disabled={newBlockModal.es_gratis || newBlockModal.es_bloqueado}
+                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold py-3 px-3 text-[#182332] dark:text-white outline-none focus:border-[#E30613] disabled:opacity-30" />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setNewBlockModal(prev => ({ ...prev, es_gratis: !prev.es_gratis, es_bloqueado: prev.es_gratis ? prev.es_bloqueado : false }))}
+                className={`flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${newBlockModal.es_gratis ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10'}`}>
+                {newBlockModal.es_gratis ? '✓ Gratis' : 'De Pago'}
+              </button>
+              <button type="button" onClick={() => setNewBlockModal(prev => ({ ...prev, es_bloqueado: !prev.es_bloqueado, es_gratis: prev.es_bloqueado ? prev.es_gratis : false }))}
+                className={`flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${newBlockModal.es_bloqueado ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10'}`}>
+                {newBlockModal.es_bloqueado ? '✕ Bloqueado' : 'Disponible'}
+              </button>
+            </div>
+
+            {canchas.length > 0 && (
+              <div>
+                <label className="block text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Cancha / Área</label>
+                <select value={newBlockModal.cancha_id} onChange={e => setNewBlockModal(prev => ({ ...prev, cancha_id: e.target.value }))}
+                  className="w-full h-11 px-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-[#182332] dark:text-white outline-none focus:border-[#E30613]">
+                  <option value="">Sin asignar</option>
+                  {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2 border-t border-gray-100 dark:border-white/5">
+              <button type="button" onClick={() => setNewBlockModal(prev => ({ ...prev, isOpen: false }))}
+                className="flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-gray-700 dark:hover:text-white transition-all">
+                Cancelar
+              </button>
+              <button type="button" onClick={confirmNewSlot}
+                className="flex-[2] h-11 bg-[#E30613] hover:bg-red-700 text-white font-bold uppercase text-[10px] rounded-xl shadow-md transition-all">
+                Agregar Bloque
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Sub-modal para configurar el Bloqueo */}
       {blockingSlot && (

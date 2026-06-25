@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import {
-  Search, UserPlus, RefreshCw, Pencil, Trash2, Building2, Mail, Phone, Users
+  Search, UserPlus, RefreshCw, Pencil, Trash2, Building2, Mail, Phone, Users,
+  Eye, FileText, ExternalLink, User, ShieldCheck, Award, X
 } from 'lucide-react';
 
 interface Entrenador {
@@ -38,6 +39,9 @@ export default function EscenarioEntrenadores() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [editId, setEditId] = useState<string | null>(null);
+  const [isFichaOpen, setIsFichaOpen] = useState(false);
+  const [fichaCoach, setFichaCoach] = useState<any>(null);
+  const [loadingFicha, setLoadingFicha] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -132,6 +136,32 @@ export default function EscenarioEntrenadores() {
     setForm(INITIAL_FORM);
     setEditId(null);
     setFormError(null);
+  };
+
+  const openFicha = async (id: string) => {
+    setLoadingFicha(true);
+    setIsFichaOpen(true);
+    try {
+      const { data } = await supabase.from('perfiles').select('*').eq('id', id).single();
+      setFichaCoach(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFicha(false);
+    }
+  };
+
+  const getDirectImageUrl = (url: string) => {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (trimmed.includes('drive.google.com')) {
+      const id = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
+      if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+    }
+    if (trimmed.includes('dropbox.com')) {
+      return trimmed.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace(/\?dl=\d/, '');
+    }
+    return trimmed;
   };
 
   const filtered = entrenadores.filter(e => {
@@ -256,6 +286,9 @@ export default function EscenarioEntrenadores() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openFicha(e.id)} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="Ver Ficha">
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         <button onClick={() => openEdit(e)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="Editar">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -343,6 +376,118 @@ export default function EscenarioEntrenadores() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal isOpen={isFichaOpen} onClose={() => setIsFichaOpen(false)} title="" maxWidth="max-w-3xl">
+        {loadingFicha ? (
+          <div className="p-12 text-center flex flex-col items-center gap-3">
+            <RefreshCw className="w-8 h-8 animate-spin text-[var(--primary)]" />
+            <p className="text-sm text-gray-500 italic">Cargando ficha...</p>
+          </div>
+        ) : fichaCoach ? (
+          <div className="space-y-6">
+            <div className="flex items-start gap-6 p-6 bg-gradient-to-br from-[#182332] to-[#0f172a] rounded-3xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[100px] -mr-24 -mt-24 rounded-full" />
+              <div className="relative shrink-0">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-[3px] border-blue-600 overflow-hidden bg-gray-900">
+                  {fichaCoach.foto_url ? (
+                    <img src={getDirectImageUrl(fichaCoach.foto_url)} alt={fichaCoach.nombre} className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User size={36} className="text-gray-700" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="relative flex-1 min-w-0">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className="bg-blue-600 text-white text-[7px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full italic">Cuerpo Técnico</span>
+                  {fichaCoach.numero_documento && (
+                    <span className="border border-white/20 text-white/60 text-[7px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full italic">
+                      ID: {fichaCoach.numero_documento}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-white uppercase italic leading-none tracking-tighter">
+                  {fichaCoach.nombre}
+                </h2>
+                <div className="flex flex-wrap gap-4 mt-3 text-white/60 text-[9px] font-bold uppercase tracking-widest italic">
+                  <span className="flex items-center gap-1.5"><ShieldCheck size={13} className="text-blue-500" /> {fichaCoach.estado === 'activo' ? 'Activo' : 'Suspendido'}</span>
+                  {fichaCoach.tipo_documento && <span className="flex items-center gap-1.5"><Award size={13} className="text-blue-500" /> {fichaCoach.tipo_documento}</span>}
+                </div>
+              </div>
+              <button onClick={() => setIsFichaOpen(false)} className="relative p-2 text-white/40 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-2xl space-y-3">
+                <h3 className="text-[9px] font-black text-blue-500 uppercase tracking-widest italic">Contacto</h3>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><Phone size={14} /></div>
+                    <div>
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Teléfono</p>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">{fichaCoach.telefono || 'Sin registrar'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl"><Mail size={14} /></div>
+                    <div className="overflow-hidden">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Email</p>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{fichaCoach.email}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-2xl space-y-3">
+                <h3 className="text-[9px] font-black text-blue-500 uppercase tracking-widest italic">Identidad</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Tipo Doc.</p>
+                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic">{fichaCoach.tipo_documento || 'Pendiente'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Número</p>
+                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase italic">{fichaCoach.numero_documento || '---'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-widest italic flex items-center gap-2">
+                <FileText size={13} /> Documentos Oficiales
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                  { label: 'Documento Identidad', url: fichaCoach.documento_identidad_url },
+                  { label: 'Certificado Grado', url: fichaCoach.certificado_grado_url },
+                  { label: 'Certificado Entrenador', url: fichaCoach.certificado_entrenador_url },
+                ].map((doc, i) => (
+                  <div key={i} className={`rounded-2xl border p-4 flex items-center gap-3 ${doc.url ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-[#1e293b] border-gray-100 dark:border-white/5'}`}>
+                    <div className={`p-2.5 rounded-xl ${doc.url ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                      <FileText size={16} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[8px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{doc.label}</p>
+                      {doc.url ? (
+                        <a href={doc.url} target="_blank" rel="noreferrer"
+                          className="text-[9px] font-bold text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
+                          <ExternalLink size={11} /> Ver documento
+                        </a>
+                      ) : (
+                        <p className="text-[9px] text-gray-400 italic mt-0.5">No cargado</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </Modal>
     </div>
   );

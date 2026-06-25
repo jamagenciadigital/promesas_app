@@ -355,7 +355,7 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                 {res.estado === 'confirmada' && (
                   <div className="flex items-center gap-2 mt-3">
                     {res.ingreso_fecha ? (
-                      <Badge variant="success" className="text-[8px] uppercase tracking-wider">En Sede</Badge>
+                      <Badge variant="success" className="text-[8px] uppercase tracking-wider">En Escenario</Badge>
                     ) : (
                       <Badge variant="warning" className="text-[8px] uppercase tracking-wider bg-gray-200 dark:bg-white/10 text-gray-500">Sin Ingreso</Badge>
                     )}
@@ -428,7 +428,7 @@ export default function EscenarioReservations({ scenarioId }: { scenarioId?: str
                         onClick={() => setSelectedScenarioInfo(res.escenarios)}
                         className="h-10 px-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-all flex items-center gap-2 text-gray-600 dark:text-gray-400 text-[10px] font-bold"
                       >
-                        <Shield size={14} /> Sede
+                        <Shield size={14} /> Escenario
                       </button>
                     )}
 

@@ -108,6 +108,7 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
     gestor_id: '', responsable_nombre: '',
     supervisor_nombre: '', supervisor_correo: '', supervisor_area: ''
   });
+  const [selectedDeporteIds, setSelectedDeporteIds] = useState<string[]>([]);
 
   const [canchas, setCanchas] = useState<any[]>([]);
   const [newCanchaName, setNewCanchaName] = useState('');
@@ -128,9 +129,17 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
         supervisor_correo: escenario.supervisor_correo || '',
         supervisor_area: escenario.supervisor_area || ''
       });
+      fetchEscenarioDeportes();
     }
     fetchCanchas();
   }, [escenario]);
+
+  const fetchEscenarioDeportes = async () => {
+    try {
+      const { data } = await supabase.from('escenario_deportes').select('deporte_id').eq('escenario_id', escenarioId);
+      setSelectedDeporteIds(data?.map((ed: any) => ed.deporte_id) || []);
+    } catch (e) { console.warn('escenario_deportes no disponible', e); }
+  };
 
   const fetchCanchas = async () => {
     const { data } = await supabase.from('escenario_canchas').select('*').eq('escenario_id', escenarioId);
@@ -138,7 +147,7 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
   };
 
   const fetchDeportes = async () => {
-    const { data } = await supabase.from('deportes').select('nombre').order('nombre');
+    const { data } = await supabase.from('deportes').select('id, nombre').order('nombre');
     setDeportes(data || []);
   };
 
@@ -155,14 +164,19 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!escenarioId || !profile) return;
+    if (selectedDeporteIds.length === 0) {
+      alert('Debes seleccionar al menos una disciplina/deporte');
+      return;
+    }
     setSaving(true);
     try {
+      const primaryDeporte = deportes.find(d => d.id === selectedDeporteIds[0])?.nombre || '';
       const { error } = await supabase.from('escenarios').update({
         nombre: formData.nombre,
         direccion: formData.direccion,
         telefono: formData.telefono,
         correo: formData.correo,
-        deporte: formData.deporte,
+        deporte: primaryDeporte,
         gestor_id: formData.gestor_id || null,
         responsable_nombre: formData.responsable_nombre,
         supervisor_nombre: formData.supervisor_nombre,
@@ -170,6 +184,18 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
         supervisor_area: formData.supervisor_area
       }).eq('id', escenarioId);
       if (error) throw error;
+
+      try {
+        await supabase.from('escenario_deportes').delete().eq('escenario_id', escenarioId);
+        if (selectedDeporteIds.length > 0) {
+          const inserts = selectedDeporteIds.map(deporteId => ({
+            escenario_id: escenarioId,
+            deporte_id: deporteId
+          }));
+          const { error: edError } = await supabase.from('escenario_deportes').insert(inserts);
+          if (edError) throw edError;
+        }
+      } catch (e) { console.warn('escenario_deportes no disponible', e); }
 
       await supabase.from('auditoria_escenario').insert([{
         escenario_id: escenarioId,
@@ -211,20 +237,41 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input label="Nombre" required name="nombre" value={formData.nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Deporte</label>
-          <select
-            name="deporte"
-            value={formData.deporte}
-            onChange={handleChange}
-            required
-            className="w-full h-12 px-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[var(--primary)]"
-          >
-            <option value="" disabled>Seleccionar...</option>
-            {deportes.map((dep, i) => (
-              <option key={i} value={dep.nombre}>{dep.nombre}</option>
-            ))}
-          </select>
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Disciplinas / Deportes</label>
+          <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-1">
+            {deportes.map((dep) => {
+              const isSelected = selectedDeporteIds.includes(dep.id);
+              return (
+                <button
+                  key={dep.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDeporteIds(prev =>
+                      prev.includes(dep.id)
+                        ? prev.filter(id => id !== dep.id)
+                        : [...prev, dep.id]
+                    );
+                  }}
+                  className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all text-left ${
+                    isSelected
+                      ? 'bg-[var(--primary)] border-[var(--primary)] text-black'
+                      : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/30'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded flex items-center justify-center text-[8px] font-black transition-all ${
+                    isSelected ? 'bg-black/20 text-black' : 'bg-gray-200 dark:bg-white/10 text-transparent'
+                  }`}>
+                    {isSelected ? '✓' : ''}
+                  </div>
+                  {dep.nombre}
+                </button>
+              );
+            })}
+          </div>
+          {selectedDeporteIds.length === 0 && (
+            <p className="text-[9px] text-red-500 italic px-1">Selecciona al menos una disciplina</p>
+          )}
         </div>
       </div>
 
@@ -256,7 +303,7 @@ function GeneralInfoSection({ escenarioId, escenario, onSuccess }: Props) {
           </select>
         </div>
 
-        <Input label="Nombre del Responsable en Sede" name="responsable_nombre" value={formData.responsable_nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
+        <Input label="Nombre del Responsable del Escenario" name="responsable_nombre" value={formData.responsable_nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
 
         <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 space-y-4">
           <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest text-center">Supervisor / Auditor</p>

@@ -63,7 +63,7 @@ const INITIAL_FORM = {
 
 export default function EscenarioJugadores() {
   const { profile } = useAuth();
-  const [jugadores, setJugadores] = useState<Deportista[]>([]);
+  const [deportistas, setDeportistas] = useState<Deportista[]>([]);
   const [clubes, setClubes] = useState<ClubOption[]>([]);
   const [equipos, setEquipos] = useState<EquipoOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +96,7 @@ export default function EscenarioJugadores() {
         .from('deportistas')
         .select('*, club:clubes!deportistas_club_id_fkey(nombre), equipo:equipos!deportistas_equipo_id_fkey(nombre)')
         .order('created_at', { ascending: false });
-      setJugadores(d || []);
+      setDeportistas(d || []);
 
       const { data: c } = await supabase.from('clubes').select('id, nombre').order('nombre');
       setClubes(c || []);
@@ -134,11 +134,11 @@ export default function EscenarioJugadores() {
       if (editId) {
         const { error } = await supabase.from('deportistas').update(payload).eq('id', editId);
         if (error) throw error;
-        setSuccessMsg('Jugador actualizado correctamente');
+        setSuccessMsg('Deportista actualizado correctamente');
       } else {
         const { error } = await supabase.from('deportistas').insert(payload);
         if (error) throw error;
-        setSuccessMsg('Jugador creado correctamente');
+        setSuccessMsg('Deportista creado correctamente');
       }
 
       setIsModalOpen(false);
@@ -188,7 +188,7 @@ export default function EscenarioJugadores() {
     setFormError(null);
   };
 
-  const filtered = jugadores.filter(j => {
+  const filtered = deportistas.filter(j => {
     const q = search.toLowerCase();
     const matchesSearch = j.nombre_completo.toLowerCase().includes(q) ||
                          j.apellidos.toLowerCase().includes(q) ||
@@ -212,7 +212,7 @@ export default function EscenarioJugadores() {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#182332] tracking-tight">Jugadores</h2>
+            <h2 className="text-xl font-bold text-[#182332] tracking-tight">Deportistas</h2>
             <p className="text-xs text-gray-500">Gestión de deportistas registrados en el sistema.</p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function EscenarioJugadores() {
           </Button>
           <Button onClick={() => { resetForm(); setIsModalOpen(true); }} className="h-10 px-5 bg-[var(--primary)] text-black font-bold hover:brightness-90 transition-all flex items-center gap-2">
             <Plus className="w-3.5 h-3.5" />
-            Agregar Jugador
+            Nuevo Deportista
           </Button>
         </div>
       </div>
@@ -255,12 +255,12 @@ export default function EscenarioJugadores() {
       {loading ? (
         <div className="p-8 text-center text-gray-500 flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 animate-spin text-[#182332]" />
-          <p className="italic">Cargando jugadores...</p>
+          <p className="italic">Cargando deportistas...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="p-12 text-center border-2 border-dashed border-gray-200 rounded-2xl">
           <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-sm text-gray-400">No hay jugadores registrados.</p>
+          <p className="text-sm text-gray-400">No hay deportistas registrados.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
@@ -268,7 +268,7 @@ export default function EscenarioJugadores() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/80 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Jugador</th>
+                  <th className="px-5 py-3">Deportista</th>
                   <th className="px-5 py-3">Documento</th>
                   <th className="px-5 py-3">Contacto</th>
                   <th className="px-5 py-3">Club</th>
@@ -345,7 +345,7 @@ export default function EscenarioJugadores() {
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); resetForm(); }} title={editId ? 'Editar Jugador' : 'Agregar Jugador'} maxWidth="max-w-2xl">
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); resetForm(); }} title={editId ? 'Editar Deportista' : 'Agregar Deportista'} maxWidth="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-5">
           {formError && <p className="text-xs text-red-500 bg-red-50 p-3 rounded-xl font-bold">{formError}</p>}
 
@@ -356,7 +356,7 @@ export default function EscenarioJugadores() {
                 value={form.nombre_completo}
                 onChange={e => setForm(f => ({ ...f, nombre_completo: e.target.value }))}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#182332] transition-all"
-                placeholder="Nombre del jugador"
+                placeholder="Nombre del deportista"
               />
             </div>
             <div className="space-y-1.5">
@@ -365,7 +365,7 @@ export default function EscenarioJugadores() {
                 value={form.apellidos}
                 onChange={e => setForm(f => ({ ...f, apellidos: e.target.value }))}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#182332] transition-all"
-                placeholder="Apellidos del jugador"
+                placeholder="Apellidos del deportista"
               />
             </div>
           </div>
@@ -491,13 +491,13 @@ export default function EscenarioJugadores() {
               Cancelar
             </Button>
             <Button isLoading={saving} disabled={saving} className="flex-[2] h-12 bg-[var(--primary)] text-black font-bold hover:brightness-90 transition-all">
-              {editId ? 'Guardar Cambios' : 'Crear Jugador'}
+              {editId ? 'Guardar Cambios' : 'Crear Deportista'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* MODAL FICHA JUGADOR */}
+      {/* MODAL FICHA DEPORTISTA */}
       {selectedPlayer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedPlayer(null)}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>

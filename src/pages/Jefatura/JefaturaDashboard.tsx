@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Building2, Users, Calendar, CheckSquare, Wrench, 
   AlertCircle, MessageSquare, TrendingUp, Search, 
   Plus, Edit2, Trash2, UserPlus, MapPin, Clock, BarChart3,
-  DollarSign, Wallet, Trophy, Activity
+  DollarSign, Wallet, Trophy, Activity, Filter
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -57,6 +57,9 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
   const [selectedPqrs, setSelectedPqrs] = useState<any>(null);
   const [pqrsResponse, setPqrsResponse] = useState('');
   const [isPqrsModalOpen, setIsPqrsModalOpen] = useState(false);
+  const today = new Date();
+  const [startDate, setStartDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
 
   useEffect(() => {
     if (user) {
@@ -103,12 +106,16 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
 
   const fetchIndicators = async () => {
     setLoading(true);
+    const endDateTime = endDate + 'T23:59:59';
     try {
-      // 1. Usuarios Únicos (Histórico completo para validar datos)
-      const { data: resData } = await supabase
+      // 1. Usuarios Únicos
+      let resQuery = supabase
         .from('reserva_escenario')
         .select('tipo_reserva, deportista_id, equipo_id, estado, escenario_id, monto_total')
         .eq('estado', 'confirmada');
+      if (startDate) resQuery = resQuery.gte('created_at', startDate);
+      if (endDate) resQuery = resQuery.lte('created_at', endDateTime);
+      const { data: resData } = await resQuery;
       
       const uniquePlayers = new Set<string>();
 
@@ -133,43 +140,47 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
       }
 
       // 2. Clase (planificaciones), Entrenamiento & Evento (agenda_deportiva)
-      const { count: claseCount } = await supabase
-        .from('planificaciones')
-        .select('*', { count: 'exact', head: true });
+      let planifQuery = supabase.from('planificaciones').select('*', { count: 'exact', head: true });
+      if (startDate) planifQuery = planifQuery.gte('created_at', startDate);
+      if (endDate) planifQuery = planifQuery.lte('created_at', endDateTime);
+      const { count: claseCount } = await planifQuery;
 
-      const { count: entrenamientoCount } = await supabase
-        .from('agenda_deportiva')
-        .select('*', { count: 'exact', head: true })
-        .eq('tipo', 'entrenamiento');
+      let agendaEntQuery = supabase.from('agenda_deportiva').select('*', { count: 'exact', head: true }).eq('tipo', 'entrenamiento');
+      if (startDate) agendaEntQuery = agendaEntQuery.gte('created_at', startDate);
+      if (endDate) agendaEntQuery = agendaEntQuery.lte('created_at', endDateTime);
+      const { count: entrenamientoCount } = await agendaEntQuery;
 
-      const { count: eventoCount } = await supabase
-        .from('agenda_deportiva')
-        .select('*', { count: 'exact', head: true })
-        .eq('tipo', 'evento');
+      let agendaEvtQuery = supabase.from('agenda_deportiva').select('*', { count: 'exact', head: true }).eq('tipo', 'evento');
+      if (startDate) agendaEvtQuery = agendaEvtQuery.gte('created_at', startDate);
+      if (endDate) agendaEvtQuery = agendaEvtQuery.lte('created_at', endDateTime);
+      const { count: eventoCount } = await agendaEvtQuery;
 
       // 3. Ligas, Clubes, Deportistas
-      const { count: ligasCount } = await supabase
-        .from('ligas')
-        .select('*', { count: 'exact', head: true });
+      let ligasQuery = supabase.from('ligas').select('*', { count: 'exact', head: true });
+      if (startDate) ligasQuery = ligasQuery.gte('created_at', startDate);
+      if (endDate) ligasQuery = ligasQuery.lte('created_at', endDateTime);
+      const { count: ligasCount } = await ligasQuery;
 
-      const { count: clubesCount } = await supabase
-        .from('clubes')
-        .select('*', { count: 'exact', head: true });
+      let clubesQuery = supabase.from('clubes').select('*', { count: 'exact', head: true });
+      if (startDate) clubesQuery = clubesQuery.gte('created_at', startDate);
+      if (endDate) clubesQuery = clubesQuery.lte('created_at', endDateTime);
+      const { count: clubesCount } = await clubesQuery;
 
-      const { count: deportistasCount } = await supabase
-        .from('deportistas')
-        .select('*', { count: 'exact', head: true });
+      let deportistasQuery = supabase.from('deportistas').select('*', { count: 'exact', head: true });
+      if (startDate) deportistasQuery = deportistasQuery.gte('created_at', startDate);
+      if (endDate) deportistasQuery = deportistasQuery.lte('created_at', endDateTime);
+      const { count: deportistasCount } = await deportistasQuery;
 
       // 4. Entrenadores y Padres (perfiles por rol)
-      const { count: entrenadoresCount } = await supabase
-        .from('perfiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('rol', 'entrenador');
+      let entreQuery = supabase.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'entrenador');
+      if (startDate) entreQuery = entreQuery.gte('created_at', startDate);
+      if (endDate) entreQuery = entreQuery.lte('created_at', endDateTime);
+      const { count: entrenadoresCount } = await entreQuery;
 
-      const { count: padresCount } = await supabase
-        .from('perfiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('rol', 'padre');
+      let padresQuery = supabase.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'padre');
+      if (startDate) padresQuery = padresQuery.gte('created_at', startDate);
+      if (endDate) padresQuery = padresQuery.lte('created_at', endDateTime);
+      const { count: padresCount } = await padresQuery;
 
       setStats((prev: any) => ({
         ...prev,
@@ -184,10 +195,10 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
       }));
 
       // 2. PQRS Metrics
-      const { data: pqrsData } = await supabase
-        .from('pqrs')
-        .select('*')
-        .eq('destino_tipo', 'escenario');
+      let pqrsQuery = supabase.from('pqrs').select('*').eq('destino_tipo', 'escenario');
+      if (startDate) pqrsQuery = pqrsQuery.gte('created_at', startDate);
+      if (endDate) pqrsQuery = pqrsQuery.lte('created_at', endDateTime);
+      const { data: pqrsData } = await pqrsQuery;
 
       if (pqrsData) {
         setStats((prev: any) => ({ ...prev, pqrsTotal: pqrsData.length }));
@@ -205,7 +216,10 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
         // 4. Per-Venue Stats (Basado en las sedes encontradas)
         const venueStatsList = await Promise.all(escData.map(async (v: any) => {
           const venueRes = resData?.filter(r => r.escenario_id === v.id) || [];
-          const { data: venuePqrs } = await supabase.from('pqrs').select('id, estado').eq('escenario_id', v.id);
+          let vpqrsQuery = supabase.from('pqrs').select('id, estado').eq('escenario_id', v.id);
+          if (startDate) vpqrsQuery = vpqrsQuery.gte('created_at', startDate);
+          if (endDate) vpqrsQuery = vpqrsQuery.lte('created_at', endDateTime);
+          const { data: venuePqrs } = await vpqrsQuery;
           
           return {
             id: v.id,
@@ -232,11 +246,14 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
   };
 
   const fetchPqrs = async () => {
-    const { data } = await supabase
+    const endDateTime = endDate + 'T23:59:59';
+    let pqrsQuery = supabase
       .from('pqrs')
       .select('*, escenarios(nombre)')
       .eq('destino_tipo', 'escenario')
-      .order('created_at', { ascending: false });
+    if (startDate) pqrsQuery = pqrsQuery.gte('created_at', startDate);
+    if (endDate) pqrsQuery = pqrsQuery.lte('created_at', endDateTime);
+    const { data } = await pqrsQuery.order('created_at', { ascending: false });
     setPqrsList(data || []);
   };
 
@@ -281,9 +298,23 @@ export default function JefaturaDashboard({ defaultTab = 'indicators' }: { defau
           <h1 className="text-2xl font-bold text-[#182332] dark:text-white tracking-tight">Jefatura de Escenarios</h1>
           <p className="text-sm text-gray-400 mt-1">Dashboard estratégico e indicadores de gestión</p>
         </div>
-        <div className="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-full dark:bg-red-950/20 dark:border-red-900/30">
-          <Building2 size={14} className="text-[#E30613]" />
-          <span className="text-[11px] font-semibold text-[#E30613]">Panel General</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 px-3 py-1.5 rounded-full">
+            <Filter size={12} className="text-gray-400" />
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+              className="w-[130px] bg-transparent text-[11px] font-semibold text-gray-600 dark:text-gray-300 outline-none" />
+            <span className="text-gray-300 dark:text-gray-600">→</span>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+              className="w-[130px] bg-transparent text-[11px] font-semibold text-gray-600 dark:text-gray-300 outline-none" />
+          </div>
+          <button onClick={() => fetchIndicators()}
+            className="px-4 py-2 bg-[var(--primary)] text-black font-bold uppercase text-[10px] rounded-full hover:brightness-90 transition-all tracking-wider">
+            Filtrar
+          </button>
+          <div className="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-full dark:bg-red-950/20 dark:border-red-900/30">
+            <Building2 size={14} className="text-[#E30613]" />
+            <span className="text-[11px] font-semibold text-[#E30613]">Panel General</span>
+          </div>
         </div>
       </div>
 

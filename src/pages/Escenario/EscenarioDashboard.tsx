@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MapPin, Phone, Trophy, Users, Calendar as CalendarIcon, X, Building2, Edit2, Link as LinkIcon, QrCode, ShieldCheck, Share2, User, LayoutGrid, ChevronLeft, Mail, Clock, DollarSign, MessageCircle, Eye } from 'lucide-react';
+import { Plus, MapPin, Phone, Trophy, Users, Calendar as CalendarIcon, X, Building2, Edit2, Link as LinkIcon, QrCode, ShieldCheck, Share2, User, LayoutGrid, ChevronLeft, Mail, Clock, DollarSign, MessageCircle, Eye, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -64,12 +64,14 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [deleteState, setDeleteState] = useState<{ isOpen: boolean; escenario: any | null; password: string; isVerifying: boolean; error: string | null }>({ isOpen: false, escenario: null, password: '', isVerifying: false, error: null });
   const [formData, setFormData] = useState({
     nombre: '', direccion: '', telefono: '', correo: '', deporte: '',
     link_pago: '', qr_url: '', permite_clubes: true, permite_deportistas: true, gestor_id: '',
     responsable_nombre: '', supervisor_nombre: '', supervisor_correo: '', supervisor_area: ''
   });
   const [canchas, setCanchas] = useState<any[]>([]);
+  const [selectedDeporteIds, setSelectedDeporteIds] = useState<string[]>([]);
   const [newCanchaName, setNewCanchaName] = useState('');
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
   const [isWidgetsOpen, setIsWidgetsOpen] = useState(false);
@@ -99,7 +101,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
 
   const fetchDeportes = async () => {
     try {
-      const { data } = await supabase.from('deportes').select('nombre').order('nombre');
+      const { data } = await supabase.from('deportes').select('id, nombre').order('nombre');
       setDeportes(data || []);
     } catch (e) { console.error(e); }
   };
@@ -320,9 +322,11 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         supervisor_area: escenario.supervisor_area || ''
       });
       fetchCanchas(escenario.id);
+      fetchEscenarioDeportes(escenario.id);
     } else {
       setEditingId(null);
       setCanchas([]);
+      setSelectedDeporteIds([]);
       setFormData({ 
         nombre: '', direccion: '', telefono: '', correo: '', deporte: '', 
         link_pago: '', qr_url: '', permite_clubes: true, permite_deportistas: true, gestor_id: '',
@@ -332,9 +336,44 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
     setIsModalOpen(true);
   };
 
+  const openDeleteConfirm = (escenario: any) => {
+    setDeleteState({ isOpen: true, escenario, password: '', isVerifying: false, error: null });
+  };
+
+  const executeSecureDelete = async () => {
+    if (!deleteState.escenario) return;
+    setDeleteState(prev => ({ ...prev, isVerifying: true, error: null }));
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: authUser?.email || '',
+        password: deleteState.password
+      });
+      if (authError) throw new Error('CONTRASEÑA INCORRECTA');
+
+      const { error: deleteError } = await supabase.from('escenarios').delete().eq('id', deleteState.escenario.id);
+      if (deleteError) throw deleteError;
+
+      setSuccessMsg(`"${deleteState.escenario.nombre}" eliminado permanentemente`);
+      setDeleteState(prev => ({ ...prev, isOpen: false }));
+      fetchEscenarios();
+    } catch (error: any) {
+      setDeleteState(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setDeleteState(prev => ({ ...prev, isVerifying: false }));
+    }
+  };
+
   const fetchCanchas = async (escenarioId: string) => {
     const { data } = await supabase.from('escenario_canchas').select('*').eq('escenario_id', escenarioId);
     setCanchas(data || []);
+  };
+
+  const fetchEscenarioDeportes = async (escenarioId: string) => {
+    try {
+      const { data } = await supabase.from('escenario_deportes').select('deporte_id').eq('escenario_id', escenarioId);
+      setSelectedDeporteIds(data?.map((ed: any) => ed.deporte_id) || []);
+    } catch (e) { console.warn('escenario_deportes no disponible', e); setSelectedDeporteIds([]); }
   };
 
   const handleAddCancha = async (e?: React.MouseEvent) => {
@@ -352,7 +391,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         if (error) throw error;
         if (data) setCanchas([...canchas, data[0]]);
       } else {
-        // Si es nueva sede, guardar temporalmente en estado
+        // Si es nuevo escenario, guardar temporalmente en estado
         setCanchas([...canchas, { nombre: newCanchaName, tempId: Date.now() }]);
       }
       setNewCanchaName('');
@@ -374,11 +413,16 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
+    if (selectedDeporteIds.length === 0) {
+      alert('Debes seleccionar al menos una disciplina/deporte');
+      return;
+    }
     setSaving(true);
     try {
+      const primaryDeporte = deportes.find(d => d.id === selectedDeporteIds[0])?.nombre || '';
       const payload = {
         nombre: formData.nombre, direccion: formData.direccion, telefono: formData.telefono,
-        correo: formData.correo, deporte: formData.deporte, link_pago: formData.link_pago,
+        correo: formData.correo, deporte: primaryDeporte, link_pago: formData.link_pago,
         qr_url: formData.qr_url, permite_clubes: formData.permite_clubes,
         permite_deportistas: formData.permite_deportistas, gestor_id: formData.gestor_id || null,
         administrador_id: user.id,
@@ -390,20 +434,33 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
       if (editingId) {
         const { error } = await supabase.from('escenarios').update(payload).eq('id', editingId);
         if (error) throw error;
+        try { await syncEscenarioDeportes(editingId); } catch (e) { console.warn('escenario_deportes no disponible', e); }
       } else {
         const { data, error } = await supabase.from('escenarios').insert([payload]).select();
         if (error) throw error;
-        
-        // Guardar canchas temporales si es nueva sede
-        if (data && canchas.length > 0) {
-          const canchasPayload = canchas.map(c => ({ escenario_id: data[0].id, nombre: c.nombre }));
+        const newId = data![0].id;
+        try { await syncEscenarioDeportes(newId); } catch (e) { console.warn('escenario_deportes no disponible', e); }
+        if (canchas.length > 0) {
+          const canchasPayload = canchas.map(c => ({ escenario_id: newId, nombre: c.nombre }));
           await supabase.from('escenario_canchas').insert(canchasPayload);
         }
       }
       setIsModalOpen(false);
-      setSuccessMsg(editingId ? 'Sede renovada' : 'Sede inaugurada');
+      setSuccessMsg(editingId ? 'Escenario actualizado' : 'Escenario creado');
       await fetchEscenarios();
     } catch (error: any) { alert(error.message); } finally { setSaving(false); }
+  };
+
+  const syncEscenarioDeportes = async (escenarioId: string) => {
+    await supabase.from('escenario_deportes').delete().eq('escenario_id', escenarioId);
+    if (selectedDeporteIds.length > 0) {
+      const inserts = selectedDeporteIds.map(deporteId => ({
+        escenario_id: escenarioId,
+        deporte_id: deporteId
+      }));
+      const { error } = await supabase.from('escenario_deportes').insert(inserts);
+      if (error) throw error;
+    }
   };
 
   return (
@@ -412,7 +469,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
         <div>
           <h1 className="text-2xl font-bold text-[#182332] dark:text-white tracking-tight">
             {view === 'list' 
-                ? (profile?.rol === 'deportista' || profile?.rol === 'admin_club' ? 'Explorador de Sedes' : 'Centro de Infraestructura') 
+                ? (profile?.rol === 'deportista' || profile?.rol === 'admin_club' ? 'Explorador de Escenarios' : 'Centro de Infraestructura') 
                 : 'Control de Reservas'}
           </h1>
           <div className="flex gap-2 mt-2">
@@ -420,7 +477,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
               onClick={() => { setView('list'); setSelectedEscenario(null); }}
               className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${view === 'list' ? 'bg-[#E30613] text-white shadow-sm' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-gray-700'}`}
             >
-              {profile?.rol === 'deportista' || profile?.rol === 'admin_club' ? 'Sedes Disponibles' : 'Mis Sedes'}
+              {profile?.rol === 'deportista' || profile?.rol === 'admin_club' ? 'Escenarios Disponibles' : 'Mis Escenarios'}
             </button>
           </div>
         </div>
@@ -431,7 +488,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
               onClick={() => handleOpenModal()}
               className="bg-[var(--primary)] text-black font-black uppercase italic tracking-widest text-[10px] rounded-xl h-10 px-5 transition-all hover:scale-105 active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />Nueva Sede
+              <Plus className="w-3.5 h-3.5 mr-1.5" />Nuevo Escenario
             </Button>
           )}
         </div>
@@ -1038,6 +1095,9 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
                       {(profile?.rol === 'admin_club' || profile?.rol === 'superadmin' || profile?.rol === 'jefatura') && (
                           <button onClick={() => handleOpenModal(esc)} className="bg-white/10 p-2.5 rounded-xl hover:bg-white hover:text-black text-white transition-all"><Edit2 size={14} /></button>
                       )}
+                      {(profile?.rol === 'admin_club' || profile?.rol === 'superadmin' || profile?.rol === 'jefatura') && (
+                          <button onClick={() => openDeleteConfirm(esc)} className="bg-white/10 p-2.5 rounded-xl hover:bg-red-500 hover:text-white text-white transition-all"><Trash2 size={14} /></button>
+                      )}
                     </div>
                   </div>
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#E30613]/10 rounded-full blur-[40px] -mr-16 -mt-16" />
@@ -1083,26 +1143,47 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editingId ? 'Refactorizar Sede' : 'Fundar Sede'}
+        title={editingId ? 'Editar Escenario' : 'Crear Escenario'}
         maxWidth="2xl"
       >
         <form onSubmit={handleSubmit} className="space-y-6 p-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nombre Operativo" required name="nombre" value={formData.nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Disciplina</label>
-              <select 
-                name="deporte" 
-                className="w-full h-12 px-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[#E30613]" 
-                value={formData.deporte} 
-                onChange={handleChange} 
-                required
-              >
-                <option value="" disabled className="text-gray-400">Seleccionar...</option>
-                {deportes.map((dep, idx) => (
-                  <option key={idx} value={dep.nombre} className="text-gray-900 dark:text-white bg-white dark:bg-[#1e293b]">{dep.nombre}</option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Disciplinas / Deportes</label>
+              <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-1">
+                {deportes.map((dep) => {
+                  const isSelected = selectedDeporteIds.includes(dep.id);
+                  return (
+                    <button
+                      key={dep.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDeporteIds(prev =>
+                          prev.includes(dep.id)
+                            ? prev.filter(id => id !== dep.id)
+                            : [...prev, dep.id]
+                        );
+                      }}
+                      className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all text-left ${
+                        isSelected
+                          ? 'bg-[var(--primary)] border-[var(--primary)] text-black'
+                          : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/30'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded flex items-center justify-center text-[8px] font-black transition-all ${
+                        isSelected ? 'bg-black/20 text-black' : 'bg-gray-200 dark:bg-white/10 text-transparent'
+                      }`}>
+                        {isSelected ? '✓' : ''}
+                      </div>
+                      {dep.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedDeporteIds.length === 0 && (
+                <p className="text-[9px] text-red-500 italic px-1">Selecciona al menos una disciplina</p>
+              )}
             </div>
           </div>
 
@@ -1133,7 +1214,7 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
               <h4 className="text-[10px] font-bold text-[#182332] dark:text-white uppercase tracking-wider">Staff & Supervisión Técnica</h4>
             </div>
             
-            <Input label="Nombre del Responsable en Sede" name="responsable_nombre" value={formData.responsable_nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
+            <Input label="Nombre del Responsable del Escenario" name="responsable_nombre" value={formData.responsable_nombre} onChange={handleChange} className="bg-gray-50 dark:bg-white/5 h-12 rounded-xl" />
             
             <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/5 space-y-4">
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">Datos del Supervisor / Auditor</p>
@@ -1274,6 +1355,41 @@ const EscenarioDashboard = ({ defaultView = 'list' }: { defaultView?: 'list' | '
           </div>
         </div>
       )}
+
+      <Modal isOpen={deleteState.isOpen} onClose={() => setDeleteState(prev => ({ ...prev, isOpen: false }))} title="Confirmar eliminación" maxWidth="max-w-md">
+        <div className="space-y-4">
+          <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 rounded-xl p-4">
+            <p className="text-sm font-bold text-red-700 dark:text-red-400 mb-1">¿Estás seguro de eliminar <span className="underline">{deleteState.escenario?.nombre}</span>?</p>
+            <p className="text-[11px] text-red-500">Esta acción no se puede deshacer. Ingresa tu contraseña para autorizar.</p>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Contraseña</label>
+            <input
+              type="password"
+              value={deleteState.password}
+              onChange={e => setDeleteState(prev => ({ ...prev, password: e.target.value }))}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white"
+              placeholder="••••••••"
+              autoFocus
+            />
+          </div>
+          {deleteState.error && (
+            <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider">{deleteState.error}</p>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" onClick={() => setDeleteState(prev => ({ ...prev, isOpen: false }))} className="flex-1 h-11 text-[11px] font-bold uppercase tracking-wider rounded-xl">
+              Cancelar
+            </Button>
+            <Button
+              onClick={executeSecureDelete}
+              disabled={!deleteState.password || deleteState.isVerifying}
+              className="flex-1 h-11 text-[11px] font-black uppercase italic tracking-wider rounded-xl bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+            >
+              {deleteState.isVerifying ? 'Verificando...' : 'Eliminar'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

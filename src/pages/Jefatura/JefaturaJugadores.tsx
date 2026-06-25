@@ -114,11 +114,11 @@ export default function JefaturaJugadores() {
       if (editId) {
         const { error } = await supabase.from('deportistas').update(payload).eq('id', editId);
         if (error) throw error;
-        setSuccessMsg('Jugador actualizado correctamente');
+        setSuccessMsg('Deportista actualizado correctamente');
       } else {
         const { error } = await supabase.from('deportistas').insert(payload);
         if (error) throw error;
-        setSuccessMsg('Jugador creado correctamente');
+        setSuccessMsg('Deportista creado correctamente');
       }
 
       setIsModalOpen(false);
@@ -191,7 +191,7 @@ export default function JefaturaJugadores() {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#182332] tracking-tight">Jugadores</h2>
+            <h2 className="text-xl font-bold text-[#182332] tracking-tight">Deportistas</h2>
             <p className="text-xs text-gray-500">Gestión de deportistas registrados en el sistema.</p>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function JefaturaJugadores() {
           </Button>
           <Button onClick={() => { resetForm(); setIsModalOpen(true); }} className="h-10 px-5 bg-[#182332] text-white rounded-xl text-xs font-bold hover:bg-[#bd0f10] transition-all flex items-center gap-2">
             <Plus className="w-3.5 h-3.5" />
-            Agregar Jugador
+            Nuevo Deportista
           </Button>
         </div>
       </div>
@@ -234,12 +234,12 @@ export default function JefaturaJugadores() {
       {loading ? (
         <div className="p-8 text-center text-gray-500 flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 animate-spin text-[#182332]" />
-          <p className="italic">Cargando jugadores...</p>
+          <p className="italic">Cargando deportistas...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="p-12 text-center border-2 border-dashed border-gray-200 rounded-2xl">
           <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-sm text-gray-400">No hay jugadores registrados.</p>
+          <p className="text-sm text-gray-400">No hay deportistas registrados.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
@@ -247,7 +247,7 @@ export default function JefaturaJugadores() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/80 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Jugador</th>
+                  <th className="px-5 py-3">Deportista</th>
                   <th className="px-5 py-3">Documento</th>
                   <th className="px-5 py-3">Contacto</th>
                   <th className="px-5 py-3">Club</th>
@@ -309,7 +309,7 @@ export default function JefaturaJugadores() {
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); resetForm(); }} title={editId ? 'Editar Jugador' : 'Agregar Jugador'} maxWidth="max-w-2xl">
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); resetForm(); }} title={editId ? 'Editar Deportista' : 'Nuevo Deportista'} maxWidth="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-5">
           {formError && <p className="text-xs text-red-500 bg-red-50 p-3 rounded-xl font-bold">{formError}</p>}
 
@@ -437,7 +437,7 @@ export default function JefaturaJugadores() {
               Cancelar
             </Button>
             <Button isLoading={saving} disabled={saving} className="flex-[2] h-12 bg-[#182332] text-white font-bold rounded-xl hover:bg-[#182332]/90 transition-all">
-              {editId ? 'Guardar Cambios' : 'Crear Jugador'}
+              {editId ? 'Guardar Cambios' : 'Crear Deportista'}
             </Button>
           </div>
         </form>
