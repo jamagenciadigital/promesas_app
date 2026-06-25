@@ -9,7 +9,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Toast } from '../../components/ui/Toast';
 import {
   Plus, Search, Trash2, Edit2, Package, Tag, Clock,
-  AlertTriangle, CheckCircle2, Layers, TrendingDown
+  AlertTriangle, CheckCircle2, Layers, TrendingUp, Box
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -208,25 +208,42 @@ export default function InventoryDashboard({ defaultScenarioId }: { defaultScena
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 md:h-32 bg-white/5 rounded-[32px] md:rounded-[40px] animate-pulse" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="h-[98px] bg-[#16171b] rounded-2xl animate-pulse" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'Total Activos', value: globalStats.total, icon: Layers, color: 'text-white', bg: 'bg-white/5' },
-            { label: 'Stock Crítico', value: globalStats.stockCritico, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-            { label: 'Buen Estado', value: globalStats.buenEstado, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-            { label: 'Para Reponer', value: globalStats.paraReponer, icon: TrendingDown, color: 'text-red-500', bg: 'bg-red-500/10' },
-          ].map((stat, i) => (
-            <div key={i} className={`${stat.bg} p-5 md:p-8 rounded-[32px] md:rounded-[40px] border border-white/5 relative overflow-hidden group`}>
-              <div className="relative z-10 space-y-1">
-                <p className="text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest italic">{stat.label}</p>
-                <h4 className={`text-2xl md:text-4xl font-black ${stat.color} italic tracking-tighter`}>{stat.value}</h4>
+            { label: 'Total Activos', value: globalStats.total, icon: Box, color: 'blue' },
+            { label: 'Stock Crítico', value: globalStats.stockCritico, icon: AlertTriangle, color: 'amber' },
+            { label: 'Buen Estado', value: globalStats.buenEstado, icon: CheckCircle2, color: 'emerald' },
+            { label: 'Para Reponer', value: globalStats.paraReponer, icon: Package, color: 'rose' },
+          ].map((stat, i) => {
+            const colorMap: Record<string, { bg: string, iconBg: string, icon: string, text: string }> = {
+              blue: { bg: 'bg-blue-100 dark:bg-blue-900/20', iconBg: 'bg-blue-100 dark:bg-blue-900/20', icon: 'text-blue-600 dark:text-blue-400', text: 'text-blue-500' },
+              amber: { bg: 'bg-amber-100 dark:bg-amber-900/20', iconBg: 'bg-amber-100 dark:bg-amber-900/20', icon: 'text-amber-600 dark:text-amber-400', text: 'text-amber-500' },
+              emerald: { bg: 'bg-emerald-100 dark:bg-emerald-900/20', iconBg: 'bg-emerald-100 dark:bg-emerald-900/20', icon: 'text-emerald-600 dark:text-emerald-400', text: 'text-emerald-500' },
+              rose: { bg: 'bg-rose-100 dark:bg-rose-900/20', iconBg: 'bg-rose-100 dark:bg-rose-900/20', icon: 'text-rose-600 dark:text-rose-400', text: 'text-rose-500' },
+            };
+            const c = colorMap[stat.color];
+            return (
+              <div key={i} className="bg-white dark:bg-[#16171b] border border-gray-100 dark:border-white/5 rounded-2xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-9 h-9 rounded-xl ${c.iconBg} flex items-center justify-center`}>
+                    <stat.icon size={18} className={c.icon} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-[#182332] dark:text-white">{stat.value}</p>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center gap-1 ${c.text}`}>
+                  <TrendingUp size={11} />
+                  <span className="text-[8px] font-bold uppercase tracking-wider">totales</span>
+                </div>
               </div>
-              <stat.icon className={`absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 md:w-12 md:h-12 ${stat.color} opacity-10 group-hover:scale-110 transition-transform`} />
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
